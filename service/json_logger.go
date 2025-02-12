@@ -11,7 +11,7 @@ import (
 	"github.com/kano-lab/aiwolf-nlp-server/model"
 )
 
-type AnalysisService struct {
+type JSONLogger struct {
 	gamesData        map[string]*GameData
 	outputDir        string
 	templateFilename string
@@ -28,16 +28,16 @@ type GameData struct {
 	requestMap   map[string]interface{}
 }
 
-func NewAnalysisService(config model.Config) *AnalysisService {
-	return &AnalysisService{
+func NewJSONLogger(config model.Config) *JSONLogger {
+	return &JSONLogger{
 		gamesData:        make(map[string]*GameData),
-		outputDir:        config.AnalysisService.OutputDir,
-		templateFilename: config.AnalysisService.Filename,
+		outputDir:        config.JSONLogger.OutputDir,
+		templateFilename: config.JSONLogger.Filename,
 		endGameStatus:    make(map[string]bool),
 	}
 }
 
-func (a *AnalysisService) TrackStartGame(id string, agents []*model.Agent) {
+func (j *JSONLogger) TrackStartGame(id string, agents []*model.Agent) {
 	gameData := &GameData{
 		id:           id,
 		agents:       make([]interface{}, 0),
@@ -56,7 +56,7 @@ func (a *AnalysisService) TrackStartGame(id string, agents []*model.Agent) {
 			},
 		)
 	}
-	filename := strings.ReplaceAll(a.templateFilename, "{game_id}", gameData.id)
+	filename := strings.ReplaceAll(j.templateFilename, "{game_id}", gameData.id)
 	filename = strings.ReplaceAll(filename, "{timestamp}", fmt.Sprintf("%d", time.Now().Unix()))
 	teams := make(map[string]struct{})
 	for _, agent := range gameData.agents {
@@ -73,27 +73,27 @@ func (a *AnalysisService) TrackStartGame(id string, agents []*model.Agent) {
 	filename = strings.ReplaceAll(filename, "{teams}", teamStr)
 	gameData.filename = filename
 
-	a.gamesData[id] = gameData
-	a.endGameStatus[id] = false
+	j.gamesData[id] = gameData
+	j.endGameStatus[id] = false
 }
 
-func (a *AnalysisService) TrackEndGame(id string, winSide model.Team) {
-	if gameData, exists := a.gamesData[id]; exists {
+func (j *JSONLogger) TrackEndGame(id string, winSide model.Team) {
+	if gameData, exists := j.gamesData[id]; exists {
 		gameData.winSide = winSide
-		a.endGameStatus[id] = true
-		a.saveGameData(id)
+		j.endGameStatus[id] = true
+		j.saveGameData(id)
 	}
 }
 
-func (a *AnalysisService) TrackStartRequest(id string, agent model.Agent, packet model.Packet) {
-	if gameData, exists := a.gamesData[id]; exists {
+func (j *JSONLogger) TrackStartRequest(id string, agent model.Agent, packet model.Packet) {
+	if gameData, exists := j.gamesData[id]; exists {
 		gameData.timestampMap[agent.Name] = time.Now().UnixNano()
 		gameData.requestMap[agent.Name] = packet
 	}
 }
 
-func (a *AnalysisService) TrackEndRequest(id string, agent model.Agent, response string, err error) {
-	if gameData, exists := a.gamesData[id]; exists {
+func (j *JSONLogger) TrackEndRequest(id string, agent model.Agent, response string, err error) {
+	if gameData, exists := j.gamesData[id]; exists {
 		timestamp := time.Now().UnixNano()
 		entry := map[string]interface{}{
 			"agent":              agent.String(),
@@ -116,12 +116,12 @@ func (a *AnalysisService) TrackEndRequest(id string, agent model.Agent, response
 		delete(gameData.timestampMap, agent.Name)
 		delete(gameData.requestMap, agent.Name)
 
-		a.saveGameData(id)
+		j.saveGameData(id)
 	}
 }
 
-func (a *AnalysisService) saveGameData(id string) {
-	if gameData, exists := a.gamesData[id]; exists {
+func (j *JSONLogger) saveGameData(id string) {
+	if gameData, exists := j.gamesData[id]; exists {
 		game := map[string]interface{}{
 			"game_id":  id,
 			"win_side": gameData.winSide,
@@ -132,10 +132,10 @@ func (a *AnalysisService) saveGameData(id string) {
 		if err != nil {
 			return
 		}
-		if _, err := os.Stat(a.outputDir); os.IsNotExist(err) {
-			os.Mkdir(a.outputDir, 0755)
+		if _, err := os.Stat(j.outputDir); os.IsNotExist(err) {
+			os.Mkdir(j.outputDir, 0755)
 		}
-		filePath := filepath.Join(a.outputDir, fmt.Sprintf("%s.json", gameData.filename))
+		filePath := filepath.Join(j.outputDir, fmt.Sprintf("%s.json", gameData.filename))
 		file, err := os.Create(filePath)
 		if err != nil {
 			return

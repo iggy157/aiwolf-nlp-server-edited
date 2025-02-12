@@ -14,7 +14,10 @@ type Config struct {
 			Host string `yaml:"host"`
 			Port int    `yaml:"port"`
 		} `yaml:"web_socket"`
-		SelfMatch bool `yaml:"self_match"`
+		Authentication struct {
+			Enable bool   `yaml:"enable"`
+			Secret string `yaml:"secret"`
+		} `yaml:"authentication"`
 	} `yaml:"server"`
 	Game struct {
 		AgentCount            int     `yaml:"agent_count"`
@@ -49,30 +52,25 @@ type Config struct {
 			Acceptable time.Duration `yaml:"acceptable"`
 		} `yaml:"timeout"`
 	} `yaml:"game"`
-	AnalysisService struct {
+	JSONLogger struct {
 		Enable    bool   `yaml:"enable"`
 		OutputDir string `yaml:"output_dir"`
 		Filename  string `yaml:"filename"`
-	} `yaml:"analysis_service"`
-	ApiService struct {
-		Enable             bool `yaml:"enable"`
-		PublishRunningGame bool `yaml:"publish_running_game"`
-	} `yaml:"api_service"`
-	DeprecatedLogService struct {
+	} `yaml:"json_logger"`
+	GameLogger struct {
 		Enable    bool   `yaml:"enable"`
 		OutputDir string `yaml:"output_dir"`
 		Filename  string `yaml:"filename"`
-	} `yaml:"deprecated_log_service"`
-	MatchOptimizer struct {
-		Enable       bool   `yaml:"enable"`
+	} `yaml:"game_logger"`
+	Matching struct {
+		SelfMatch    bool   `yaml:"self_match"`
+		IsOptimize   bool   `yaml:"is_optimize"`
 		TeamCount    int    `yaml:"team_count"`
 		GameCount    int    `yaml:"game_count"`
 		OutputPath   string `yaml:"output_path"`
 		InfiniteLoop bool   `yaml:"infinite_loop"`
-	} `yaml:"match_optimizer"`
+	} `yaml:"matching"`
 }
-
-const WebSocketExternalHost = "0.0.0.0"
 
 func LoadFromPath(path string) (*Config, error) {
 	data, err := os.ReadFile(path)

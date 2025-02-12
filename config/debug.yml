@@ -6,7 +6,9 @@ server:
   web_socket:
     host: "127.0.0.1" # ホスト名
     port: 8080 # ポート番号
-  self_match: false # 同じチーム名のエージェント同士のみをマッチングさせるか
+  authentication:
+    enable: True # トークンによる接続認証を有効にするか
+    secret: your-256-bit-secret # 秘密鍵
 
 game:
   agent_count: 5 # 1ゲームあたりのエージェント数
@@ -33,23 +35,20 @@ game:
     response: 120s # エージェントの生存確認のタイムアウト時間
     acceptable: 5s # サーバ側での猶予時間
 
-analysis_service:
-  enable: true # 分析サービスを有効にするか
-  output_dir: "./../log" # 分析結果の出力ディレクトリ
-  filename: "{game_id}" # 分析結果のファイル名
+json_logger:
+  enable: true # JSONログの出力を有効にするか
+  output_dir: "./log" # JSONログの出力ディレクトリ
+  filename: "{game_id}" # JSONログのファイル名
 
-api_service:
-  enable: true # APIサービスを有効にするか
-  publish_running_game: true # 進行中のゲームを公開するか
+game_logger:
+  enable: true # ゲームログの出力を有効にするか
+  output_dir: "./log" # ゲームログの出力ディレクトリ
+  filename: "{game_id}" # ゲームログのファイル名
 
-deprecated_log_service:
-  enable: true # 従来形式のログ出力サービスを有効にするか
-  output_dir: "./../log" # ログの出力ディレクトリ
-  filename: "{game_id}" # ログのファイル名
-
-match_optimizer:
-  enable: false # マッチオプティマイザを有効にするか
-  team_count: 7 # 参加するチーム数
-  game_count: 210 # 全体のゲーム数
-  output_path: "./../log/match_optimizer.json" # マッチ履歴の出力ファイル
-  infinite_loop: false # スケジュールされたマッチがすべて終了した場合に全体のゲーム数分のゲームを追加するか
+matching:
+  self_match: false # 同じチーム名のエージェント同士のみをマッチングさせるか
+  is_optimize: false # 最適化した組み合わせマッチングを有効にするか (self_match が false の場合に限る)
+  team_count: 5 # 参加するチーム数
+  game_count: 30 # 全体のゲーム数
+  output_path: "./log/match_optimizer.json" # マッチ履歴の出力ファイル
+  infinite_loop: false # 組み合わせマッチングがすべて終了した場合に全体のゲーム数分のゲームを追加するか

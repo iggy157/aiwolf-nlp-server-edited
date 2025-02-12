@@ -9,8 +9,6 @@ require (
 	golang.org/x/exp v0.0.0-20241217172543-b2144cdd0a67
 )
 
-require github.com/knz/go-libedit v1.10.1 // indirect
-
 require (
 	github.com/bytedance/sonic v1.12.6 // indirect
 	github.com/bytedance/sonic/loader v0.2.1 // indirect
@@ -22,6 +20,7 @@ require (
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/go-playground/validator/v10 v10.23.0 // indirect
 	github.com/goccy/go-json v0.10.4 // indirect
+	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.9 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect

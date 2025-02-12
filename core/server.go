@@ -5,7 +5,9 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"runtime"
 	"strconv"
+	"strings"
 	"sync"
 	"syscall"
 	"time"
@@ -19,17 +21,16 @@ import (
 )
 
 type Server struct {
-	config               model.Config
-	upgrader             websocket.Upgrader
-	waitingRoom          *WaitingRoom
-	matchOptimizer       *MatchOptimizer
-	gameSettings         *model.Settings
-	games                []*logic.Game
-	mu                   sync.RWMutex
-	signaled             bool
-	analysisService      *service.AnalysisService
-	apiService           *service.ApiService
-	deprecatedLogService *service.DeprecatedLogService
+	config         model.Config
+	upgrader       websocket.Upgrader
+	waitingRoom    *WaitingRoom
+	matchOptimizer *MatchOptimizer
+	gameSettings   *model.Settings
+	games          []*logic.Game
+	mu             sync.RWMutex
+	signaled       bool
+	jsonLogger     *service.JSONLogger
+	gameLogger     *service.GameLogger
 }
 
 func NewServer(config model.Config) *Server {
@@ -51,20 +52,13 @@ func NewServer(config model.Config) *Server {
 		return nil
 	}
 	server.gameSettings = gameSettings
-	if config.AnalysisService.Enable {
-		server.analysisService = service.NewAnalysisService(config)
+	if config.JSONLogger.Enable {
+		server.jsonLogger = service.NewJSONLogger(config)
 	}
-	if config.ApiService.Enable {
-		if server.analysisService == nil {
-			slog.Error("APIサービスの作成に失敗しました", "error", "analysis service is nil")
-		} else {
-			server.apiService = service.NewApiService(server.analysisService, config)
-		}
+	if config.GameLogger.Enable {
+		server.gameLogger = service.NewGameLogger(config)
 	}
-	if config.DeprecatedLogService.Enable {
-		server.deprecatedLogService = service.NewDeprecatedLogService(config)
-	}
-	if config.MatchOptimizer.Enable {
+	if config.Matching.IsOptimize {
 		matchOptimizer, err := NewMatchOptimizer(config)
 		if err != nil {
 			slog.Error("マッチオプティマイザの作成に失敗しました", "error", err)
@@ -79,13 +73,13 @@ func (s *Server) Run() {
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
 
+	router.Use(func(c *gin.Context) {
+		c.Header("Server", "aiwolf-nlp-server/"+Version.Version+" "+runtime.Version()+" ("+runtime.GOOS+"; "+runtime.GOARCH+")")
+	})
+
 	router.GET("/ws", func(c *gin.Context) {
 		s.handleConnections(c.Writer, c.Request)
 	})
-
-	if s.config.ApiService.Enable {
-		s.apiService.RegisterRoutes(router)
-	}
 
 	go func() {
 		trap := make(chan os.Signal, 1)
@@ -129,21 +123,31 @@ func (s *Server) handleConnections(w http.ResponseWriter, r *http.Request) {
 		slog.Warn("シグナルを受信したため、新しい接続を受け付けません")
 		return
 	}
+	header := r.Header.Clone()
 	ws, err := s.upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		slog.Error("クライアントのアップグレードに失敗しました", "error", err)
 		return
 	}
-	connection, err := model.NewConnection(ws)
+	conn, err := model.NewConnection(ws, &header)
 	if err != nil {
 		slog.Error("クライアントの接続に失敗しました", "error", err)
 		return
 	}
-	s.waitingRoom.AddConnection(connection.Team, *connection)
+	if s.config.Server.Authentication.Enable {
+		token := strings.ReplaceAll(conn.Header.Get("Authorization"), "Bearer ", "")
+		if !util.IsValidPlayerToken(s.config.Server.Authentication.Secret, token, conn.Team) {
+			slog.Warn("トークンが無効です", "team", conn.Team)
+			conn.Conn.Close()
+			slog.Info("クライアントの接続を切断しました", "team", conn.Team)
+			return
+		}
+	}
+	s.waitingRoom.AddConnection(conn.Team, *conn)
 
 	s.mu.Lock()
 	var game *logic.Game
-	if s.config.MatchOptimizer.Enable {
+	if s.config.Matching.IsOptimize {
 		for team := range s.waitingRoom.connections {
 			s.matchOptimizer.updateTeam(team)
 		}
@@ -164,18 +168,18 @@ func (s *Server) handleConnections(w http.ResponseWriter, r *http.Request) {
 		}
 		game = logic.NewGame(&s.config, s.gameSettings, connections)
 	}
-	if s.analysisService != nil {
-		game.SetAnalysisService(s.analysisService)
+	if s.jsonLogger != nil {
+		game.SetAnalysisService(s.jsonLogger)
 	}
-	if s.deprecatedLogService != nil {
-		game.SetDeprecatedLogService(s.deprecatedLogService)
+	if s.gameLogger != nil {
+		game.SetDeprecatedLogService(s.gameLogger)
 	}
 	s.games = append(s.games, game)
 	s.mu.Unlock()
 
 	go func() {
 		winSide := game.Start()
-		if s.config.MatchOptimizer.Enable {
+		if s.config.Matching.IsOptimize {
 			s.mu.Lock()
 			defer s.mu.Unlock()
 			if winSide != model.T_NONE {

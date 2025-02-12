@@ -20,8 +20,8 @@ type Game struct {
 	LastTalkIdxMap       map[*model.Agent]int
 	LastWhisperIdxMap    map[*model.Agent]int
 	IsFinished           bool
-	AnalysisService      *service.AnalysisService
-	DeprecatedLogService *service.DeprecatedLogService
+	AnalysisService      *service.JSONLogger
+	DeprecatedLogService *service.GameLogger
 }
 
 func NewGame(config *model.Config, settings *model.Settings, conns []model.Connection) *Game {
@@ -64,11 +64,11 @@ func NewGameWithRole(config *model.Config, settings *model.Settings, roleMapConn
 	}
 }
 
-func (g *Game) SetAnalysisService(analysisService *service.AnalysisService) {
+func (g *Game) SetAnalysisService(analysisService *service.JSONLogger) {
 	g.AnalysisService = analysisService
 }
 
-func (g *Game) SetDeprecatedLogService(deprecatedLogService *service.DeprecatedLogService) {
+func (g *Game) SetDeprecatedLogService(deprecatedLogService *service.GameLogger) {
 	g.DeprecatedLogService = deprecatedLogService
 }
 
