@@ -13,18 +13,18 @@ import (
 type Game struct {
 	Config               *model.Config
 	ID                   string
-	Settings             *model.Settings
+	Settings             *model.Setting
 	Agents               []*model.Agent
 	CurrentDay           int
 	GameStatuses         map[int]*model.GameStatus
 	LastTalkIdxMap       map[*model.Agent]int
 	LastWhisperIdxMap    map[*model.Agent]int
 	IsFinished           bool
-	AnalysisService      *service.AnalysisService
-	DeprecatedLogService *service.DeprecatedLogService
+	AnalysisService      *service.JSONLogger
+	DeprecatedLogService *service.GameLogger
 }
 
-func NewGame(config *model.Config, settings *model.Settings, conns []model.Connection) *Game {
+func NewGame(config *model.Config, settings *model.Setting, conns []model.Connection) *Game {
 	id := ulid.Make().String()
 	agents := util.CreateAgents(conns, settings.RoleNumMap)
 	gameStatus := model.NewInitializeGameStatus(agents)
@@ -44,7 +44,7 @@ func NewGame(config *model.Config, settings *model.Settings, conns []model.Conne
 	}
 }
 
-func NewGameWithRole(config *model.Config, settings *model.Settings, roleMapConns map[model.Role][]model.Connection) *Game {
+func NewGameWithRole(config *model.Config, settings *model.Setting, roleMapConns map[model.Role][]model.Connection) *Game {
 	id := ulid.Make().String()
 	agents := util.CreateAgentsWithRole(roleMapConns)
 	gameStatus := model.NewInitializeGameStatus(agents)
@@ -64,11 +64,11 @@ func NewGameWithRole(config *model.Config, settings *model.Settings, roleMapConn
 	}
 }
 
-func (g *Game) SetAnalysisService(analysisService *service.AnalysisService) {
+func (g *Game) SetAnalysisService(analysisService *service.JSONLogger) {
 	g.AnalysisService = analysisService
 }
 
-func (g *Game) SetDeprecatedLogService(deprecatedLogService *service.DeprecatedLogService) {
+func (g *Game) SetDeprecatedLogService(deprecatedLogService *service.GameLogger) {
 	g.DeprecatedLogService = deprecatedLogService
 }
 

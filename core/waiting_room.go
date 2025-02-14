@@ -19,7 +19,7 @@ type WaitingRoom struct {
 func NewWaitingRoom(config model.Config) *WaitingRoom {
 	return &WaitingRoom{
 		agentCount:  config.Game.AgentCount,
-		selfMatch:   config.Server.SelfMatch,
+		selfMatch:   config.Matching.SelfMatch,
 		connections: make(map[string][]model.Connection),
 	}
 }

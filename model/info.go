@@ -38,7 +38,7 @@ func (i Info) MarshalJSON() ([]byte, error) {
 	})
 }
 
-func NewInfo(agent *Agent, gameStatus *GameStatus, lastGameStatus *GameStatus, settings *Settings) Info {
+func NewInfo(agent *Agent, gameStatus *GameStatus, lastGameStatus *GameStatus, settings *Setting) Info {
 	info := Info{
 		Day:   gameStatus.Day,
 		Agent: agent,

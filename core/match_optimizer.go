@@ -95,7 +95,7 @@ func (mo *MatchOptimizer) UnmarshalJSON(data []byte) error {
 }
 
 func NewMatchOptimizer(config model.Config) (*MatchOptimizer, error) {
-	data, err := os.ReadFile(config.MatchOptimizer.OutputPath)
+	data, err := os.ReadFile(config.Matching.OutputPath)
 	if err != nil {
 		slog.Warn("マッチオプティマイザの読み込みに失敗しました", "error", err)
 		return NewMatchOptimizerFromConfig(config)
@@ -105,7 +105,7 @@ func NewMatchOptimizer(config model.Config) (*MatchOptimizer, error) {
 		slog.Error("マッチオプティマイザのパースに失敗しました", "error", err)
 		return nil, err
 	}
-	mo.outputPath = config.MatchOptimizer.OutputPath
+	mo.outputPath = config.Matching.OutputPath
 	mo.save()
 	return &mo, nil
 }
@@ -117,10 +117,10 @@ func NewMatchOptimizerFromConfig(config model.Config) (*MatchOptimizer, error) {
 		return nil, errors.New("対応する役職の人数がありません")
 	}
 	mo := &MatchOptimizer{
-		outputPath:   config.MatchOptimizer.OutputPath,
-		InfiniteLoop: config.MatchOptimizer.InfiniteLoop,
-		TeamCount:    config.MatchOptimizer.TeamCount,
-		GameCount:    config.MatchOptimizer.GameCount,
+		outputPath:   config.Matching.OutputPath,
+		InfiniteLoop: config.Matching.InfiniteLoop,
+		TeamCount:    config.Matching.TeamCount,
+		GameCount:    config.Matching.GameCount,
 		RoleNumMap:   roleNumMap,
 		IdxTeamMap:   map[int]string{},
 	}

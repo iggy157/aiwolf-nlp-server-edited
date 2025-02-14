@@ -13,7 +13,7 @@ import (
 )
 
 func Analyzer(config model.Config) {
-	data, err := os.ReadFile(config.MatchOptimizer.OutputPath)
+	data, err := os.ReadFile(config.Matching.OutputPath)
 	if err != nil {
 		slog.Warn("マッチオプティマイザの読み込みに失敗しました", "error", err)
 		return
@@ -61,10 +61,10 @@ func Analyzer(config model.Config) {
 		slog.Info("終了した役職を取得しました", "idx", idx, "roles", endedRoles, "sum", sum)
 	}
 
-	if config.DeprecatedLogService.Enable {
+	if config.GameLogger.Enable {
 		slog.Info("ログサービスの統計データを分析します")
 
-		filePaths, err := filepath.Glob(filepath.Join(config.DeprecatedLogService.OutputDir, "*.log"))
+		filePaths, err := filepath.Glob(filepath.Join(config.GameLogger.OutputDir, "*.log"))
 		if err != nil {
 			slog.Warn("ファイルの取得に失敗しました", "error", err)
 		}
@@ -161,7 +161,7 @@ func Analyzer(config model.Config) {
 func Reduction(src model.Config, dst model.Config) {
 	Analyzer(dst)
 
-	srcData, err := os.ReadFile(src.MatchOptimizer.OutputPath)
+	srcData, err := os.ReadFile(src.Matching.OutputPath)
 	if err != nil {
 		slog.Warn("マッチオプティマイザの読み込みに失敗しました", "error", err)
 		return
@@ -172,7 +172,7 @@ func Reduction(src model.Config, dst model.Config) {
 		return
 	}
 
-	dstData, err := os.ReadFile(dst.MatchOptimizer.OutputPath)
+	dstData, err := os.ReadFile(dst.Matching.OutputPath)
 	if err != nil {
 		slog.Warn("マッチオプティマイザの読み込みに失敗しました", "error", err)
 		return

@@ -15,6 +15,8 @@ var (
 )
 
 func main() {
+	core.SetVersion(version, revision, build)
+
 	var (
 		configPath    = flag.String("c", "./default.yml", "設定ファイルのパス")
 		analyzerMode  = flag.Bool("a", false, "解析モード")
@@ -27,9 +29,9 @@ func main() {
 	flag.Parse()
 
 	if *showVersion {
-		println("version:", version)
-		println("revision:", revision)
-		println("build:", build)
+		println("version:", core.Version.Version)
+		println("revision:", core.Version.Revision)
+		println("build:", core.Version.Build)
 		os.Exit(0)
 	}
 

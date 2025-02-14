@@ -5,7 +5,7 @@ import (
 	"errors"
 )
 
-type Settings struct {
+type Setting struct {
 	PlayerNum        int          `json:"playerNum"`
 	RoleNumMap       map[Role]int `json:"roleNumMap"`
 	MaxTalk          int          `json:"maxTalk"`
@@ -22,12 +22,12 @@ type Settings struct {
 	MaxAttackRevote  int          `json:"maxAttackRevote"`
 }
 
-func NewSettings(config Config) (*Settings, error) {
+func NewSetting(config Config) (*Setting, error) {
 	roleNumMap := Roles(config.Game.AgentCount)
 	if roleNumMap == nil {
 		return nil, errors.New("対応する役職の人数がありません")
 	}
-	return &Settings{
+	return &Setting{
 		PlayerNum:        config.Game.AgentCount,
 		RoleNumMap:       roleNumMap,
 		MaxTalk:          config.Game.Talk.MaxCount.PerAgent,
@@ -45,12 +45,12 @@ func NewSettings(config Config) (*Settings, error) {
 	}, nil
 }
 
-func (s Settings) MarshalJSON() ([]byte, error) {
+func (s Setting) MarshalJSON() ([]byte, error) {
 	roleNumMap := make(map[string]int)
 	for k, v := range s.RoleNumMap {
 		roleNumMap[k.String()] = v
 	}
-	type Alias Settings
+	type Alias Setting
 	return json.Marshal(&struct {
 		*Alias
 		RoleNumMap map[string]int `json:"roleNumMap"`

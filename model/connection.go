@@ -3,18 +3,20 @@ package model
 import (
 	"encoding/json"
 	"log/slog"
+	"net/http"
 	"strings"
 
 	"github.com/gorilla/websocket"
 )
 
 type Connection struct {
-	Team string
-	Name string
-	Conn *websocket.Conn
+	Team   string
+	Name   string
+	Conn   *websocket.Conn
+	Header *http.Header
 }
 
-func NewConnection(conn *websocket.Conn) (*Connection, error) {
+func NewConnection(conn *websocket.Conn, header *http.Header) (*Connection, error) {
 	req, err := json.Marshal(Packet{
 		Request: &R_NAME,
 	})
@@ -36,9 +38,10 @@ func NewConnection(conn *websocket.Conn) (*Connection, error) {
 	name := strings.TrimRight(string(res), "\n")
 	team := strings.TrimRight(name, "1234567890")
 	connection := Connection{
-		Team: team,
-		Name: name,
-		Conn: conn,
+		Team:   team,
+		Name:   name,
+		Conn:   conn,
+		Header: header,
 	}
 	slog.Info("クライアントが接続しました", "team", team, "name", name, "remote_addr", conn.RemoteAddr().String())
 	return &connection, nil
