@@ -20,7 +20,7 @@ jobs:
       - name: Test with the Go CLI
         run: go test -race -ldflags "-X main.version=$(git describe --tag --abbrev=0) -X main.revision=$(git rev-list -1 HEAD) -X main.build=$(git describe --tags)" -v ./...
       - name: Upload analysis result
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: analysis-result
           path: log/*.json
