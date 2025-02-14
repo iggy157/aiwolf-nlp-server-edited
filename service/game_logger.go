@@ -11,9 +11,9 @@ import (
 )
 
 type GameLogger struct {
-	deprecatedLogsData map[string]*GameLog
-	outputDir          string
-	templateFilename   string
+	data             map[string]*GameLog
+	outputDir        string
+	templateFilename string
 }
 
 type GameLog struct {
@@ -25,19 +25,19 @@ type GameLog struct {
 
 func NewGameLogger(config model.Config) *GameLogger {
 	return &GameLogger{
-		deprecatedLogsData: make(map[string]*GameLog),
-		outputDir:          config.GameLogger.OutputDir,
-		templateFilename:   config.GameLogger.Filename,
+		data:             make(map[string]*GameLog),
+		outputDir:        config.GameLogger.OutputDir,
+		templateFilename: config.GameLogger.Filename,
 	}
 }
 
 func (g *GameLogger) TrackStartGame(id string, agents []*model.Agent) {
-	deprecatedLogData := &GameLog{
+	data := &GameLog{
 		id:   id,
 		logs: make([]string, 0),
 	}
 	for _, agent := range agents {
-		deprecatedLogData.agents = append(deprecatedLogData.agents,
+		data.agents = append(data.agents,
 			map[string]interface{}{
 				"idx":  agent.Idx,
 				"team": agent.Team,
@@ -46,10 +46,10 @@ func (g *GameLogger) TrackStartGame(id string, agents []*model.Agent) {
 			},
 		)
 	}
-	filename := strings.ReplaceAll(g.templateFilename, "{game_id}", deprecatedLogData.id)
+	filename := strings.ReplaceAll(g.templateFilename, "{game_id}", data.id)
 	filename = strings.ReplaceAll(filename, "{timestamp}", fmt.Sprintf("%d", time.Now().Unix()))
 	teams := make(map[string]struct{})
-	for _, agent := range deprecatedLogData.agents {
+	for _, agent := range data.agents {
 		team := agent.(map[string]interface{})["team"].(string)
 		teams[team] = struct{}{}
 	}
@@ -61,32 +61,32 @@ func (g *GameLogger) TrackStartGame(id string, agents []*model.Agent) {
 		teamStr += team
 	}
 	filename = strings.ReplaceAll(filename, "{teams}", teamStr)
-	deprecatedLogData.filename = filename
+	data.filename = filename
 
-	g.deprecatedLogsData[id] = deprecatedLogData
+	g.data[id] = data
 }
 
 func (g *GameLogger) TrackEndGame(id string) {
-	if _, exists := g.deprecatedLogsData[id]; exists {
-		g.saveDeprecatedLog(id)
-		delete(g.deprecatedLogsData, id)
+	if _, exists := g.data[id]; exists {
+		g.saveLog(id)
+		delete(g.data, id)
 	}
 }
 
 func (g *GameLogger) AppendLog(id string, log string) {
-	if deprecatedLogData, exists := g.deprecatedLogsData[id]; exists {
-		deprecatedLogData.logs = append(deprecatedLogData.logs, log)
-		g.saveDeprecatedLog(id)
+	if data, exists := g.data[id]; exists {
+		data.logs = append(data.logs, log)
+		g.saveLog(id)
 	}
 }
 
-func (g *GameLogger) saveDeprecatedLog(id string) {
-	if deprecatedLogData, exists := g.deprecatedLogsData[id]; exists {
-		str := strings.Join(deprecatedLogData.logs, "\n")
+func (g *GameLogger) saveLog(id string) {
+	if data, exists := g.data[id]; exists {
+		str := strings.Join(data.logs, "\n")
 		if _, err := os.Stat(g.outputDir); os.IsNotExist(err) {
 			os.MkdirAll(g.outputDir, 0755)
 		}
-		filePath := filepath.Join(g.outputDir, fmt.Sprintf("%s.log", deprecatedLogData.filename))
+		filePath := filepath.Join(g.outputDir, fmt.Sprintf("%s.log", data.filename))
 		file, err := os.Create(filePath)
 		if err != nil {
 			return

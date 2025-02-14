@@ -12,13 +12,13 @@ import (
 )
 
 type JSONLogger struct {
-	gamesData        map[string]*GameData
+	data             map[string]*JSONLog
 	outputDir        string
 	templateFilename string
 	endGameStatus    map[string]bool
 }
 
-type GameData struct {
+type JSONLog struct {
 	id           string
 	filename     string
 	agents       []interface{}
@@ -30,7 +30,7 @@ type GameData struct {
 
 func NewJSONLogger(config model.Config) *JSONLogger {
 	return &JSONLogger{
-		gamesData:        make(map[string]*GameData),
+		data:             make(map[string]*JSONLog),
 		outputDir:        config.JSONLogger.OutputDir,
 		templateFilename: config.JSONLogger.Filename,
 		endGameStatus:    make(map[string]bool),
@@ -38,7 +38,7 @@ func NewJSONLogger(config model.Config) *JSONLogger {
 }
 
 func (j *JSONLogger) TrackStartGame(id string, agents []*model.Agent) {
-	gameData := &GameData{
+	data := &JSONLog{
 		id:           id,
 		agents:       make([]interface{}, 0),
 		entries:      make([]interface{}, 0),
@@ -47,7 +47,7 @@ func (j *JSONLogger) TrackStartGame(id string, agents []*model.Agent) {
 		winSide:      model.T_NONE,
 	}
 	for _, agent := range agents {
-		gameData.agents = append(gameData.agents,
+		data.agents = append(data.agents,
 			map[string]interface{}{
 				"idx":  agent.Idx,
 				"team": agent.Team,
@@ -56,10 +56,10 @@ func (j *JSONLogger) TrackStartGame(id string, agents []*model.Agent) {
 			},
 		)
 	}
-	filename := strings.ReplaceAll(j.templateFilename, "{game_id}", gameData.id)
+	filename := strings.ReplaceAll(j.templateFilename, "{game_id}", data.id)
 	filename = strings.ReplaceAll(filename, "{timestamp}", fmt.Sprintf("%d", time.Now().Unix()))
 	teams := make(map[string]struct{})
-	for _, agent := range gameData.agents {
+	for _, agent := range data.agents {
 		team := agent.(map[string]interface{})["team"].(string)
 		teams[team] = struct{}{}
 	}
@@ -71,36 +71,36 @@ func (j *JSONLogger) TrackStartGame(id string, agents []*model.Agent) {
 		teamStr += team
 	}
 	filename = strings.ReplaceAll(filename, "{teams}", teamStr)
-	gameData.filename = filename
+	data.filename = filename
 
-	j.gamesData[id] = gameData
+	j.data[id] = data
 	j.endGameStatus[id] = false
 }
 
 func (j *JSONLogger) TrackEndGame(id string, winSide model.Team) {
-	if gameData, exists := j.gamesData[id]; exists {
-		gameData.winSide = winSide
+	if data, exists := j.data[id]; exists {
+		data.winSide = winSide
 		j.endGameStatus[id] = true
 		j.saveGameData(id)
 	}
 }
 
 func (j *JSONLogger) TrackStartRequest(id string, agent model.Agent, packet model.Packet) {
-	if gameData, exists := j.gamesData[id]; exists {
-		gameData.timestampMap[agent.Name] = time.Now().UnixNano()
-		gameData.requestMap[agent.Name] = packet
+	if data, exists := j.data[id]; exists {
+		data.timestampMap[agent.Name] = time.Now().UnixNano()
+		data.requestMap[agent.Name] = packet
 	}
 }
 
 func (j *JSONLogger) TrackEndRequest(id string, agent model.Agent, response string, err error) {
-	if gameData, exists := j.gamesData[id]; exists {
+	if data, exists := j.data[id]; exists {
 		timestamp := time.Now().UnixNano()
 		entry := map[string]interface{}{
 			"agent":              agent.String(),
-			"request_timestamp":  gameData.timestampMap[agent.Name] / 1e6,
+			"request_timestamp":  data.timestampMap[agent.Name] / 1e6,
 			"response_timestamp": timestamp / 1e6,
 		}
-		if request, ok := gameData.requestMap[agent.Name]; ok {
+		if request, ok := data.requestMap[agent.Name]; ok {
 			jsonData, err := json.Marshal(request)
 			if err == nil {
 				entry["request"] = string(jsonData)
@@ -112,21 +112,21 @@ func (j *JSONLogger) TrackEndRequest(id string, agent model.Agent, response stri
 		if err != nil {
 			entry["error"] = err.Error()
 		}
-		gameData.entries = append(gameData.entries, entry)
-		delete(gameData.timestampMap, agent.Name)
-		delete(gameData.requestMap, agent.Name)
+		data.entries = append(data.entries, entry)
+		delete(data.timestampMap, agent.Name)
+		delete(data.requestMap, agent.Name)
 
 		j.saveGameData(id)
 	}
 }
 
 func (j *JSONLogger) saveGameData(id string) {
-	if gameData, exists := j.gamesData[id]; exists {
+	if data, exists := j.data[id]; exists {
 		game := map[string]interface{}{
 			"game_id":  id,
-			"win_side": gameData.winSide,
-			"agents":   gameData.agents,
-			"entries":  gameData.entries,
+			"win_side": data.winSide,
+			"agents":   data.agents,
+			"entries":  data.entries,
 		}
 		jsonData, err := json.Marshal(game)
 		if err != nil {
@@ -135,7 +135,7 @@ func (j *JSONLogger) saveGameData(id string) {
 		if _, err := os.Stat(j.outputDir); os.IsNotExist(err) {
 			os.Mkdir(j.outputDir, 0755)
 		}
-		filePath := filepath.Join(j.outputDir, fmt.Sprintf("%s.json", gameData.filename))
+		filePath := filepath.Join(j.outputDir, fmt.Sprintf("%s.json", data.filename))
 		file, err := os.Create(filePath)
 		if err != nil {
 			return
