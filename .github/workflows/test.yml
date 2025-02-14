@@ -25,7 +25,7 @@ jobs:
           name: analysis-result
           path: log/*.json
       - name: Upload deprecated log
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: deprecated-log
           path: log/*.log
