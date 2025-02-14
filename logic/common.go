@@ -54,7 +54,7 @@ func (g *Game) requestToAgent(agent *model.Agent, request model.Request) (string
 		packet = model.Packet{Request: &request}
 	case model.R_INITIALIZE, model.R_DAILY_INITIALIZE:
 		g.resetLastIdxMaps()
-		packet = model.Packet{Request: &request, Info: &info, Settings: g.Settings}
+		packet = model.Packet{Request: &request, Info: &info, Setting: g.Settings}
 	case model.R_VOTE, model.R_DIVINE, model.R_GUARD:
 		packet = model.Packet{Request: &request, Info: &info}
 	case model.R_DAILY_FINISH, model.R_TALK, model.R_WHISPER, model.R_ATTACK:

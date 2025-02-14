@@ -25,7 +25,7 @@ type Server struct {
 	upgrader       websocket.Upgrader
 	waitingRoom    *WaitingRoom
 	matchOptimizer *MatchOptimizer
-	gameSettings   *model.Settings
+	gameSetting    *model.Setting
 	games          []*logic.Game
 	mu             sync.RWMutex
 	signaled       bool
@@ -46,12 +46,12 @@ func NewServer(config model.Config) *Server {
 		mu:          sync.RWMutex{},
 		signaled:    false,
 	}
-	gameSettings, err := model.NewSettings(config)
+	gameSettings, err := model.NewSetting(config)
 	if err != nil {
 		slog.Error("ゲーム設定の作成に失敗しました", "error", err)
 		return nil
 	}
-	server.gameSettings = gameSettings
+	server.gameSetting = gameSettings
 	if config.JSONLogger.Enable {
 		server.jsonLogger = service.NewJSONLogger(config)
 	}
@@ -158,7 +158,7 @@ func (s *Server) handleConnections(w http.ResponseWriter, r *http.Request) {
 			s.mu.Unlock()
 			return
 		}
-		game = logic.NewGameWithRole(&s.config, s.gameSettings, roleMapConns)
+		game = logic.NewGameWithRole(&s.config, s.gameSetting, roleMapConns)
 	} else {
 		connections, err := s.waitingRoom.GetConnections()
 		if err != nil {
@@ -166,7 +166,7 @@ func (s *Server) handleConnections(w http.ResponseWriter, r *http.Request) {
 			s.mu.Unlock()
 			return
 		}
-		game = logic.NewGame(&s.config, s.gameSettings, connections)
+		game = logic.NewGame(&s.config, s.gameSetting, connections)
 	}
 	if s.jsonLogger != nil {
 		game.SetAnalysisService(s.jsonLogger)

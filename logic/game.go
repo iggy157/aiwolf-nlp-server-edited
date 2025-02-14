@@ -13,7 +13,7 @@ import (
 type Game struct {
 	Config               *model.Config
 	ID                   string
-	Settings             *model.Settings
+	Settings             *model.Setting
 	Agents               []*model.Agent
 	CurrentDay           int
 	GameStatuses         map[int]*model.GameStatus
@@ -24,7 +24,7 @@ type Game struct {
 	DeprecatedLogService *service.GameLogger
 }
 
-func NewGame(config *model.Config, settings *model.Settings, conns []model.Connection) *Game {
+func NewGame(config *model.Config, settings *model.Setting, conns []model.Connection) *Game {
 	id := ulid.Make().String()
 	agents := util.CreateAgents(conns, settings.RoleNumMap)
 	gameStatus := model.NewInitializeGameStatus(agents)
@@ -44,7 +44,7 @@ func NewGame(config *model.Config, settings *model.Settings, conns []model.Conne
 	}
 }
 
-func NewGameWithRole(config *model.Config, settings *model.Settings, roleMapConns map[model.Role][]model.Connection) *Game {
+func NewGameWithRole(config *model.Config, settings *model.Setting, roleMapConns map[model.Role][]model.Connection) *Game {
 	id := ulid.Make().String()
 	agents := util.CreateAgentsWithRole(roleMapConns)
 	gameStatus := model.NewInitializeGameStatus(agents)

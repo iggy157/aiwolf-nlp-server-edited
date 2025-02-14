@@ -6,7 +6,7 @@ server:
     host: "127.0.0.1" # ホスト名
     port: 8080 # ポート番号
   authentication:
-    enable: True # トークンによる接続認証を有効にするか
+    enable: False # トークンによる接続認証を有効にするか
     secret: your-256-bit-secret # 秘密鍵
 
 game:

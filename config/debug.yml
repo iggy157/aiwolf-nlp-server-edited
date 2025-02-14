@@ -7,7 +7,7 @@ server:
     host: "127.0.0.1" # ホスト名
     port: 8080 # ポート番号
   authentication:
-    enable: True # トークンによる接続認証を有効にするか
+    enable: False # トークンによる接続認証を有効にするか
     secret: your-256-bit-secret # 秘密鍵
 
 game:
@@ -37,12 +37,12 @@ game:
 
 json_logger:
   enable: true # JSONログの出力を有効にするか
-  output_dir: "./log" # JSONログの出力ディレクトリ
+  output_dir: "./../log" # JSONログの出力ディレクトリ
   filename: "{game_id}" # JSONログのファイル名
 
 game_logger:
   enable: true # ゲームログの出力を有効にするか
-  output_dir: "./log" # ゲームログの出力ディレクトリ
+  output_dir: "./../log" # ゲームログの出力ディレクトリ
   filename: "{game_id}" # ゲームログのファイル名
 
 matching:
@@ -50,5 +50,5 @@ matching:
   is_optimize: false # 最適化した組み合わせマッチングを有効にするか (self_match が false の場合に限る)
   team_count: 5 # 参加するチーム数
   game_count: 30 # 全体のゲーム数
-  output_path: "./log/match_optimizer.json" # マッチ履歴の出力ファイル
+  output_path: "./../log/match_optimizer.json" # マッチ履歴の出力ファイル
   infinite_loop: false # 組み合わせマッチングがすべて終了した場合に全体のゲーム数分のゲームを追加するか
