@@ -47,14 +47,14 @@ func (g *Game) requestToEveryone(request model.Request) {
 }
 
 func (g *Game) requestToAgent(agent *model.Agent, request model.Request) (string, error) {
-	info := model.NewInfo(agent, g.GameStatuses[g.CurrentDay], g.GameStatuses[g.CurrentDay-1], g.Settings)
+	info := model.NewInfo(agent, g.gameStatuses[g.currentDay], g.gameStatuses[g.currentDay-1], g.settings)
 	var packet model.Packet
 	switch request {
 	case model.R_NAME:
 		packet = model.Packet{Request: &request}
 	case model.R_INITIALIZE, model.R_DAILY_INITIALIZE:
 		g.resetLastIdxMaps()
-		packet = model.Packet{Request: &request, Info: &info, Setting: g.Settings}
+		packet = model.Packet{Request: &request, Info: &info, Setting: g.settings}
 	case model.R_VOTE, model.R_DIVINE, model.R_GUARD:
 		packet = model.Packet{Request: &request, Info: &info}
 	case model.R_DAILY_FINISH, model.R_TALK, model.R_WHISPER, model.R_ATTACK:
@@ -72,26 +72,26 @@ func (g *Game) requestToAgent(agent *model.Agent, request model.Request) (string
 	default:
 		return "", errors.New("一致するリクエストがありません")
 	}
-	if g.AnalysisService != nil {
-		g.AnalysisService.TrackStartRequest(g.ID, *agent, packet)
+	if g.jsonLogger != nil {
+		g.jsonLogger.TrackStartRequest(g.ID, *agent, packet)
 	}
-	resp, err := agent.SendPacket(packet, time.Duration(g.Settings.ActionTimeout)*time.Millisecond, time.Duration(g.Settings.ResponseTimeout)*time.Millisecond, g.Config.Game.Timeout.Acceptable)
-	if g.AnalysisService != nil {
-		g.AnalysisService.TrackEndRequest(g.ID, *agent, resp, err)
+	resp, err := agent.SendPacket(packet, time.Duration(g.settings.ActionTimeout)*time.Millisecond, time.Duration(g.settings.ResponseTimeout)*time.Millisecond, g.config.Game.Timeout.Acceptable)
+	if g.jsonLogger != nil {
+		g.jsonLogger.TrackEndRequest(g.ID, *agent, resp, err)
 	}
 	return resp, err
 }
 
 func (g *Game) resetLastIdxMaps() {
-	g.LastTalkIdxMap = make(map[*model.Agent]int)
-	g.LastWhisperIdxMap = make(map[*model.Agent]int)
+	g.lastTalkIdxMap = make(map[*model.Agent]int)
+	g.lastWhisperIdxMap = make(map[*model.Agent]int)
 }
 
 func (g *Game) minimize(agent *model.Agent, talks []model.Talk, whispers []model.Talk) ([]model.Talk, []model.Talk) {
-	lastTalkIdx := g.LastTalkIdxMap[agent]
-	lastWhisperIdx := g.LastWhisperIdxMap[agent]
-	g.LastTalkIdxMap[agent] = len(talks)
-	g.LastWhisperIdxMap[agent] = len(whispers)
+	lastTalkIdx := g.lastTalkIdxMap[agent]
+	lastWhisperIdx := g.lastWhisperIdxMap[agent]
+	g.lastTalkIdxMap[agent] = len(talks)
+	g.lastWhisperIdxMap[agent] = len(whispers)
 	return talks[lastTalkIdx:], whispers[lastWhisperIdx:]
 }
 
@@ -108,5 +108,5 @@ func (g *Game) getAliveWerewolves() []*model.Agent {
 }
 
 func (g *Game) isAlive(agent *model.Agent) bool {
-	return g.GameStatuses[g.CurrentDay].StatusMap[*agent] == model.S_ALIVE
+	return g.gameStatuses[g.currentDay].StatusMap[*agent] == model.S_ALIVE
 }
