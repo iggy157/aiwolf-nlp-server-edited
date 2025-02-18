@@ -81,6 +81,12 @@ func (s *Server) Run() {
 		s.handleConnections(c.Writer, c.Request)
 	})
 
+	if s.config.JSONLogger.Enable {
+		router.GET("/realtime", func(c *gin.Context) {
+			s.jsonLogger.HandleConnections(c.Writer, c.Request)
+		})
+	}
+
 	go func() {
 		trap := make(chan os.Signal, 1)
 		signal.Notify(trap, syscall.SIGTERM, syscall.SIGHUP, syscall.SIGINT)

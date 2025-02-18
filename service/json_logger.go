@@ -3,11 +3,14 @@ package service
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
+	"github.com/gorilla/websocket"
 	"github.com/kano-lab/aiwolf-nlp-server/model"
 )
 
@@ -16,6 +19,9 @@ type JSONLogger struct {
 	outputDir        string
 	templateFilename string
 	endGameStatus    map[string]bool
+	upgrader         websocket.Upgrader
+	clients          map[*websocket.Conn]bool
+	clientsMu        sync.Mutex
 }
 
 type JSONLog struct {
@@ -34,6 +40,12 @@ func NewJSONLogger(config model.Config) *JSONLogger {
 		outputDir:        config.JSONLogger.OutputDir,
 		templateFilename: config.JSONLogger.Filename,
 		endGameStatus:    make(map[string]bool),
+		upgrader: websocket.Upgrader{
+			CheckOrigin: func(r *http.Request) bool {
+				return true
+			},
+		},
+		clients: make(map[*websocket.Conn]bool),
 	}
 }
 
@@ -75,12 +87,25 @@ func (j *JSONLogger) TrackStartGame(id string, agents []*model.Agent) {
 
 	j.data[id] = data
 	j.endGameStatus[id] = false
+
+	j.broadcastToClients(map[string]interface{}{
+		"type":    "game_start",
+		"game_id": id,
+		"agents":  data.agents,
+	})
 }
 
 func (j *JSONLogger) TrackEndGame(id string, winSide model.Team) {
 	if data, exists := j.data[id]; exists {
 		data.winSide = winSide
 		j.endGameStatus[id] = true
+
+		j.broadcastToClients(map[string]interface{}{
+			"type":     "game_end",
+			"game_id":  id,
+			"win_side": winSide,
+		})
+
 		j.saveGameData(id)
 	}
 }
@@ -116,6 +141,12 @@ func (j *JSONLogger) TrackEndRequest(id string, agent model.Agent, response stri
 		delete(data.timestampMap, agent.Name)
 		delete(data.requestMap, agent.Name)
 
+		j.broadcastToClients(map[string]interface{}{
+			"type":    "log_entry",
+			"game_id": id,
+			"entry":   entry,
+		})
+
 		j.saveGameData(id)
 	}
 }
@@ -142,5 +173,49 @@ func (j *JSONLogger) saveGameData(id string) {
 		}
 		defer file.Close()
 		file.Write(jsonData)
+	}
+}
+
+func (j *JSONLogger) broadcastToClients(data interface{}) {
+	j.clientsMu.Lock()
+	defer j.clientsMu.Unlock()
+
+	for client := range j.clients {
+		err := client.WriteJSON(data)
+		if err != nil {
+			// エラーが発生した場合はクライアントを削除
+			j.clientsMu.Lock()
+			delete(j.clients, client)
+			j.clientsMu.Unlock()
+			client.Close()
+		}
+	}
+}
+
+func (j *JSONLogger) HandleConnections(w http.ResponseWriter, r *http.Request) {
+	ws, err := j.upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		return
+	}
+	defer ws.Close()
+
+	// 新しいクライアントを追加
+	j.clientsMu.Lock()
+	j.clients[ws] = true
+	j.clientsMu.Unlock()
+
+	// クライアントが切断したときの処理
+	defer func() {
+		j.clientsMu.Lock()
+		delete(j.clients, ws)
+		j.clientsMu.Unlock()
+	}()
+
+	// クライアントからのメッセージを待ち受ける（必要に応じて）
+	for {
+		_, _, err := ws.ReadMessage()
+		if err != nil {
+			break
+		}
 	}
 }
