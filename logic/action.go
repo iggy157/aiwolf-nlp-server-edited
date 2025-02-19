@@ -28,6 +28,16 @@ func (g *Game) doExecution() {
 	if executed != nil {
 		g.gameStatuses[g.currentDay].StatusMap[*executed] = model.S_DEAD
 		g.gameStatuses[g.currentDay].ExecutedAgent = executed
+		if g.gameLogger != nil {
+			g.gameLogger.AppendLog(g.ID, fmt.Sprintf("%d,execute,%d,%s", g.currentDay, executed.Idx, executed.Role.Name))
+		}
+		if g.realtimeBroadcaster != nil {
+			g.realtimeBroadcaster.Broadcast(g.ID, map[string]interface{}{
+				"day":    g.currentDay,
+				"action": "execute",
+				"target": executed.Idx,
+			})
+		}
 		slog.Info("追放結果を設定しました", "id", g.ID, "agent", executed.String())
 
 		g.gameStatuses[g.currentDay].MediumResult = &model.Judge{
@@ -36,11 +46,14 @@ func (g *Game) doExecution() {
 			Target: *executed,
 			Result: executed.Role.Species,
 		}
-		if g.gameLogger != nil {
-			g.gameLogger.AppendLog(g.ID, fmt.Sprintf("%d,execute,%d,%s", g.currentDay, executed.Idx, executed.Role.Name))
-		}
 		slog.Info("霊能結果を設定しました", "id", g.ID, "target", executed.String(), "result", executed.Role.Species)
 	} else {
+		if g.realtimeBroadcaster != nil {
+			g.realtimeBroadcaster.Broadcast(g.ID, map[string]interface{}{
+				"day":    g.currentDay,
+				"action": "execute",
+			})
+		}
 		slog.Warn("追放対象がいないため、追放結果を設定しません", "id", g.ID)
 	}
 	slog.Info("追放フェーズを終了します", "id", g.ID, "day", g.currentDay)
@@ -73,15 +86,38 @@ func (g *Game) doAttack() {
 			if g.gameLogger != nil {
 				g.gameLogger.AppendLog(g.ID, fmt.Sprintf("%d,attack,%d,true", g.currentDay, attacked.Idx))
 			}
+			if g.realtimeBroadcaster != nil {
+				g.realtimeBroadcaster.Broadcast(g.ID, map[string]interface{}{
+					"day":    g.currentDay,
+					"action": "attack",
+					"target": attacked.Idx,
+					"result": true,
+				})
+			}
 			slog.Info("襲撃結果を設定しました", "id", g.ID, "agent", attacked.String())
 		} else if attacked != nil {
 			if g.gameLogger != nil {
 				g.gameLogger.AppendLog(g.ID, fmt.Sprintf("%d,attack,%d,false", g.currentDay, attacked.Idx))
 			}
+			if g.realtimeBroadcaster != nil {
+				g.realtimeBroadcaster.Broadcast(g.ID, map[string]interface{}{
+					"day":    g.currentDay,
+					"action": "attack",
+					"target": attacked.Idx,
+					"result": false,
+				})
+			}
 			slog.Info("護衛されたため、襲撃結果を設定しません", "id", g.ID, "agent", attacked.String())
 		} else {
 			if g.gameLogger != nil {
 				g.gameLogger.AppendLog(g.ID, fmt.Sprintf("%d,attack,-1,true", g.currentDay))
+			}
+			if g.realtimeBroadcaster != nil {
+				g.realtimeBroadcaster.Broadcast(g.ID, map[string]interface{}{
+					"day":    g.currentDay,
+					"action": "attack",
+					"result": true,
+				})
 			}
 			slog.Info("襲撃対象がいないため、襲撃結果を設定しません", "id", g.ID)
 		}
@@ -131,6 +167,15 @@ func (g *Game) conductDivination(agent *model.Agent) {
 	if g.gameLogger != nil {
 		g.gameLogger.AppendLog(g.ID, fmt.Sprintf("%d,divine,%d,%d,%s", g.currentDay, agent.Idx, target.Idx, target.Role.Species))
 	}
+	if g.realtimeBroadcaster != nil {
+		g.realtimeBroadcaster.Broadcast(g.ID, map[string]interface{}{
+			"day":    g.currentDay,
+			"action": "divine",
+			"agent":  agent.Idx,
+			"target": target.Idx,
+			"result": target.Role.Species,
+		})
+	}
 	slog.Info("占い結果を設定しました", "id", g.ID, "target", target.String(), "result", target.Role.Species)
 }
 
@@ -166,6 +211,14 @@ func (g *Game) conductGuard(agent *model.Agent) {
 	}
 	if g.gameLogger != nil {
 		g.gameLogger.AppendLog(g.ID, fmt.Sprintf("%d,guard,%d,%d,%s", g.currentDay, agent.Idx, target.Idx, target.Role.Name))
+	}
+	if g.realtimeBroadcaster != nil {
+		g.realtimeBroadcaster.Broadcast(g.ID, map[string]interface{}{
+			"day":    g.currentDay,
+			"action": "guard",
+			"agent":  agent.Idx,
+			"target": target.Idx,
+		})
 	}
 	slog.Info("護衛対象を設定しました", "id", g.ID, "target", target.String())
 }
@@ -204,6 +257,24 @@ func (g *Game) collectVotes(request model.Request, agents []*model.Agent) []mode
 				g.gameLogger.AppendLog(g.ID, fmt.Sprintf("%d,vote,%d,%d", g.currentDay, agent.Idx, target.Idx))
 			} else {
 				g.gameLogger.AppendLog(g.ID, fmt.Sprintf("%d,attackVote,%d,%d", g.currentDay, agent.Idx, target.Idx))
+			}
+		}
+
+		if g.realtimeBroadcaster != nil {
+			if request == model.R_VOTE {
+				g.realtimeBroadcaster.Broadcast(g.ID, map[string]interface{}{
+					"day":    g.currentDay,
+					"action": "vote",
+					"agent":  agent.Idx,
+					"target": target.Idx,
+				})
+			} else {
+				g.realtimeBroadcaster.Broadcast(g.ID, map[string]interface{}{
+					"day":    g.currentDay,
+					"action": "attackVote",
+					"agent":  agent.Idx,
+					"target": target.Idx,
+				})
 			}
 		}
 		slog.Info("投票を受信しました", "id", g.ID, "agent", agent.String(), "target", target.String())
@@ -283,6 +354,23 @@ func (g *Game) conductCommunication(request model.Request) {
 					g.gameLogger.AppendLog(g.ID, fmt.Sprintf("%d,talk,%d,%d,%d,%s", g.currentDay, talk.Idx, talk.Turn, talk.Agent.Idx, talk.Text))
 				} else {
 					g.gameLogger.AppendLog(g.ID, fmt.Sprintf("%d,whisper,%d,%d,%d,%s", g.currentDay, talk.Idx, talk.Turn, talk.Agent.Idx, talk.Text))
+				}
+			}
+			if g.realtimeBroadcaster != nil {
+				if request == model.R_TALK {
+					g.realtimeBroadcaster.Broadcast(g.ID, map[string]interface{}{
+						"day":    g.currentDay,
+						"action": "talk",
+						"agent":  talk.Agent.Idx,
+						"text":   talk.Text,
+					})
+				} else {
+					g.realtimeBroadcaster.Broadcast(g.ID, map[string]interface{}{
+						"day":    g.currentDay,
+						"action": "whisper",
+						"agent":  talk.Agent.Idx,
+						"text":   talk.Text,
+					})
 				}
 			}
 			slog.Info("発言を受信しました", "id", g.ID, "agent", agent.String(), "text", text, "skip", skipMap[*agent], "remain", remainMap[*agent])
