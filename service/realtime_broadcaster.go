@@ -29,15 +29,12 @@ func NewRealtimeBroadcaster(config model.Config) *RealtimeBroadcaster {
 	}
 }
 
-func (rb *RealtimeBroadcaster) Broadcast(id string, data interface{}) {
+func (rb *RealtimeBroadcaster) Broadcast(packet model.BroadcastPacket) {
 	rb.mu.Lock()
 	defer rb.mu.Unlock()
 
 	for client := range rb.clients {
-		err := client.WriteJSON(map[string]interface{}{
-			"id":   id,
-			"data": data,
-		})
+		err := client.WriteJSON(packet)
 		if err != nil {
 			rb.mu.Lock()
 			delete(rb.clients, client)
@@ -49,10 +46,18 @@ func (rb *RealtimeBroadcaster) Broadcast(id string, data interface{}) {
 
 func (rb *RealtimeBroadcaster) HandleConnections(w http.ResponseWriter, r *http.Request) {
 	if rb.config.Server.Authentication.Enable {
-		token := strings.ReplaceAll(r.Header.Get("Authorization"), "Bearer ", "")
-		if !util.IsValidReceiver(rb.config.Server.Authentication.Secret, token) {
-			w.WriteHeader(http.StatusUnauthorized)
-			return
+		token := r.URL.Query().Get("token")
+		if token != "" {
+			if !util.IsValidReceiver(rb.config.Server.Authentication.Secret, token) {
+				w.WriteHeader(http.StatusUnauthorized)
+				return
+			}
+		} else {
+			token = strings.ReplaceAll(r.Header.Get("Authorization"), "Bearer ", "")
+			if !util.IsValidReceiver(rb.config.Server.Authentication.Secret, token) {
+				w.WriteHeader(http.StatusUnauthorized)
+				return
+			}
 		}
 	}
 

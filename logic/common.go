@@ -110,3 +110,33 @@ func (g *Game) getAliveWerewolves() []*model.Agent {
 func (g *Game) isAlive(agent *model.Agent) bool {
 	return g.gameStatuses[g.currentDay].StatusMap[*agent] == model.S_ALIVE
 }
+
+func (g *Game) getRealtimeBroadcastPacket() model.BroadcastPacket {
+	g.realtimeBroadcasterPacketIdx++
+	packet := model.BroadcastPacket{
+		Id:        g.ID,
+		Idx:       g.realtimeBroadcasterPacketIdx,
+		Day:       g.currentDay,
+		Message:   "",
+		Summary:   "",
+		IsDivider: false,
+	}
+	for _, agent := range g.Agents {
+		packet.Agents = append(packet.Agents, struct {
+			Idx        int    `json:"idx"`
+			Name       string `json:"name"`
+			Role       string `json:"role"`
+			IsAlive    bool   `json:"isAlive"`
+			TargetIdxs []int  `json:"targetIdxs"`
+			IsBubble   bool   `json:"isBubble"`
+		}{
+			Idx:        agent.Idx,
+			Name:       agent.Name,
+			Role:       agent.Role.Name,
+			IsAlive:    g.isAlive(agent),
+			TargetIdxs: []int{},
+			IsBubble:   false,
+		})
+	}
+	return packet
+}

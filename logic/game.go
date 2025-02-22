@@ -11,18 +11,19 @@ import (
 )
 
 type Game struct {
-	ID                  string
-	Agents              []*model.Agent
-	IsFinished          bool
-	config              *model.Config
-	settings            *model.Setting
-	currentDay          int
-	gameStatuses        map[int]*model.GameStatus
-	lastTalkIdxMap      map[*model.Agent]int
-	lastWhisperIdxMap   map[*model.Agent]int
-	jsonLogger          *service.JSONLogger
-	gameLogger          *service.GameLogger
-	realtimeBroadcaster *service.RealtimeBroadcaster
+	ID                           string
+	Agents                       []*model.Agent
+	IsFinished                   bool
+	config                       *model.Config
+	settings                     *model.Setting
+	currentDay                   int
+	gameStatuses                 map[int]*model.GameStatus
+	lastTalkIdxMap               map[*model.Agent]int
+	lastWhisperIdxMap            map[*model.Agent]int
+	jsonLogger                   *service.JSONLogger
+	gameLogger                   *service.GameLogger
+	realtimeBroadcaster          *service.RealtimeBroadcaster
+	realtimeBroadcasterPacketIdx int
 }
 
 func NewGame(config *model.Config, settings *model.Setting, conns []model.Connection) *Game {

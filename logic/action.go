@@ -32,11 +32,11 @@ func (g *Game) doExecution() {
 			g.gameLogger.AppendLog(g.ID, fmt.Sprintf("%d,execute,%d,%s", g.currentDay, executed.Idx, executed.Role.Name))
 		}
 		if g.realtimeBroadcaster != nil {
-			g.realtimeBroadcaster.Broadcast(g.ID, map[string]interface{}{
-				"day":    g.currentDay,
-				"action": "execute",
-				"target": executed.Idx,
-			})
+			packet := g.getRealtimeBroadcastPacket()
+			packet.IsDay = false
+			packet.Message = fmt.Sprintf("%s が追放されました", executed.Name)
+			packet.Summary = fmt.Sprintf("追放")
+			g.realtimeBroadcaster.Broadcast(packet)
 		}
 		slog.Info("追放結果を設定しました", "id", g.ID, "agent", executed.String())
 
@@ -49,10 +49,11 @@ func (g *Game) doExecution() {
 		slog.Info("霊能結果を設定しました", "id", g.ID, "target", executed.String(), "result", executed.Role.Species)
 	} else {
 		if g.realtimeBroadcaster != nil {
-			g.realtimeBroadcaster.Broadcast(g.ID, map[string]interface{}{
-				"day":    g.currentDay,
-				"action": "execute",
-			})
+			packet := g.getRealtimeBroadcastPacket()
+			packet.IsDay = false
+			packet.Message = "追放対象がいませんでした"
+			packet.Summary = "追放"
+			g.realtimeBroadcaster.Broadcast(packet)
 		}
 		slog.Warn("追放対象がいないため、追放結果を設定しません", "id", g.ID)
 	}
@@ -87,12 +88,11 @@ func (g *Game) doAttack() {
 				g.gameLogger.AppendLog(g.ID, fmt.Sprintf("%d,attack,%d,true", g.currentDay, attacked.Idx))
 			}
 			if g.realtimeBroadcaster != nil {
-				g.realtimeBroadcaster.Broadcast(g.ID, map[string]interface{}{
-					"day":    g.currentDay,
-					"action": "attack",
-					"target": attacked.Idx,
-					"result": true,
-				})
+				packet := g.getRealtimeBroadcastPacket()
+				packet.IsDay = false
+				packet.Message = fmt.Sprintf("%s が襲撃されました", attacked.Name)
+				packet.Summary = fmt.Sprintf("襲撃")
+				g.realtimeBroadcaster.Broadcast(packet)
 			}
 			slog.Info("襲撃結果を設定しました", "id", g.ID, "agent", attacked.String())
 		} else if attacked != nil {
@@ -100,12 +100,11 @@ func (g *Game) doAttack() {
 				g.gameLogger.AppendLog(g.ID, fmt.Sprintf("%d,attack,%d,false", g.currentDay, attacked.Idx))
 			}
 			if g.realtimeBroadcaster != nil {
-				g.realtimeBroadcaster.Broadcast(g.ID, map[string]interface{}{
-					"day":    g.currentDay,
-					"action": "attack",
-					"target": attacked.Idx,
-					"result": false,
-				})
+				packet := g.getRealtimeBroadcastPacket()
+				packet.IsDay = false
+				packet.Message = fmt.Sprintf("%s が襲撃されましたが、護衛されました", attacked.Name)
+				packet.Summary = fmt.Sprintf("襲撃")
+				g.realtimeBroadcaster.Broadcast(packet)
 			}
 			slog.Info("護衛されたため、襲撃結果を設定しません", "id", g.ID, "agent", attacked.String())
 		} else {
@@ -113,11 +112,11 @@ func (g *Game) doAttack() {
 				g.gameLogger.AppendLog(g.ID, fmt.Sprintf("%d,attack,-1,true", g.currentDay))
 			}
 			if g.realtimeBroadcaster != nil {
-				g.realtimeBroadcaster.Broadcast(g.ID, map[string]interface{}{
-					"day":    g.currentDay,
-					"action": "attack",
-					"result": true,
-				})
+				packet := g.getRealtimeBroadcastPacket()
+				packet.IsDay = false
+				packet.Message = "襲撃対象がいませんでした"
+				packet.Summary = fmt.Sprintf("襲撃")
+				g.realtimeBroadcaster.Broadcast(packet)
 			}
 			slog.Info("襲撃対象がいないため、襲撃結果を設定しません", "id", g.ID)
 		}
@@ -168,13 +167,12 @@ func (g *Game) conductDivination(agent *model.Agent) {
 		g.gameLogger.AppendLog(g.ID, fmt.Sprintf("%d,divine,%d,%d,%s", g.currentDay, agent.Idx, target.Idx, target.Role.Species))
 	}
 	if g.realtimeBroadcaster != nil {
-		g.realtimeBroadcaster.Broadcast(g.ID, map[string]interface{}{
-			"day":    g.currentDay,
-			"action": "divine",
-			"agent":  agent.Idx,
-			"target": target.Idx,
-			"result": target.Role.Species,
-		})
+		packet := g.getRealtimeBroadcastPacket()
+		packet.IsDay = false
+		packet.Message = fmt.Sprintf("%s が占われました", target.Name)
+		packet.Summary = fmt.Sprintf("占い")
+		util.SetTargetIdx(&packet, agent, target)
+		g.realtimeBroadcaster.Broadcast(packet)
 	}
 	slog.Info("占い結果を設定しました", "id", g.ID, "target", target.String(), "result", target.Role.Species)
 }
@@ -213,12 +211,12 @@ func (g *Game) conductGuard(agent *model.Agent) {
 		g.gameLogger.AppendLog(g.ID, fmt.Sprintf("%d,guard,%d,%d,%s", g.currentDay, agent.Idx, target.Idx, target.Role.Name))
 	}
 	if g.realtimeBroadcaster != nil {
-		g.realtimeBroadcaster.Broadcast(g.ID, map[string]interface{}{
-			"day":    g.currentDay,
-			"action": "guard",
-			"agent":  agent.Idx,
-			"target": target.Idx,
-		})
+		packet := g.getRealtimeBroadcastPacket()
+		packet.IsDay = false
+		packet.Message = fmt.Sprintf("%s を護衛対象に設定しました", target.Name)
+		packet.Summary = fmt.Sprintf("護衛")
+		util.SetTargetIdx(&packet, agent, target)
+		g.realtimeBroadcaster.Broadcast(packet)
 	}
 	slog.Info("護衛対象を設定しました", "id", g.ID, "target", target.String())
 }
@@ -262,19 +260,19 @@ func (g *Game) collectVotes(request model.Request, agents []*model.Agent) []mode
 
 		if g.realtimeBroadcaster != nil {
 			if request == model.R_VOTE {
-				g.realtimeBroadcaster.Broadcast(g.ID, map[string]interface{}{
-					"day":    g.currentDay,
-					"action": "vote",
-					"agent":  agent.Idx,
-					"target": target.Idx,
-				})
+				packet := g.getRealtimeBroadcastPacket()
+				packet.IsDay = false
+				packet.Message = fmt.Sprintf("%s に投票しました", target.Name)
+				packet.Summary = fmt.Sprintf("投票")
+				util.SetTargetIdx(&packet, agent, target)
+				g.realtimeBroadcaster.Broadcast(packet)
 			} else {
-				g.realtimeBroadcaster.Broadcast(g.ID, map[string]interface{}{
-					"day":    g.currentDay,
-					"action": "attackVote",
-					"agent":  agent.Idx,
-					"target": target.Idx,
-				})
+				packet := g.getRealtimeBroadcastPacket()
+				packet.IsDay = false
+				packet.Message = fmt.Sprintf("%s に投票しました", target.Name)
+				packet.Summary = fmt.Sprintf("襲撃投票")
+				util.SetTargetIdx(&packet, agent, target)
+				g.realtimeBroadcaster.Broadcast(packet)
 			}
 		}
 		slog.Info("投票を受信しました", "id", g.ID, "agent", agent.String(), "target", target.String())
@@ -358,19 +356,19 @@ func (g *Game) conductCommunication(request model.Request) {
 			}
 			if g.realtimeBroadcaster != nil {
 				if request == model.R_TALK {
-					g.realtimeBroadcaster.Broadcast(g.ID, map[string]interface{}{
-						"day":    g.currentDay,
-						"action": "talk",
-						"agent":  talk.Agent.Idx,
-						"text":   talk.Text,
-					})
+					packet := g.getRealtimeBroadcastPacket()
+					packet.IsDay = true
+					packet.Message = fmt.Sprintf(talk.Text)
+					packet.Summary = fmt.Sprintf("発言")
+					util.SetBubble(&packet, agent)
+					g.realtimeBroadcaster.Broadcast(packet)
 				} else {
-					g.realtimeBroadcaster.Broadcast(g.ID, map[string]interface{}{
-						"day":    g.currentDay,
-						"action": "whisper",
-						"agent":  talk.Agent.Idx,
-						"text":   talk.Text,
-					})
+					packet := g.getRealtimeBroadcastPacket()
+					packet.IsDay = true
+					packet.Message = fmt.Sprintf(talk.Text)
+					packet.Summary = fmt.Sprintf("発言")
+					util.SetBubble(&packet, agent)
+					g.realtimeBroadcaster.Broadcast(packet)
 				}
 			}
 			slog.Info("発言を受信しました", "id", g.ID, "agent", agent.String(), "text", text, "skip", skipMap[*agent], "remain", remainMap[*agent])
