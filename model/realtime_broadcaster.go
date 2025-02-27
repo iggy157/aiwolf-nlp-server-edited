@@ -7,6 +7,7 @@ type BroadcastPacket struct {
 	IsDay  bool   `json:"isDay"`
 	Agents []struct {
 		Idx        int    `json:"idx"`
+		Team       string `json:"team"`
 		Name       string `json:"name"`
 		Role       string `json:"role"`
 		IsAlive    bool   `json:"isAlive"`

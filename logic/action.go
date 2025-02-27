@@ -35,7 +35,7 @@ func (g *Game) doExecution() {
 			packet := g.getRealtimeBroadcastPacket()
 			packet.IsDay = false
 			packet.Message = fmt.Sprintf("%s が追放されました", executed.Name)
-			packet.Summary = fmt.Sprintf("追放")
+			packet.Summary = "追放"
 			g.realtimeBroadcaster.Broadcast(packet)
 		}
 		slog.Info("追放結果を設定しました", "id", g.ID, "agent", executed.String())
@@ -91,7 +91,7 @@ func (g *Game) doAttack() {
 				packet := g.getRealtimeBroadcastPacket()
 				packet.IsDay = false
 				packet.Message = fmt.Sprintf("%s が襲撃されました", attacked.Name)
-				packet.Summary = fmt.Sprintf("襲撃")
+				packet.Summary = "襲撃"
 				g.realtimeBroadcaster.Broadcast(packet)
 			}
 			slog.Info("襲撃結果を設定しました", "id", g.ID, "agent", attacked.String())
@@ -103,7 +103,7 @@ func (g *Game) doAttack() {
 				packet := g.getRealtimeBroadcastPacket()
 				packet.IsDay = false
 				packet.Message = fmt.Sprintf("%s が襲撃されましたが、護衛されました", attacked.Name)
-				packet.Summary = fmt.Sprintf("襲撃")
+				packet.Summary = "襲撃"
 				g.realtimeBroadcaster.Broadcast(packet)
 			}
 			slog.Info("護衛されたため、襲撃結果を設定しません", "id", g.ID, "agent", attacked.String())
@@ -115,7 +115,7 @@ func (g *Game) doAttack() {
 				packet := g.getRealtimeBroadcastPacket()
 				packet.IsDay = false
 				packet.Message = "襲撃対象がいませんでした"
-				packet.Summary = fmt.Sprintf("襲撃")
+				packet.Summary = "襲撃"
 				g.realtimeBroadcaster.Broadcast(packet)
 			}
 			slog.Info("襲撃対象がいないため、襲撃結果を設定しません", "id", g.ID)
@@ -170,7 +170,7 @@ func (g *Game) conductDivination(agent *model.Agent) {
 		packet := g.getRealtimeBroadcastPacket()
 		packet.IsDay = false
 		packet.Message = fmt.Sprintf("%s が占われました", target.Name)
-		packet.Summary = fmt.Sprintf("占い")
+		packet.Summary = "占い"
 		util.SetTargetIdx(&packet, agent, target)
 		g.realtimeBroadcaster.Broadcast(packet)
 	}
@@ -214,7 +214,7 @@ func (g *Game) conductGuard(agent *model.Agent) {
 		packet := g.getRealtimeBroadcastPacket()
 		packet.IsDay = false
 		packet.Message = fmt.Sprintf("%s を護衛対象に設定しました", target.Name)
-		packet.Summary = fmt.Sprintf("護衛")
+		packet.Summary = "護衛"
 		util.SetTargetIdx(&packet, agent, target)
 		g.realtimeBroadcaster.Broadcast(packet)
 	}
@@ -263,14 +263,14 @@ func (g *Game) collectVotes(request model.Request, agents []*model.Agent) []mode
 				packet := g.getRealtimeBroadcastPacket()
 				packet.IsDay = false
 				packet.Message = fmt.Sprintf("%s に投票しました", target.Name)
-				packet.Summary = fmt.Sprintf("投票")
+				packet.Summary = "投票"
 				util.SetTargetIdx(&packet, agent, target)
 				g.realtimeBroadcaster.Broadcast(packet)
 			} else {
 				packet := g.getRealtimeBroadcastPacket()
 				packet.IsDay = false
 				packet.Message = fmt.Sprintf("%s に投票しました", target.Name)
-				packet.Summary = fmt.Sprintf("襲撃投票")
+				packet.Summary = "襲撃投票"
 				util.SetTargetIdx(&packet, agent, target)
 				g.realtimeBroadcaster.Broadcast(packet)
 			}
@@ -358,15 +358,15 @@ func (g *Game) conductCommunication(request model.Request) {
 				if request == model.R_TALK {
 					packet := g.getRealtimeBroadcastPacket()
 					packet.IsDay = true
-					packet.Message = fmt.Sprintf(talk.Text)
-					packet.Summary = fmt.Sprintf("発言")
+					packet.Message = talk.Text
+					packet.Summary = "発言"
 					util.SetBubble(&packet, agent)
 					g.realtimeBroadcaster.Broadcast(packet)
 				} else {
 					packet := g.getRealtimeBroadcastPacket()
 					packet.IsDay = true
-					packet.Message = fmt.Sprintf(talk.Text)
-					packet.Summary = fmt.Sprintf("発言")
+					packet.Message = talk.Text
+					packet.Summary = "発言"
 					util.SetBubble(&packet, agent)
 					g.realtimeBroadcaster.Broadcast(packet)
 				}
