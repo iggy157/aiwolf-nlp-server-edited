@@ -46,7 +46,7 @@ game_logger:
   filename: "{game_id}" # ゲームログのファイル名
 
 realtime_broadcaster:
-  enable: true
+  enable: true # リアルタイムログの出力を有効にするか
 
 matching:
   self_match: false # 同じチーム名のエージェント同士のみをマッチングさせるか
