@@ -15,7 +15,6 @@ type JSONLogger struct {
 	data             map[string]*JSONLog
 	outputDir        string
 	templateFilename string
-	endGameStatus    map[string]bool
 }
 
 type JSONLog struct {
@@ -33,7 +32,6 @@ func NewJSONLogger(config model.Config) *JSONLogger {
 		data:             make(map[string]*JSONLog),
 		outputDir:        config.JSONLogger.OutputDir,
 		templateFilename: config.JSONLogger.Filename,
-		endGameStatus:    make(map[string]bool),
 	}
 }
 
@@ -74,13 +72,11 @@ func (j *JSONLogger) TrackStartGame(id string, agents []*model.Agent) {
 	data.filename = filename
 
 	j.data[id] = data
-	j.endGameStatus[id] = false
 }
 
 func (j *JSONLogger) TrackEndGame(id string, winSide model.Team) {
 	if data, exists := j.data[id]; exists {
 		data.winSide = winSide
-		j.endGameStatus[id] = true
 		j.saveGameData(id)
 	}
 }

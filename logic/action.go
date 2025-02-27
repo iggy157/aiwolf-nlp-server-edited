@@ -10,12 +10,12 @@ import (
 )
 
 func (g *Game) doExecution() {
-	slog.Info("追放フェーズを開始します", "id", g.ID, "day", g.CurrentDay)
+	slog.Info("追放フェーズを開始します", "id", g.ID, "day", g.currentDay)
 	var executed *model.Agent
 	candidates := make([]model.Agent, 0)
-	for i := 0; i < g.Settings.MaxRevote; i++ {
+	for i := 0; i < g.settings.MaxRevote; i++ {
 		g.executeVote()
-		candidates = g.getVotedCandidates(g.GameStatuses[g.CurrentDay].Votes)
+		candidates = g.getVotedCandidates(g.gameStatuses[g.currentDay].Votes)
 		if len(candidates) == 1 {
 			executed = &candidates[0]
 			break
@@ -26,83 +26,120 @@ func (g *Game) doExecution() {
 		executed = &rand
 	}
 	if executed != nil {
-		g.GameStatuses[g.CurrentDay].StatusMap[*executed] = model.S_DEAD
-		g.GameStatuses[g.CurrentDay].ExecutedAgent = executed
+		g.gameStatuses[g.currentDay].StatusMap[*executed] = model.S_DEAD
+		g.gameStatuses[g.currentDay].ExecutedAgent = executed
+		if g.gameLogger != nil {
+			g.gameLogger.AppendLog(g.ID, fmt.Sprintf("%d,execute,%d,%s", g.currentDay, executed.Idx, executed.Role.Name))
+		}
+		if g.realtimeBroadcaster != nil {
+			packet := g.getRealtimeBroadcastPacket()
+			packet.IsDay = false
+			packet.Message = fmt.Sprintf("%s が追放されました", executed.Name)
+			packet.Summary = "追放"
+			g.realtimeBroadcaster.Broadcast(packet)
+		}
 		slog.Info("追放結果を設定しました", "id", g.ID, "agent", executed.String())
 
-		g.GameStatuses[g.CurrentDay].MediumResult = &model.Judge{
-			Day:    g.GameStatuses[g.CurrentDay].Day,
+		g.gameStatuses[g.currentDay].MediumResult = &model.Judge{
+			Day:    g.gameStatuses[g.currentDay].Day,
 			Agent:  *executed,
 			Target: *executed,
 			Result: executed.Role.Species,
 		}
-		if g.DeprecatedLogService != nil {
-			g.DeprecatedLogService.AppendLog(g.ID, fmt.Sprintf("%d,execute,%d,%s", g.CurrentDay, executed.Idx, executed.Role.Name))
-		}
 		slog.Info("霊能結果を設定しました", "id", g.ID, "target", executed.String(), "result", executed.Role.Species)
 	} else {
+		if g.realtimeBroadcaster != nil {
+			packet := g.getRealtimeBroadcastPacket()
+			packet.IsDay = false
+			packet.Message = "追放対象がいませんでした"
+			packet.Summary = "追放"
+			g.realtimeBroadcaster.Broadcast(packet)
+		}
 		slog.Warn("追放対象がいないため、追放結果を設定しません", "id", g.ID)
 	}
-	slog.Info("追放フェーズを終了します", "id", g.ID, "day", g.CurrentDay)
+	slog.Info("追放フェーズを終了します", "id", g.ID, "day", g.currentDay)
+	if g.realtimeBroadcaster != nil {
+	}
 }
 
 func (g *Game) doAttack() {
-	slog.Info("襲撃フェーズを開始します", "id", g.ID, "day", g.CurrentDay)
+	slog.Info("襲撃フェーズを開始します", "id", g.ID, "day", g.currentDay)
 	var attacked *model.Agent
 	werewolfs := g.getAliveWerewolves()
 	if len(werewolfs) > 0 {
 		candidates := make([]model.Agent, 0)
-		for i := 0; i < g.Settings.MaxAttackRevote; i++ {
+		for i := 0; i < g.settings.MaxAttackRevote; i++ {
 			g.executeAttackVote()
-			candidates = g.getAttackVotedCandidates(g.GameStatuses[g.CurrentDay].AttackVotes)
+			candidates = g.getAttackVotedCandidates(g.gameStatuses[g.currentDay].AttackVotes)
 			if len(candidates) == 1 {
 				attacked = &candidates[0]
 				break
 			}
 		}
-		if attacked == nil && !g.Settings.IsEnableNoAttack && len(candidates) > 0 {
+		if attacked == nil && !g.settings.IsEnableNoAttack && len(candidates) > 0 {
 			rand := util.SelectRandomAgent(candidates)
 			attacked = &rand
 		}
 
 		if attacked != nil && !g.isGuarded(attacked) {
-			g.GameStatuses[g.CurrentDay].StatusMap[*attacked] = model.S_DEAD
-			g.GameStatuses[g.CurrentDay].AttackedAgent = attacked
-			if g.DeprecatedLogService != nil {
-				g.DeprecatedLogService.AppendLog(g.ID, fmt.Sprintf("%d,attack,%d,true", g.CurrentDay, attacked.Idx))
+			g.gameStatuses[g.currentDay].StatusMap[*attacked] = model.S_DEAD
+			g.gameStatuses[g.currentDay].AttackedAgent = attacked
+			if g.gameLogger != nil {
+				g.gameLogger.AppendLog(g.ID, fmt.Sprintf("%d,attack,%d,true", g.currentDay, attacked.Idx))
+			}
+			if g.realtimeBroadcaster != nil {
+				packet := g.getRealtimeBroadcastPacket()
+				packet.IsDay = false
+				packet.Message = fmt.Sprintf("%s が襲撃されました", attacked.Name)
+				packet.Summary = "襲撃"
+				g.realtimeBroadcaster.Broadcast(packet)
 			}
 			slog.Info("襲撃結果を設定しました", "id", g.ID, "agent", attacked.String())
 		} else if attacked != nil {
-			if g.DeprecatedLogService != nil {
-				g.DeprecatedLogService.AppendLog(g.ID, fmt.Sprintf("%d,attack,%d,false", g.CurrentDay, attacked.Idx))
+			if g.gameLogger != nil {
+				g.gameLogger.AppendLog(g.ID, fmt.Sprintf("%d,attack,%d,false", g.currentDay, attacked.Idx))
+			}
+			if g.realtimeBroadcaster != nil {
+				packet := g.getRealtimeBroadcastPacket()
+				packet.IsDay = false
+				packet.Message = fmt.Sprintf("%s が襲撃されましたが、護衛されました", attacked.Name)
+				packet.Summary = "襲撃"
+				g.realtimeBroadcaster.Broadcast(packet)
 			}
 			slog.Info("護衛されたため、襲撃結果を設定しません", "id", g.ID, "agent", attacked.String())
 		} else {
-			if g.DeprecatedLogService != nil {
-				g.DeprecatedLogService.AppendLog(g.ID, fmt.Sprintf("%d,attack,-1,true", g.CurrentDay))
+			if g.gameLogger != nil {
+				g.gameLogger.AppendLog(g.ID, fmt.Sprintf("%d,attack,-1,true", g.currentDay))
+			}
+			if g.realtimeBroadcaster != nil {
+				packet := g.getRealtimeBroadcastPacket()
+				packet.IsDay = false
+				packet.Message = "襲撃対象がいませんでした"
+				packet.Summary = "襲撃"
+				g.realtimeBroadcaster.Broadcast(packet)
 			}
 			slog.Info("襲撃対象がいないため、襲撃結果を設定しません", "id", g.ID)
 		}
 	}
-	slog.Info("襲撃フェーズを終了します", "id", g.ID, "day", g.CurrentDay)
+	slog.Info("襲撃フェーズを終了します", "id", g.ID, "day", g.currentDay)
 }
 
 func (g *Game) isGuarded(attacked *model.Agent) bool {
-	if g.GameStatuses[g.CurrentDay].Guard == nil {
+	if g.gameStatuses[g.currentDay].Guard == nil {
 		return false
 	}
-	return g.GameStatuses[g.CurrentDay].Guard.Target == *attacked && g.isAlive(&g.GameStatuses[g.CurrentDay].Guard.Agent)
+	return g.gameStatuses[g.currentDay].Guard.Target == *attacked && g.isAlive(&g.gameStatuses[g.currentDay].Guard.Agent)
 }
 
 func (g *Game) doDivine() {
-	slog.Info("占いフェーズを開始します", "id", g.ID, "day", g.CurrentDay)
+	slog.Info("占いフェーズを開始します", "id", g.ID, "day", g.currentDay)
 	for _, agent := range g.getAliveAgents() {
 		if agent.Role == model.R_SEER {
 			g.conductDivination(agent)
 			break
 		}
 	}
-	slog.Info("占いフェーズを終了します", "id", g.ID, "day", g.CurrentDay)
+	slog.Info("占いフェーズを終了します", "id", g.ID, "day", g.currentDay)
 }
 
 func (g *Game) conductDivination(agent *model.Agent) {
@@ -120,20 +157,28 @@ func (g *Game) conductDivination(agent *model.Agent) {
 		slog.Warn("占い対象が自分自身であるため、占い結果を設定しません", "id", g.ID, "target", target.String())
 		return
 	}
-	g.GameStatuses[g.CurrentDay].DivineResult = &model.Judge{
-		Day:    g.GameStatuses[g.CurrentDay].Day,
+	g.gameStatuses[g.currentDay].DivineResult = &model.Judge{
+		Day:    g.gameStatuses[g.currentDay].Day,
 		Agent:  *agent,
 		Target: *target,
 		Result: target.Role.Species,
 	}
-	if g.DeprecatedLogService != nil {
-		g.DeprecatedLogService.AppendLog(g.ID, fmt.Sprintf("%d,divine,%d,%d,%s", g.CurrentDay, agent.Idx, target.Idx, target.Role.Species))
+	if g.gameLogger != nil {
+		g.gameLogger.AppendLog(g.ID, fmt.Sprintf("%d,divine,%d,%d,%s", g.currentDay, agent.Idx, target.Idx, target.Role.Species))
+	}
+	if g.realtimeBroadcaster != nil {
+		packet := g.getRealtimeBroadcastPacket()
+		packet.IsDay = false
+		packet.Message = fmt.Sprintf("%s が占われました", target.Name)
+		packet.Summary = "占い"
+		util.SetTargetIdx(&packet, agent, target)
+		g.realtimeBroadcaster.Broadcast(packet)
 	}
 	slog.Info("占い結果を設定しました", "id", g.ID, "target", target.String(), "result", target.Role.Species)
 }
 
 func (g *Game) doGuard() {
-	slog.Info("護衛フェーズを開始します", "id", g.ID, "day", g.CurrentDay)
+	slog.Info("護衛フェーズを開始します", "id", g.ID, "day", g.currentDay)
 	for _, agent := range g.getAliveAgents() {
 		if agent.Role == model.R_BODYGUARD {
 			g.conductGuard(agent)
@@ -157,25 +202,33 @@ func (g *Game) conductGuard(agent *model.Agent) {
 		slog.Warn("護衛対象が自分自身であるため、護衛対象を設定しません", "id", g.ID, "target", target.String())
 		return
 	}
-	g.GameStatuses[g.CurrentDay].Guard = &model.Guard{
-		Day:    g.GameStatuses[g.CurrentDay].Day,
+	g.gameStatuses[g.currentDay].Guard = &model.Guard{
+		Day:    g.gameStatuses[g.currentDay].Day,
 		Agent:  *agent,
 		Target: *target,
 	}
-	if g.DeprecatedLogService != nil {
-		g.DeprecatedLogService.AppendLog(g.ID, fmt.Sprintf("%d,guard,%d,%d,%s", g.CurrentDay, agent.Idx, target.Idx, target.Role.Name))
+	if g.gameLogger != nil {
+		g.gameLogger.AppendLog(g.ID, fmt.Sprintf("%d,guard,%d,%d,%s", g.currentDay, agent.Idx, target.Idx, target.Role.Name))
+	}
+	if g.realtimeBroadcaster != nil {
+		packet := g.getRealtimeBroadcastPacket()
+		packet.IsDay = false
+		packet.Message = fmt.Sprintf("%s を護衛対象に設定しました", target.Name)
+		packet.Summary = "護衛"
+		util.SetTargetIdx(&packet, agent, target)
+		g.realtimeBroadcaster.Broadcast(packet)
 	}
 	slog.Info("護衛対象を設定しました", "id", g.ID, "target", target.String())
 }
 
 func (g *Game) executeVote() {
-	slog.Info("投票アクションを開始します", "id", g.ID, "day", g.CurrentDay)
-	g.GameStatuses[g.CurrentDay].Votes = g.collectVotes(model.R_VOTE, g.getAliveAgents())
+	slog.Info("投票アクションを開始します", "id", g.ID, "day", g.currentDay)
+	g.gameStatuses[g.currentDay].Votes = g.collectVotes(model.R_VOTE, g.getAliveAgents())
 }
 
 func (g *Game) executeAttackVote() {
-	slog.Info("襲撃投票アクションを開始します", "id", g.ID, "day", g.CurrentDay)
-	g.GameStatuses[g.CurrentDay].AttackVotes = g.collectVotes(model.R_ATTACK, g.getAliveWerewolves())
+	slog.Info("襲撃投票アクションを開始します", "id", g.ID, "day", g.currentDay)
+	g.gameStatuses[g.currentDay].AttackVotes = g.collectVotes(model.R_ATTACK, g.getAliveWerewolves())
 }
 
 func (g *Game) collectVotes(request model.Request, agents []*model.Agent) []model.Vote {
@@ -193,15 +246,33 @@ func (g *Game) collectVotes(request model.Request, agents []*model.Agent) []mode
 			continue
 		}
 		votes = append(votes, model.Vote{
-			Day:    g.GameStatuses[g.CurrentDay].Day,
+			Day:    g.gameStatuses[g.currentDay].Day,
 			Agent:  *agent,
 			Target: *target,
 		})
-		if g.DeprecatedLogService != nil {
+		if g.gameLogger != nil {
 			if request == model.R_VOTE {
-				g.DeprecatedLogService.AppendLog(g.ID, fmt.Sprintf("%d,vote,%d,%d", g.CurrentDay, agent.Idx, target.Idx))
+				g.gameLogger.AppendLog(g.ID, fmt.Sprintf("%d,vote,%d,%d", g.currentDay, agent.Idx, target.Idx))
 			} else {
-				g.DeprecatedLogService.AppendLog(g.ID, fmt.Sprintf("%d,attackVote,%d,%d", g.CurrentDay, agent.Idx, target.Idx))
+				g.gameLogger.AppendLog(g.ID, fmt.Sprintf("%d,attackVote,%d,%d", g.currentDay, agent.Idx, target.Idx))
+			}
+		}
+
+		if g.realtimeBroadcaster != nil {
+			if request == model.R_VOTE {
+				packet := g.getRealtimeBroadcastPacket()
+				packet.IsDay = false
+				packet.Message = fmt.Sprintf("%s に投票しました", target.Name)
+				packet.Summary = "投票"
+				util.SetTargetIdx(&packet, agent, target)
+				g.realtimeBroadcaster.Broadcast(packet)
+			} else {
+				packet := g.getRealtimeBroadcastPacket()
+				packet.IsDay = false
+				packet.Message = fmt.Sprintf("%s に投票しました", target.Name)
+				packet.Summary = "襲撃投票"
+				util.SetTargetIdx(&packet, agent, target)
+				g.realtimeBroadcaster.Broadcast(packet)
 			}
 		}
 		slog.Info("投票を受信しました", "id", g.ID, "agent", agent.String(), "target", target.String())
@@ -210,17 +281,17 @@ func (g *Game) collectVotes(request model.Request, agents []*model.Agent) []mode
 }
 
 func (g *Game) doWhisper() {
-	slog.Info("囁きフェーズを開始します", "id", g.ID, "day", g.CurrentDay)
-	g.GameStatuses[g.CurrentDay].ResetRemainWhisperMap(g.Settings.MaxWhisper)
+	slog.Info("囁きフェーズを開始します", "id", g.ID, "day", g.currentDay)
+	g.gameStatuses[g.currentDay].ResetRemainWhisperMap(g.settings.MaxWhisper)
 	g.conductCommunication(model.R_WHISPER)
-	g.GameStatuses[g.CurrentDay].ClearRemainWhisperMap()
+	g.gameStatuses[g.currentDay].ClearRemainWhisperMap()
 }
 
 func (g *Game) doTalk() {
-	slog.Info("トークフェーズを開始します", "id", g.ID, "day", g.CurrentDay)
-	g.GameStatuses[g.CurrentDay].ResetRemainTalkMap(g.Settings.MaxTalk)
+	slog.Info("トークフェーズを開始します", "id", g.ID, "day", g.currentDay)
+	g.gameStatuses[g.currentDay].ResetRemainTalkMap(g.settings.MaxTalk)
 	g.conductCommunication(model.R_TALK)
-	g.GameStatuses[g.CurrentDay].ClearRemainTalkMap()
+	g.gameStatuses[g.currentDay].ClearRemainTalkMap()
 }
 
 func (g *Game) conductCommunication(request model.Request) {
@@ -231,14 +302,14 @@ func (g *Game) conductCommunication(request model.Request) {
 	switch request {
 	case model.R_TALK:
 		agents = g.getAliveAgents()
-		maxTurn = g.Settings.MaxTalkTurn
-		remainMap = g.GameStatuses[g.CurrentDay].RemainTalkMap
-		talkList = &g.GameStatuses[g.CurrentDay].Talks
+		maxTurn = g.settings.MaxTalkTurn
+		remainMap = g.gameStatuses[g.currentDay].RemainTalkMap
+		talkList = &g.gameStatuses[g.currentDay].Talks
 	case model.R_WHISPER:
 		agents = g.getAliveWerewolves()
-		maxTurn = g.Settings.MaxWhisperTurn
-		remainMap = g.GameStatuses[g.CurrentDay].RemainWhisperMap
-		talkList = &g.GameStatuses[g.CurrentDay].Whispers
+		maxTurn = g.settings.MaxWhisperTurn
+		remainMap = g.gameStatuses[g.currentDay].RemainWhisperMap
+		talkList = &g.gameStatuses[g.currentDay].Whispers
 	default:
 		return
 	}
@@ -263,7 +334,7 @@ func (g *Game) conductCommunication(request model.Request) {
 			text := g.getTalkWhisperText(agent, request, skipMap, remainMap)
 			talk := model.Talk{
 				Idx:   idx,
-				Day:   g.GameStatuses[g.CurrentDay].Day,
+				Day:   g.gameStatuses[g.currentDay].Day,
 				Turn:  i,
 				Agent: *agent,
 				Text:  text,
@@ -276,11 +347,28 @@ func (g *Game) conductCommunication(request model.Request) {
 				remainMap[*agent] = 0
 				slog.Info("発言がオーバーであるため、残り発言回数を0にしました", "id", g.ID, "agent", agent.String())
 			}
-			if g.DeprecatedLogService != nil {
+			if g.gameLogger != nil {
 				if request == model.R_TALK {
-					g.DeprecatedLogService.AppendLog(g.ID, fmt.Sprintf("%d,talk,%d,%d,%d,%s", g.CurrentDay, talk.Idx, talk.Turn, talk.Agent.Idx, talk.Text))
+					g.gameLogger.AppendLog(g.ID, fmt.Sprintf("%d,talk,%d,%d,%d,%s", g.currentDay, talk.Idx, talk.Turn, talk.Agent.Idx, talk.Text))
 				} else {
-					g.DeprecatedLogService.AppendLog(g.ID, fmt.Sprintf("%d,whisper,%d,%d,%d,%s", g.CurrentDay, talk.Idx, talk.Turn, talk.Agent.Idx, talk.Text))
+					g.gameLogger.AppendLog(g.ID, fmt.Sprintf("%d,whisper,%d,%d,%d,%s", g.currentDay, talk.Idx, talk.Turn, talk.Agent.Idx, talk.Text))
+				}
+			}
+			if g.realtimeBroadcaster != nil {
+				if request == model.R_TALK {
+					packet := g.getRealtimeBroadcastPacket()
+					packet.IsDay = true
+					packet.Message = talk.Text
+					packet.Summary = "発言"
+					util.SetBubble(&packet, agent)
+					g.realtimeBroadcaster.Broadcast(packet)
+				} else {
+					packet := g.getRealtimeBroadcastPacket()
+					packet.IsDay = true
+					packet.Message = talk.Text
+					packet.Summary = "発言"
+					util.SetBubble(&packet, agent)
+					g.realtimeBroadcaster.Broadcast(packet)
 				}
 			}
 			slog.Info("発言を受信しました", "id", g.ID, "agent", agent.String(), "text", text, "skip", skipMap[*agent], "remain", remainMap[*agent])
@@ -307,7 +395,7 @@ func (g *Game) getTalkWhisperText(agent *model.Agent, request model.Request, ski
 	}
 	if text == model.T_SKIP {
 		skipMap[*agent]++
-		if skipMap[*agent] >= g.Settings.MaxSkip {
+		if skipMap[*agent] >= g.settings.MaxSkip {
 			text = model.T_OVER
 			slog.Warn("スキップ回数が上限に達したため、発言をオーバーに置換しました", "id", g.ID, "agent", agent.String())
 		} else {

@@ -62,6 +62,9 @@ type Config struct {
 		OutputDir string `yaml:"output_dir"`
 		Filename  string `yaml:"filename"`
 	} `yaml:"game_logger"`
+	RealtimeBroadcaster struct {
+		Enable bool `yaml:"enable"`
+	} `yaml:"realtime_broadcaster"`
 	Matching struct {
 		SelfMatch    bool   `yaml:"self_match"`
 		IsOptimize   bool   `yaml:"is_optimize"`

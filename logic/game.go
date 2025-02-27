@@ -11,17 +11,19 @@ import (
 )
 
 type Game struct {
-	Config               *model.Config
-	ID                   string
-	Settings             *model.Setting
-	Agents               []*model.Agent
-	CurrentDay           int
-	GameStatuses         map[int]*model.GameStatus
-	LastTalkIdxMap       map[*model.Agent]int
-	LastWhisperIdxMap    map[*model.Agent]int
-	IsFinished           bool
-	AnalysisService      *service.JSONLogger
-	DeprecatedLogService *service.GameLogger
+	ID                           string
+	Agents                       []*model.Agent
+	IsFinished                   bool
+	config                       *model.Config
+	settings                     *model.Setting
+	currentDay                   int
+	gameStatuses                 map[int]*model.GameStatus
+	lastTalkIdxMap               map[*model.Agent]int
+	lastWhisperIdxMap            map[*model.Agent]int
+	jsonLogger                   *service.JSONLogger
+	gameLogger                   *service.GameLogger
+	realtimeBroadcaster          *service.RealtimeBroadcaster
+	realtimeBroadcasterPacketIdx int
 }
 
 func NewGame(config *model.Config, settings *model.Setting, conns []model.Connection) *Game {
@@ -32,15 +34,15 @@ func NewGame(config *model.Config, settings *model.Setting, conns []model.Connec
 	gameStatuses[0] = &gameStatus
 	slog.Info("ゲームを作成しました", "id", id)
 	return &Game{
-		Config:            config,
 		ID:                id,
-		Settings:          settings,
 		Agents:            agents,
-		CurrentDay:        0,
-		GameStatuses:      gameStatuses,
-		LastTalkIdxMap:    make(map[*model.Agent]int),
-		LastWhisperIdxMap: make(map[*model.Agent]int),
 		IsFinished:        false,
+		config:            config,
+		settings:          settings,
+		currentDay:        0,
+		gameStatuses:      gameStatuses,
+		lastTalkIdxMap:    make(map[*model.Agent]int),
+		lastWhisperIdxMap: make(map[*model.Agent]int),
 	}
 }
 
@@ -52,62 +54,66 @@ func NewGameWithRole(config *model.Config, settings *model.Setting, roleMapConns
 	gameStatuses[0] = &gameStatus
 	slog.Info("ゲームを作成しました", "id", id)
 	return &Game{
-		Config:            config,
+		config:            config,
 		ID:                id,
-		Settings:          settings,
+		settings:          settings,
 		Agents:            agents,
-		CurrentDay:        0,
-		GameStatuses:      gameStatuses,
-		LastTalkIdxMap:    make(map[*model.Agent]int),
-		LastWhisperIdxMap: make(map[*model.Agent]int),
+		currentDay:        0,
+		gameStatuses:      gameStatuses,
+		lastTalkIdxMap:    make(map[*model.Agent]int),
+		lastWhisperIdxMap: make(map[*model.Agent]int),
 		IsFinished:        false,
 	}
 }
 
-func (g *Game) SetAnalysisService(analysisService *service.JSONLogger) {
-	g.AnalysisService = analysisService
+func (g *Game) SetJSONLogger(jsonLogger *service.JSONLogger) {
+	g.jsonLogger = jsonLogger
 }
 
-func (g *Game) SetDeprecatedLogService(deprecatedLogService *service.GameLogger) {
-	g.DeprecatedLogService = deprecatedLogService
+func (g *Game) SetGameLogger(gameLogger *service.GameLogger) {
+	g.gameLogger = gameLogger
+}
+
+func (g *Game) SetRealtimeBroadcaster(realtimeBroadcaster *service.RealtimeBroadcaster) {
+	g.realtimeBroadcaster = realtimeBroadcaster
 }
 
 func (g *Game) Start() model.Team {
 	slog.Info("ゲームを開始します", "id", g.ID)
-	if g.AnalysisService != nil {
-		g.AnalysisService.TrackStartGame(g.ID, g.Agents)
+	if g.jsonLogger != nil {
+		g.jsonLogger.TrackStartGame(g.ID, g.Agents)
 	}
-	if g.DeprecatedLogService != nil {
-		g.DeprecatedLogService.TrackStartGame(g.ID, g.Agents)
+	if g.gameLogger != nil {
+		g.gameLogger.TrackStartGame(g.ID, g.Agents)
 	}
 	g.requestToEveryone(model.R_INITIALIZE)
 	var winSide model.Team = model.T_NONE
-	for winSide == model.T_NONE && util.CalcHasErrorAgents(g.Agents) < int(float64(len(g.Agents))*g.Config.Game.MaxContinueErrorRatio) {
+	for winSide == model.T_NONE && util.CalcHasErrorAgents(g.Agents) < int(float64(len(g.Agents))*g.config.Game.MaxContinueErrorRatio) {
 		g.progressDay()
 		g.progressNight()
-		gameStatus := g.GameStatuses[g.CurrentDay].NextDay()
-		g.GameStatuses[g.CurrentDay+1] = &gameStatus
-		g.CurrentDay++
-		slog.Info("日付が進みました", "id", g.ID, "day", g.CurrentDay)
+		gameStatus := g.gameStatuses[g.currentDay].NextDay()
+		g.gameStatuses[g.currentDay+1] = &gameStatus
+		g.currentDay++
+		slog.Info("日付が進みました", "id", g.ID, "day", g.currentDay)
 		winSide = util.CalcWinSideTeam(gameStatus.StatusMap)
 	}
 	if winSide == model.T_NONE {
 		slog.Warn("エラーが多発したため、ゲームを終了します", "id", g.ID)
 	}
 	g.requestToEveryone(model.R_FINISH)
-	if g.DeprecatedLogService != nil {
+	if g.gameLogger != nil {
 		for _, agent := range g.Agents {
-			g.DeprecatedLogService.AppendLog(g.ID, fmt.Sprintf("%d,status,%d,%s,%s,%s", g.CurrentDay, agent.Idx, agent.Role.Name, g.GameStatuses[g.CurrentDay].StatusMap[*agent].String(), agent.Name))
+			g.gameLogger.AppendLog(g.ID, fmt.Sprintf("%d,status,%d,%s,%s,%s", g.currentDay, agent.Idx, agent.Role.Name, g.gameStatuses[g.currentDay].StatusMap[*agent].String(), agent.Name))
 		}
-		villagers, werewolves := util.CountAliveTeams(g.GameStatuses[g.CurrentDay].StatusMap)
-		g.DeprecatedLogService.AppendLog(g.ID, fmt.Sprintf("%d,result,%d,%d,%s", g.CurrentDay, villagers, werewolves, winSide))
+		villagers, werewolves := util.CountAliveTeams(g.gameStatuses[g.currentDay].StatusMap)
+		g.gameLogger.AppendLog(g.ID, fmt.Sprintf("%d,result,%d,%d,%s", g.currentDay, villagers, werewolves, winSide))
 	}
 	g.closeAllAgents()
-	if g.AnalysisService != nil {
-		g.AnalysisService.TrackEndGame(g.ID, winSide)
+	if g.jsonLogger != nil {
+		g.jsonLogger.TrackEndGame(g.ID, winSide)
 	}
-	if g.DeprecatedLogService != nil {
-		g.DeprecatedLogService.TrackEndGame(g.ID)
+	if g.gameLogger != nil {
+		g.gameLogger.TrackEndGame(g.ID)
 	}
 	slog.Info("ゲームが終了しました", "id", g.ID, "winSide", winSide)
 	g.IsFinished = true
@@ -115,34 +121,34 @@ func (g *Game) Start() model.Team {
 }
 
 func (g *Game) progressDay() {
-	slog.Info("昼を開始します", "id", g.ID, "day", g.CurrentDay)
+	slog.Info("昼を開始します", "id", g.ID, "day", g.currentDay)
 	g.requestToEveryone(model.R_DAILY_INITIALIZE)
-	if g.DeprecatedLogService != nil {
+	if g.gameLogger != nil {
 		for _, agent := range g.Agents {
-			g.DeprecatedLogService.AppendLog(g.ID, fmt.Sprintf("%d,status,%d,%s,%s,%s", g.CurrentDay, agent.Idx, agent.Role.Name, g.GameStatuses[g.CurrentDay].StatusMap[*agent].String(), agent.Name))
+			g.gameLogger.AppendLog(g.ID, fmt.Sprintf("%d,status,%d,%s,%s,%s", g.currentDay, agent.Idx, agent.Role.Name, g.gameStatuses[g.currentDay].StatusMap[*agent].String(), agent.Name))
 		}
 	}
-	if g.Settings.IsTalkOnFirstDay && g.CurrentDay == 0 {
+	if g.settings.IsTalkOnFirstDay && g.currentDay == 0 {
 		g.doWhisper()
 	}
 	g.doTalk()
-	slog.Info("昼を終了します", "id", g.ID, "day", g.CurrentDay)
+	slog.Info("昼を終了します", "id", g.ID, "day", g.currentDay)
 }
 
 func (g *Game) progressNight() {
-	slog.Info("夜を開始します", "id", g.ID, "day", g.CurrentDay)
+	slog.Info("夜を開始します", "id", g.ID, "day", g.currentDay)
 	g.requestToEveryone(model.R_DAILY_FINISH)
-	if g.Settings.IsTalkOnFirstDay && g.CurrentDay == 0 {
+	if g.settings.IsTalkOnFirstDay && g.currentDay == 0 {
 		g.doWhisper()
 	}
-	if g.CurrentDay != 0 {
+	if g.currentDay != 0 {
 		g.doExecution()
 	}
 	g.doDivine()
-	if g.CurrentDay != 0 {
+	if g.currentDay != 0 {
 		g.doWhisper()
 		g.doGuard()
 		g.doAttack()
 	}
-	slog.Info("夜を終了します", "id", g.ID, "day", g.CurrentDay)
+	slog.Info("夜を終了します", "id", g.ID, "day", g.currentDay)
 }

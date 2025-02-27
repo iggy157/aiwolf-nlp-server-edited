@@ -21,16 +21,17 @@ import (
 )
 
 type Server struct {
-	config         model.Config
-	upgrader       websocket.Upgrader
-	waitingRoom    *WaitingRoom
-	matchOptimizer *MatchOptimizer
-	gameSetting    *model.Setting
-	games          []*logic.Game
-	mu             sync.RWMutex
-	signaled       bool
-	jsonLogger     *service.JSONLogger
-	gameLogger     *service.GameLogger
+	config              model.Config
+	upgrader            websocket.Upgrader
+	waitingRoom         *WaitingRoom
+	matchOptimizer      *MatchOptimizer
+	gameSetting         *model.Setting
+	games               []*logic.Game
+	mu                  sync.RWMutex
+	signaled            bool
+	jsonLogger          *service.JSONLogger
+	gameLogger          *service.GameLogger
+	realtimeBroadcaster *service.RealtimeBroadcaster
 }
 
 func NewServer(config model.Config) *Server {
@@ -58,6 +59,9 @@ func NewServer(config model.Config) *Server {
 	if config.GameLogger.Enable {
 		server.gameLogger = service.NewGameLogger(config)
 	}
+	if config.RealtimeBroadcaster.Enable {
+		server.realtimeBroadcaster = service.NewRealtimeBroadcaster(config)
+	}
 	if config.Matching.IsOptimize {
 		matchOptimizer, err := NewMatchOptimizer(config)
 		if err != nil {
@@ -80,6 +84,12 @@ func (s *Server) Run() {
 	router.GET("/ws", func(c *gin.Context) {
 		s.handleConnections(c.Writer, c.Request)
 	})
+
+	if s.config.RealtimeBroadcaster.Enable {
+		router.GET("/realtime", func(c *gin.Context) {
+			s.realtimeBroadcaster.HandleConnections(c.Writer, c.Request)
+		})
+	}
 
 	go func() {
 		trap := make(chan os.Signal, 1)
@@ -169,10 +179,13 @@ func (s *Server) handleConnections(w http.ResponseWriter, r *http.Request) {
 		game = logic.NewGame(&s.config, s.gameSetting, connections)
 	}
 	if s.jsonLogger != nil {
-		game.SetAnalysisService(s.jsonLogger)
+		game.SetJSONLogger(s.jsonLogger)
 	}
 	if s.gameLogger != nil {
-		game.SetDeprecatedLogService(s.gameLogger)
+		game.SetGameLogger(s.gameLogger)
+	}
+	if s.realtimeBroadcaster != nil {
+		game.SetRealtimeBroadcaster(s.realtimeBroadcaster)
 	}
 	s.games = append(s.games, game)
 	s.mu.Unlock()

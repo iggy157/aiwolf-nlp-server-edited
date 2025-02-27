@@ -44,8 +44,11 @@ game_logger:
   output_dir: "./log" # ゲームログの出力ディレクトリ
   filename: "{timestamp}_{teams}" # ゲームログのファイル名
 
+realtime_broadcaster:
+  enable: true # リアルタイムログの出力を有効にするか
+
 matching:
-  self_match: false # 同じチーム名のエージェント同士のみをマッチングさせるか
+  self_match: true # 同じチーム名のエージェント同士のみをマッチングさせるか
   is_optimize: false # 最適化した組み合わせマッチングを有効にするか (self_match が false の場合に限る)
   team_count: 5 # 参加するチーム数
   game_count: 30 # 全体のゲーム数

@@ -45,6 +45,9 @@ game_logger:
   output_dir: "./../log" # ゲームログの出力ディレクトリ
   filename: "{game_id}" # ゲームログのファイル名
 
+realtime_broadcaster:
+  enable: true # リアルタイムログの出力を有効にするか
+
 matching:
   self_match: false # 同じチーム名のエージェント同士のみをマッチングさせるか
   is_optimize: false # 最適化した組み合わせマッチングを有効にするか (self_match が false の場合に限る)
