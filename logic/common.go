@@ -117,11 +117,11 @@ func (g *Game) getRealtimeBroadcastPacket() model.BroadcastPacket {
 		Id:        g.ID,
 		Idx:       g.realtimeBroadcasterPacketIdx,
 		Day:       g.currentDay,
-		Event:     "",
-		Message:   "",
-		FromIdx:   -1,
-		ToIdx:     -1,
-		BubbleIdx: -1,
+		Event:     "なし",
+		Message:   nil,
+		FromIdx:   nil,
+		ToIdx:     nil,
+		BubbleIdx: nil,
 	}
 	for _, agent := range g.Agents {
 		packet.Agents = append(packet.Agents, struct {

@@ -12,9 +12,9 @@ type BroadcastPacket struct {
 		Role    string `json:"role"`
 		IsAlive bool   `json:"isAlive"`
 	} `json:"agents"`
-	Event     string `json:"event"`
-	Message   string `json:"message"`
-	FromIdx   int    `json:"fromIdx"`
-	ToIdx     int    `json:"toIdx"`
-	BubbleIdx int    `json:"bubbleIdx"`
+	Event     string  `json:"event"`
+	Message   *string `json:"message,omitempty"`
+	FromIdx   *int    `json:"fromIdx,omitempty"`
+	ToIdx     *int    `json:"toIdx,omitempty"`
+	BubbleIdx *int    `json:"bubbleIdx,omitempty"`
 }
