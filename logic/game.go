@@ -108,6 +108,14 @@ func (g *Game) Start() model.Team {
 		villagers, werewolves := util.CountAliveTeams(g.gameStatuses[g.currentDay].StatusMap)
 		g.gameLogger.AppendLog(g.ID, fmt.Sprintf("%d,result,%d,%d,%s", g.currentDay, villagers, werewolves, winSide))
 	}
+	if g.realtimeBroadcaster != nil {
+		packet := g.getRealtimeBroadcastPacket()
+		packet.IsDay = true
+		packet.Event = "終了"
+		message := string(winSide)
+		packet.Message = &message
+		g.realtimeBroadcaster.Broadcast(packet)
+	}
 	g.closeAllAgents()
 	if g.jsonLogger != nil {
 		g.jsonLogger.TrackEndGame(g.ID, winSide)

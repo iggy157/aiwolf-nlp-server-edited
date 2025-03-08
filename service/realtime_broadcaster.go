@@ -1,6 +1,7 @@
 package service
 
 import (
+	"log/slog"
 	"net/http"
 	"strings"
 	"sync"
@@ -42,6 +43,7 @@ func (rb *RealtimeBroadcaster) Broadcast(packet model.BroadcastPacket) {
 			client.Close()
 		}
 	}
+	slog.Info("リアルタイムブロードキャストを送信しました", "packet", packet)
 }
 
 func (rb *RealtimeBroadcaster) HandleConnections(w http.ResponseWriter, r *http.Request) {
@@ -49,12 +51,14 @@ func (rb *RealtimeBroadcaster) HandleConnections(w http.ResponseWriter, r *http.
 		token := r.URL.Query().Get("token")
 		if token != "" {
 			if !util.IsValidReceiver(rb.config.Server.Authentication.Secret, token) {
+				slog.Warn("トークンが無効です")
 				w.WriteHeader(http.StatusUnauthorized)
 				return
 			}
 		} else {
 			token = strings.ReplaceAll(r.Header.Get("Authorization"), "Bearer ", "")
 			if !util.IsValidReceiver(rb.config.Server.Authentication.Secret, token) {
+				slog.Warn("トークンが無効です")
 				w.WriteHeader(http.StatusUnauthorized)
 				return
 			}
@@ -63,6 +67,7 @@ func (rb *RealtimeBroadcaster) HandleConnections(w http.ResponseWriter, r *http.
 
 	ws, err := rb.upgrader.Upgrade(w, r, nil)
 	if err != nil {
+		slog.Error("クライアントのアップグレードに失敗しました", "error", err)
 		return
 	}
 	defer ws.Close()
@@ -80,6 +85,7 @@ func (rb *RealtimeBroadcaster) HandleConnections(w http.ResponseWriter, r *http.
 	for {
 		_, _, err := ws.ReadMessage()
 		if err != nil {
+			slog.Error("クライアントの読み込みに失敗しました", "error", err)
 			break
 		}
 	}
