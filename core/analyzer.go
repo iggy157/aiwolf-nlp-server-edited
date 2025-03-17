@@ -9,7 +9,7 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/kano-lab/aiwolf-nlp-server/model"
+	"github.com/aiwolfdial/aiwolf-nlp-server/model"
 )
 
 func Analyzer(config model.Config) {

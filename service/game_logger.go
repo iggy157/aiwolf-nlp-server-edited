@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/kano-lab/aiwolf-nlp-server/model"
+	"github.com/aiwolfdial/aiwolf-nlp-server/model"
 )
 
 type GameLogger struct {

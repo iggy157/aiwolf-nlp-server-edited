@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/kano-lab/aiwolf-nlp-server/core"
-	"github.com/kano-lab/aiwolf-nlp-server/model"
+	"github.com/aiwolfdial/aiwolf-nlp-server/core"
+	"github.com/aiwolfdial/aiwolf-nlp-server/model"
 	"golang.org/x/exp/rand"
 )
 
@@ -63,7 +63,6 @@ func TestGame(t *testing.T) {
 	time.Sleep(5 * time.Second)
 	t.Log("Test completed successfully")
 }
-
 
 func TestManualGame(t *testing.T) {
 	config, err := model.LoadFromPath("../config/debug.yml")

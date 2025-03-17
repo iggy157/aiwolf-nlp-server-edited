@@ -12,12 +12,12 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/aiwolfdial/aiwolf-nlp-server/logic"
+	"github.com/aiwolfdial/aiwolf-nlp-server/model"
+	"github.com/aiwolfdial/aiwolf-nlp-server/service"
+	"github.com/aiwolfdial/aiwolf-nlp-server/util"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
-	"github.com/kano-lab/aiwolf-nlp-server/logic"
-	"github.com/kano-lab/aiwolf-nlp-server/model"
-	"github.com/kano-lab/aiwolf-nlp-server/service"
-	"github.com/kano-lab/aiwolf-nlp-server/util"
 )
 
 type Server struct {

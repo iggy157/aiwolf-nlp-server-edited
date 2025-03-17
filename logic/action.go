@@ -5,8 +5,8 @@ import (
 	"log/slog"
 	"math/rand"
 
-	"github.com/kano-lab/aiwolf-nlp-server/model"
-	"github.com/kano-lab/aiwolf-nlp-server/util"
+	"github.com/aiwolfdial/aiwolf-nlp-server/model"
+	"github.com/aiwolfdial/aiwolf-nlp-server/util"
 )
 
 func (g *Game) doExecution() {

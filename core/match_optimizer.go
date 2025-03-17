@@ -10,8 +10,8 @@ import (
 	"sort"
 	"sync"
 
-	"github.com/kano-lab/aiwolf-nlp-server/model"
-	"github.com/kano-lab/aiwolf-nlp-server/util"
+	"github.com/aiwolfdial/aiwolf-nlp-server/model"
+	"github.com/aiwolfdial/aiwolf-nlp-server/util"
 )
 
 type MatchOptimizer struct {

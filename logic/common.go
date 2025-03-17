@@ -5,8 +5,8 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/kano-lab/aiwolf-nlp-server/model"
-	"github.com/kano-lab/aiwolf-nlp-server/util"
+	"github.com/aiwolfdial/aiwolf-nlp-server/model"
+	"github.com/aiwolfdial/aiwolf-nlp-server/util"
 )
 
 func (g *Game) findTargetByRequest(agent *model.Agent, request model.Request) (*model.Agent, error) {
@@ -47,7 +47,7 @@ func (g *Game) requestToEveryone(request model.Request) {
 }
 
 func (g *Game) requestToAgent(agent *model.Agent, request model.Request) (string, error) {
-	info := model.NewInfo(agent, g.gameStatuses[g.currentDay], g.gameStatuses[g.currentDay-1], g.settings)
+	info := model.NewInfo(g.ID, agent, g.gameStatuses[g.currentDay], g.gameStatuses[g.currentDay-1], g.settings)
 	var packet model.Packet
 	switch request {
 	case model.R_NAME:

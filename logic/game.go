@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/kano-lab/aiwolf-nlp-server/model"
-	"github.com/kano-lab/aiwolf-nlp-server/service"
-	"github.com/kano-lab/aiwolf-nlp-server/util"
+	"github.com/aiwolfdial/aiwolf-nlp-server/model"
+	"github.com/aiwolfdial/aiwolf-nlp-server/service"
+	"github.com/aiwolfdial/aiwolf-nlp-server/util"
 	"github.com/oklog/ulid/v2"
 )
 

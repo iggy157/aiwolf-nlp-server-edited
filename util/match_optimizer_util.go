@@ -4,7 +4,7 @@ import (
 	"math"
 	"math/rand"
 
-	"github.com/kano-lab/aiwolf-nlp-server/model"
+	"github.com/aiwolfdial/aiwolf-nlp-server/model"
 )
 
 func teamToIdx(idxTeamMap map[int]string, team string) int {

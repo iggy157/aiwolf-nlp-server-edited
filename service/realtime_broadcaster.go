@@ -6,9 +6,9 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/aiwolfdial/aiwolf-nlp-server/model"
+	"github.com/aiwolfdial/aiwolf-nlp-server/util"
 	"github.com/gorilla/websocket"
-	"github.com/kano-lab/aiwolf-nlp-server/model"
-	"github.com/kano-lab/aiwolf-nlp-server/util"
 )
 
 type RealtimeBroadcaster struct {

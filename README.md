@@ -3,7 +3,7 @@
 人狼知能コンテスト2024冬季 国内大会（自然言語部門） のゲームサーバです。  
 従来の対戦接続システムでは、対戦接続システムが実行中のサーバに対してSSH接続を確立した後、TCP通信を行う必要がありましたが、新しいゲームサーバでは、WebSocketを使用して直接ゲームサーバと通信を行います。
 
-サンプルエージェントについては、[kano-lab/aiwolf-nlp-agent](https://github.com/kano-lab/aiwolf-nlp-agent) を参考にしてください。
+サンプルエージェントについては、[aiwolfdial/aiwolf-nlp-agent](https://github.com/aiwolfdial/aiwolf-nlp-agent) を参考にしてください。
 大会の詳細ならびに参加登録については、[AIWolfDial2024WinterJp](https://sites.google.com/view/aiwolfdial2024winterjp/) を参考にしてください。
 
 ## ドキュメント
@@ -24,8 +24,8 @@
 ### Linux
 
 ```bash
-curl -LJO https://github.com/kano-lab/aiwolf-nlp-server/releases/latest/download/aiwolf-nlp-server-linux-amd64
-curl -LJO https://github.com/kano-lab/aiwolf-nlp-server/releases/latest/download/default.yml
+curl -LJO https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/aiwolf-nlp-server-linux-amd64
+curl -LJO https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/default.yml
 chmod u+x ./aiwolf-nlp-server-linux-amd64
 ./aiwolf-nlp-server-linux-amd64
 ```
@@ -33,8 +33,8 @@ chmod u+x ./aiwolf-nlp-server-linux-amd64
 ### Windows
 
 ```bash
-curl -LJO https://github.com/kano-lab/aiwolf-nlp-server/releases/latest/download/aiwolf-nlp-server-windows-amd64.exe
-curl -LJO https://github.com/kano-lab/aiwolf-nlp-server/releases/latest/download/default.yml
+curl -LJO https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/aiwolf-nlp-server-windows-amd64.exe
+curl -LJO https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/default.yml
 .\aiwolf-nlp-server-windows-amd64.exe
 ```
 
@@ -49,8 +49,8 @@ curl -LJO https://github.com/kano-lab/aiwolf-nlp-server/releases/latest/download
 > 動作確認が取れていないため、動作しない可能性があります。
 
 ```bash
-curl -LJO https://github.com/kano-lab/aiwolf-nlp-server/releases/latest/download/aiwolf-nlp-server-darwin-amd64
-curl -LJO https://github.com/kano-lab/aiwolf-nlp-server/releases/latest/download/default.yml
+curl -LJO https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/aiwolf-nlp-server-darwin-amd64
+curl -LJO https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/default.yml
 chmod u+x ./aiwolf-nlp-server-darwin-amd64
 ./aiwolf-nlp-server-darwin-amd64
 ```
@@ -63,8 +63,8 @@ chmod u+x ./aiwolf-nlp-server-darwin-amd64
 > https://support.apple.com/ja-jp/guide/mac-help/mh40616/mac
 
 ```bash
-curl -LJO https://github.com/kano-lab/aiwolf-nlp-server/releases/latest/download/aiwolf-nlp-server-darwin-arm64
-curl -LJO https://github.com/kano-lab/aiwolf-nlp-server/releases/latest/download/default.yml
+curl -LJO https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/aiwolf-nlp-server-darwin-arm64
+curl -LJO https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/default.yml
 chmod u+x ./aiwolf-nlp-server-darwin-arm64
 ./aiwolf-nlp-server-darwin-arm64
 ```

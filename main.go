@@ -4,8 +4,8 @@ import (
 	"flag"
 	"os"
 
-	"github.com/kano-lab/aiwolf-nlp-server/core"
-	"github.com/kano-lab/aiwolf-nlp-server/model"
+	"github.com/aiwolfdial/aiwolf-nlp-server/core"
+	"github.com/aiwolfdial/aiwolf-nlp-server/model"
 )
 
 var (

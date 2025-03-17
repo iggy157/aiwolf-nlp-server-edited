@@ -6,7 +6,7 @@ import (
 	"math/rand/v2"
 	"sync"
 
-	"github.com/kano-lab/aiwolf-nlp-server/model"
+	"github.com/aiwolfdial/aiwolf-nlp-server/model"
 )
 
 type WaitingRoom struct {

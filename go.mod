@@ -1,4 +1,4 @@
-module github.com/kano-lab/aiwolf-nlp-server
+module github.com/aiwolfdial/aiwolf-nlp-server
 
 go 1.24.0
 

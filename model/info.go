@@ -3,6 +3,7 @@ package model
 import "encoding/json"
 
 type Info struct {
+	GameID         string           `json:"gameID,omitempty"`
 	Day            int              `json:"day"`
 	Agent          *Agent           `json:"agent,omitempty"`
 	MediumResult   *Judge           `json:"mediumResult,omitempty"`
@@ -38,10 +39,11 @@ func (i Info) MarshalJSON() ([]byte, error) {
 	})
 }
 
-func NewInfo(agent *Agent, gameStatus *GameStatus, lastGameStatus *GameStatus, settings *Setting) Info {
+func NewInfo(id string, agent *Agent, gameStatus *GameStatus, lastGameStatus *GameStatus, settings *Setting) Info {
 	info := Info{
-		Day:   gameStatus.Day,
-		Agent: agent,
+		GameID: id,
+		Day:    gameStatus.Day,
+		Agent:  agent,
 	}
 	if lastGameStatus != nil {
 		if lastGameStatus.MediumResult != nil && agent.Role == R_MEDIUM {

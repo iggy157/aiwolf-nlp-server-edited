@@ -3,7 +3,7 @@ package util
 import (
 	"log/slog"
 
-	"github.com/kano-lab/aiwolf-nlp-server/model"
+	"github.com/aiwolfdial/aiwolf-nlp-server/model"
 )
 
 func CountAliveTeams(statusMap map[model.Agent]model.Status) (int, int) {

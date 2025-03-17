@@ -10,8 +10,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/aiwolfdial/aiwolf-nlp-server/model"
 	"github.com/gorilla/websocket"
-	"github.com/kano-lab/aiwolf-nlp-server/model"
 )
 
 type DummyClient struct {
