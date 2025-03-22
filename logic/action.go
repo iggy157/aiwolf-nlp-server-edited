@@ -373,7 +373,9 @@ func (g *Game) conductCommunication(request model.Request) {
 					remainLengthMap[*agent] = 0
 					slog.Warn("発言が最大文字数を超えたため、切り捨てました", "id", g.ID, "agent", agent.String())
 				} else {
-					remainLengthMap[*agent] -= length
+					if length-baseLength > 0 {
+						remainLengthMap[*agent] -= length - baseLength
+					}
 				}
 			}
 			if maxLengthPerTalk != -1 {
