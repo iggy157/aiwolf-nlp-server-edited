@@ -29,12 +29,20 @@ type Config struct {
 				PerAgent int `yaml:"per_agent"`
 				PerDay   int `yaml:"per_day"`
 			} `yaml:"max_count"`
+			MaxLength struct {
+				PerTalk  int `yaml:"per_talk"`
+				PerAgent int `yaml:"per_agent"`
+			}
 		} `yaml:"talk"`
 		Whisper struct {
 			MaxCount struct {
 				PerAgent int `yaml:"per_agent"`
 				PerDay   int `yaml:"per_day"`
 			} `yaml:"max_count"`
+			MaxLength struct {
+				PerTalk  int `yaml:"per_talk"`
+				PerAgent int `yaml:"per_agent"`
+			}
 		} `yaml:"whisper"`
 		Skip struct {
 			MaxCount int `yaml:"max_count"`

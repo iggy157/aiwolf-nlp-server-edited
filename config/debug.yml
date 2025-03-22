@@ -19,10 +19,16 @@ game:
     max_count:
       per_agent: 5 # 1日あたりの1エージェントの最大発言回数
       per_day: 20 # 1日あたりの全体の発言回数
+    max_length:
+      per_talk: -1 # 1回のトークあたりの最大文字数
+      per_agent: -1 # 1日あたりの1エージェントの最大文字数
   whisper:
     max_count:
       per_agent: 5 # 1日あたりの1エージェントの最大囁き回数
       per_day: 20 # 1日あたりの全体の囁き回数
+    max_length:
+      per_talk: -1 # 1回のトークあたりの最大文字数
+      per_agent: -1 # 1日あたりの1エージェントの最大文字数
   skip:
     max_count: 0 # 1日あたりの1エージェントの最大スキップ回数
   vote:
