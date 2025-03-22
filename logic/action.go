@@ -342,7 +342,7 @@ func (g *Game) conductCommunication(request model.Request) {
 	for i := range maxCountPerDay {
 		cnt := false
 		for _, agent := range agents {
-			if remainCountMap[*agent] <= 0 {
+			if remainCountMap[*agent] <= 0 || remainLengthMap[*agent] <= 0 {
 				continue
 			}
 			text := g.getTalkWhisperText(agent, request)
@@ -366,9 +366,9 @@ func (g *Game) conductCommunication(request model.Request) {
 			if maxLengthPerAgent != -1 {
 				length := utf8.RuneCountInString(text)
 				length -= baseLength
-				if remainLengthMap[*agent] == 0 {
+				if remainLengthMap[*agent] <= 0 {
 					text = model.T_OVER
-					slog.Warn("残り文字数が0のため、発言をオーバーに置換しました", "id", g.ID, "agent", agent.String())
+					slog.Warn("残り文字数がないため、発言をオーバーに置換しました", "id", g.ID, "agent", agent.String())
 				} else if length > remainLengthMap[*agent] {
 					text = string([]rune(text)[:remainLengthMap[*agent]])
 					remainLengthMap[*agent] = 0
