@@ -16,6 +16,9 @@ type Info struct {
 	WhisperList    []Talk           `json:"-"`
 	StatusMap      map[Agent]Status `json:"statusMap"`
 	RoleMap        map[Agent]Role   `json:"roleMap"`
+	RemainCount    *int             `json:"remainCount,omitempty"`
+	RemainLength   *int             `json:"remainLength,omitempty"`
+	RemainSkip     *int             `json:"remainSkip,omitempty"`
 }
 
 func (i Info) MarshalJSON() ([]byte, error) {
@@ -80,5 +83,17 @@ func NewInfo(id string, agent *Agent, gameStatus *GameStatus, lastGameStatus *Ga
 		}
 	}
 	info.RoleMap = roleMap
+	if gameStatus.RemainCountMap != nil {
+		count := (*gameStatus.RemainCountMap)[*agent]
+		info.RemainCount = &count
+	}
+	if gameStatus.RemainLengthMap != nil {
+		count := (*gameStatus.RemainLengthMap)[*agent]
+		info.RemainLength = &count
+	}
+	if gameStatus.RemainSkipMap != nil {
+		count := (*gameStatus.RemainSkipMap)[*agent]
+		info.RemainSkip = &count
+	}
 	return info
 }

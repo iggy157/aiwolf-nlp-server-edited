@@ -16,7 +16,7 @@ func (g *Game) doExecution() {
 	candidates := make([]model.Agent, 0)
 	for i := 0; i < g.setting.Vote.MaxCount; i++ {
 		g.executeVote()
-		candidates = g.getVotedCandidates(g.gameStatuses[g.currentDay].Votes)
+		candidates = g.getVotedCandidates(g.getCurrentGameStatus().Votes)
 		if len(candidates) == 1 {
 			executed = &candidates[0]
 			break
@@ -27,8 +27,8 @@ func (g *Game) doExecution() {
 		executed = &rand
 	}
 	if executed != nil {
-		g.gameStatuses[g.currentDay].StatusMap[*executed] = model.S_DEAD
-		g.gameStatuses[g.currentDay].ExecutedAgent = executed
+		g.getCurrentGameStatus().StatusMap[*executed] = model.S_DEAD
+		g.getCurrentGameStatus().ExecutedAgent = executed
 		if g.gameLogger != nil {
 			g.gameLogger.AppendLog(g.ID, fmt.Sprintf("%d,execute,%d,%s", g.currentDay, executed.Idx, executed.Role.Name))
 		}
@@ -41,8 +41,8 @@ func (g *Game) doExecution() {
 		}
 		slog.Info("追放結果を設定しました", "id", g.ID, "agent", executed.String())
 
-		g.gameStatuses[g.currentDay].MediumResult = &model.Judge{
-			Day:    g.gameStatuses[g.currentDay].Day,
+		g.getCurrentGameStatus().MediumResult = &model.Judge{
+			Day:    g.getCurrentGameStatus().Day,
 			Agent:  *executed,
 			Target: *executed,
 			Result: executed.Role.Species,
@@ -70,7 +70,7 @@ func (g *Game) doAttack() {
 		candidates := make([]model.Agent, 0)
 		for i := 0; i < g.setting.AttackVote.MaxCount; i++ {
 			g.executeAttackVote()
-			candidates = g.getAttackVotedCandidates(g.gameStatuses[g.currentDay].AttackVotes)
+			candidates = g.getAttackVotedCandidates(g.getCurrentGameStatus().AttackVotes)
 			if len(candidates) == 1 {
 				attacked = &candidates[0]
 				break
@@ -82,8 +82,8 @@ func (g *Game) doAttack() {
 		}
 
 		if attacked != nil && !g.isGuarded(attacked) {
-			g.gameStatuses[g.currentDay].StatusMap[*attacked] = model.S_DEAD
-			g.gameStatuses[g.currentDay].AttackedAgent = attacked
+			g.getCurrentGameStatus().StatusMap[*attacked] = model.S_DEAD
+			g.getCurrentGameStatus().AttackedAgent = attacked
 			if g.gameLogger != nil {
 				g.gameLogger.AppendLog(g.ID, fmt.Sprintf("%d,attack,%d,true", g.currentDay, attacked.Idx))
 			}
@@ -126,10 +126,10 @@ func (g *Game) doAttack() {
 }
 
 func (g *Game) isGuarded(attacked *model.Agent) bool {
-	if g.gameStatuses[g.currentDay].Guard == nil {
+	if g.getCurrentGameStatus().Guard == nil {
 		return false
 	}
-	return g.gameStatuses[g.currentDay].Guard.Target == *attacked && g.isAlive(&g.gameStatuses[g.currentDay].Guard.Agent)
+	return g.getCurrentGameStatus().Guard.Target == *attacked && g.isAlive(&g.getCurrentGameStatus().Guard.Agent)
 }
 
 func (g *Game) doDivine() {
@@ -158,8 +158,8 @@ func (g *Game) conductDivination(agent *model.Agent) {
 		slog.Warn("占い対象が自分自身であるため、占い結果を設定しません", "id", g.ID, "target", target.String())
 		return
 	}
-	g.gameStatuses[g.currentDay].DivineResult = &model.Judge{
-		Day:    g.gameStatuses[g.currentDay].Day,
+	g.getCurrentGameStatus().DivineResult = &model.Judge{
+		Day:    g.getCurrentGameStatus().Day,
 		Agent:  *agent,
 		Target: *target,
 		Result: target.Role.Species,
@@ -203,8 +203,8 @@ func (g *Game) conductGuard(agent *model.Agent) {
 		slog.Warn("護衛対象が自分自身であるため、護衛対象を設定しません", "id", g.ID, "target", target.String())
 		return
 	}
-	g.gameStatuses[g.currentDay].Guard = &model.Guard{
-		Day:    g.gameStatuses[g.currentDay].Day,
+	g.getCurrentGameStatus().Guard = &model.Guard{
+		Day:    g.getCurrentGameStatus().Day,
 		Agent:  *agent,
 		Target: *target,
 	}
@@ -224,12 +224,12 @@ func (g *Game) conductGuard(agent *model.Agent) {
 
 func (g *Game) executeVote() {
 	slog.Info("投票アクションを開始します", "id", g.ID, "day", g.currentDay)
-	g.gameStatuses[g.currentDay].Votes = g.collectVotes(model.R_VOTE, g.getAliveAgents())
+	g.getCurrentGameStatus().Votes = g.collectVotes(model.R_VOTE, g.getAliveAgents())
 }
 
 func (g *Game) executeAttackVote() {
 	slog.Info("襲撃投票アクションを開始します", "id", g.ID, "day", g.currentDay)
-	g.gameStatuses[g.currentDay].AttackVotes = g.collectVotes(model.R_ATTACK, g.getAliveWerewolves())
+	g.getCurrentGameStatus().AttackVotes = g.collectVotes(model.R_ATTACK, g.getAliveWerewolves())
 }
 
 func (g *Game) collectVotes(request model.Request, agents []*model.Agent) []model.Vote {
@@ -247,7 +247,7 @@ func (g *Game) collectVotes(request model.Request, agents []*model.Agent) []mode
 			continue
 		}
 		votes = append(votes, model.Vote{
-			Day:    g.gameStatuses[g.currentDay].Day,
+			Day:    g.getCurrentGameStatus().Day,
 			Agent:  *agent,
 			Target: *target,
 		})
@@ -303,7 +303,7 @@ func (g *Game) conductCommunication(request model.Request) {
 		maxLengthPerTalk = g.setting.Talk.MaxLength.PerTalk
 		maxLengthPerAgent = g.setting.Talk.MaxLength.PerAgent
 		maxSkip = g.setting.Talk.MaxSkip
-		talkList = &g.gameStatuses[g.currentDay].Talks
+		talkList = &g.getCurrentGameStatus().Talks
 		maxCountPerDay = g.setting.Talk.MaxCount.PerDay
 		baseLength = g.setting.Talk.MaxLength.BaseLength
 	case model.R_WHISPER:
@@ -312,7 +312,7 @@ func (g *Game) conductCommunication(request model.Request) {
 		maxLengthPerTalk = g.setting.Whisper.MaxLength.PerTalk
 		maxLengthPerAgent = g.setting.Whisper.MaxLength.PerAgent
 		maxSkip = g.setting.Whisper.MaxSkip
-		talkList = &g.gameStatuses[g.currentDay].Whispers
+		talkList = &g.getCurrentGameStatus().Whispers
 		maxCountPerDay = g.setting.Whisper.MaxCount.PerDay
 		baseLength = g.setting.Whisper.MaxLength.BaseLength
 	default:
@@ -330,6 +330,9 @@ func (g *Game) conductCommunication(request model.Request) {
 		remainLengthMap[*agent] = maxLengthPerAgent
 		remainSkipMap[*agent] = maxSkip
 	}
+	g.getCurrentGameStatus().RemainCountMap = &remainCountMap
+	g.getCurrentGameStatus().RemainLengthMap = &remainLengthMap
+	g.getCurrentGameStatus().RemainSkipMap = &remainSkipMap
 
 	rand.Shuffle(len(agents), func(i, j int) {
 		agents[i], agents[j] = agents[j], agents[i]
@@ -382,7 +385,7 @@ func (g *Game) conductCommunication(request model.Request) {
 			}
 			talk := model.Talk{
 				Idx:   idx,
-				Day:   g.gameStatuses[g.currentDay].Day,
+				Day:   g.getCurrentGameStatus().Day,
 				Turn:  i,
 				Agent: *agent,
 				Text:  text,
@@ -425,6 +428,10 @@ func (g *Game) conductCommunication(request model.Request) {
 			break
 		}
 	}
+
+	g.getCurrentGameStatus().RemainCountMap = nil
+	g.getCurrentGameStatus().RemainLengthMap = nil
+	g.getCurrentGameStatus().RemainSkipMap = nil
 }
 
 func (g *Game) getTalkWhisperText(agent *model.Agent, request model.Request) string {

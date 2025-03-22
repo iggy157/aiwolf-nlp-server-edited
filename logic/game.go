@@ -91,7 +91,7 @@ func (g *Game) Start() model.Team {
 	for winSide == model.T_NONE && util.CalcHasErrorAgents(g.Agents) < int(float64(len(g.Agents))*g.config.Game.MaxContinueErrorRatio) {
 		g.progressDay()
 		g.progressNight()
-		gameStatus := g.gameStatuses[g.currentDay].NextDay()
+		gameStatus := g.getCurrentGameStatus().NextDay()
 		g.gameStatuses[g.currentDay+1] = &gameStatus
 		g.currentDay++
 		slog.Info("日付が進みました", "id", g.ID, "day", g.currentDay)
@@ -103,9 +103,9 @@ func (g *Game) Start() model.Team {
 	g.requestToEveryone(model.R_FINISH)
 	if g.gameLogger != nil {
 		for _, agent := range g.Agents {
-			g.gameLogger.AppendLog(g.ID, fmt.Sprintf("%d,status,%d,%s,%s,%s", g.currentDay, agent.Idx, agent.Role.Name, g.gameStatuses[g.currentDay].StatusMap[*agent].String(), agent.Name))
+			g.gameLogger.AppendLog(g.ID, fmt.Sprintf("%d,status,%d,%s,%s,%s", g.currentDay, agent.Idx, agent.Role.Name, g.getCurrentGameStatus().StatusMap[*agent].String(), agent.Name))
 		}
-		villagers, werewolves := util.CountAliveTeams(g.gameStatuses[g.currentDay].StatusMap)
+		villagers, werewolves := util.CountAliveTeams(g.getCurrentGameStatus().StatusMap)
 		g.gameLogger.AppendLog(g.ID, fmt.Sprintf("%d,result,%d,%d,%s", g.currentDay, villagers, werewolves, winSide))
 	}
 	if g.realtimeBroadcaster != nil {
@@ -133,7 +133,7 @@ func (g *Game) progressDay() {
 	g.requestToEveryone(model.R_DAILY_INITIALIZE)
 	if g.gameLogger != nil {
 		for _, agent := range g.Agents {
-			g.gameLogger.AppendLog(g.ID, fmt.Sprintf("%d,status,%d,%s,%s,%s", g.currentDay, agent.Idx, agent.Role.Name, g.gameStatuses[g.currentDay].StatusMap[*agent].String(), agent.Name))
+			g.gameLogger.AppendLog(g.ID, fmt.Sprintf("%d,status,%d,%s,%s,%s", g.currentDay, agent.Idx, agent.Role.Name, g.getCurrentGameStatus().StatusMap[*agent].String(), agent.Name))
 		}
 	}
 	if g.setting.TalkOnFirstDay && g.currentDay == 0 {

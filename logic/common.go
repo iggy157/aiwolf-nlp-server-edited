@@ -47,7 +47,7 @@ func (g *Game) requestToEveryone(request model.Request) {
 }
 
 func (g *Game) requestToAgent(agent *model.Agent, request model.Request) (string, error) {
-	info := model.NewInfo(g.ID, agent, g.gameStatuses[g.currentDay], g.gameStatuses[g.currentDay-1], g.setting)
+	info := model.NewInfo(g.ID, agent, g.getCurrentGameStatus(), g.gameStatuses[g.currentDay-1], g.setting)
 	var packet model.Packet
 	switch request {
 	case model.R_NAME:
@@ -95,6 +95,10 @@ func (g *Game) minimize(agent *model.Agent, talks []model.Talk, whispers []model
 	return talks[lastTalkIdx:], whispers[lastWhisperIdx:]
 }
 
+func (g *Game) getCurrentGameStatus() *model.GameStatus {
+	return g.gameStatuses[g.currentDay]
+}
+
 func (g *Game) getAliveAgents() []*model.Agent {
 	return util.FilterAgents(g.Agents, func(agent *model.Agent) bool {
 		return g.isAlive(agent)
@@ -108,7 +112,7 @@ func (g *Game) getAliveWerewolves() []*model.Agent {
 }
 
 func (g *Game) isAlive(agent *model.Agent) bool {
-	return g.gameStatuses[g.currentDay].StatusMap[*agent] == model.S_ALIVE
+	return g.getCurrentGameStatus().StatusMap[*agent] == model.S_ALIVE
 }
 
 func (g *Game) getRealtimeBroadcastPacket() model.BroadcastPacket {
