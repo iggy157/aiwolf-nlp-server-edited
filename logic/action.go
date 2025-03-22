@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log/slog"
 	"math/rand"
+	"unicode/utf8"
 
 	"github.com/aiwolfdial/aiwolf-nlp-server/model"
 	"github.com/aiwolfdial/aiwolf-nlp-server/util"
@@ -13,7 +14,7 @@ func (g *Game) doExecution() {
 	slog.Info("追放フェーズを開始します", "id", g.ID, "day", g.currentDay)
 	var executed *model.Agent
 	candidates := make([]model.Agent, 0)
-	for i := 0; i < g.settings.MaxRevote; i++ {
+	for i := 0; i < g.setting.Vote.MaxCount; i++ {
 		g.executeVote()
 		candidates = g.getVotedCandidates(g.gameStatuses[g.currentDay].Votes)
 		if len(candidates) == 1 {
@@ -67,7 +68,7 @@ func (g *Game) doAttack() {
 	werewolfs := g.getAliveWerewolves()
 	if len(werewolfs) > 0 {
 		candidates := make([]model.Agent, 0)
-		for i := 0; i < g.settings.MaxAttackRevote; i++ {
+		for i := 0; i < g.setting.AttackVote.MaxCount; i++ {
 			g.executeAttackVote()
 			candidates = g.getAttackVotedCandidates(g.gameStatuses[g.currentDay].AttackVotes)
 			if len(candidates) == 1 {
@@ -75,7 +76,7 @@ func (g *Game) doAttack() {
 				break
 			}
 		}
-		if attacked == nil && !g.settings.IsEnableNoAttack && len(candidates) > 0 {
+		if attacked == nil && !g.setting.AttackVote.AllowNoTarget && len(candidates) > 0 {
 			rand := util.SelectRandomAgent(candidates)
 			attacked = &rand
 		}
@@ -282,56 +283,103 @@ func (g *Game) collectVotes(request model.Request, agents []*model.Agent) []mode
 
 func (g *Game) doWhisper() {
 	slog.Info("囁きフェーズを開始します", "id", g.ID, "day", g.currentDay)
-	g.gameStatuses[g.currentDay].ResetRemainWhisperMap(g.settings.MaxWhisper)
 	g.conductCommunication(model.R_WHISPER)
-	g.gameStatuses[g.currentDay].ClearRemainWhisperMap()
 }
 
 func (g *Game) doTalk() {
 	slog.Info("トークフェーズを開始します", "id", g.ID, "day", g.currentDay)
-	g.gameStatuses[g.currentDay].ResetRemainTalkMap(g.settings.MaxTalk)
 	g.conductCommunication(model.R_TALK)
-	g.gameStatuses[g.currentDay].ClearRemainTalkMap()
 }
 
 func (g *Game) conductCommunication(request model.Request) {
 	var agents []*model.Agent
-	var maxTurn int
-	var remainMap map[model.Agent]int
+	var maxCountPerAgent, maxLengthPerTalk, maxLengthPerAgent, maxSkip int
 	var talkList *[]model.Talk
+	var maxCountPerDay, baseLength int
 	switch request {
 	case model.R_TALK:
 		agents = g.getAliveAgents()
-		maxTurn = g.settings.MaxTalkTurn
-		remainMap = g.gameStatuses[g.currentDay].RemainTalkMap
+		maxCountPerAgent = g.setting.Talk.MaxCount.PerAgent
+		maxLengthPerTalk = g.setting.Talk.MaxLength.PerTalk
+		maxLengthPerAgent = g.setting.Talk.MaxLength.PerAgent
+		maxSkip = g.setting.Talk.MaxSkip
 		talkList = &g.gameStatuses[g.currentDay].Talks
+		maxCountPerDay = g.setting.Talk.MaxCount.PerDay
+		baseLength = g.setting.Talk.MaxLength.BaseLength
 	case model.R_WHISPER:
 		agents = g.getAliveWerewolves()
-		maxTurn = g.settings.MaxWhisperTurn
-		remainMap = g.gameStatuses[g.currentDay].RemainWhisperMap
+		maxCountPerAgent = g.setting.Whisper.MaxCount.PerAgent
+		maxLengthPerTalk = g.setting.Whisper.MaxLength.PerTalk
+		maxLengthPerAgent = g.setting.Whisper.MaxLength.PerAgent
+		maxSkip = g.setting.Whisper.MaxSkip
 		talkList = &g.gameStatuses[g.currentDay].Whispers
+		maxCountPerDay = g.setting.Whisper.MaxCount.PerDay
+		baseLength = g.setting.Whisper.MaxLength.BaseLength
 	default:
 		return
 	}
-
 	if len(agents) < 2 {
 		slog.Warn("エージェント数が2未満のため、通信を行いません", "id", g.ID, "agentNum", len(agents))
 		return
+	}
+	remainCountMap := make(map[model.Agent]int)
+	remainLengthMap := make(map[model.Agent]int)
+	remainSkipMap := make(map[model.Agent]int)
+	for _, agent := range agents {
+		remainCountMap[*agent] = maxCountPerAgent
+		remainLengthMap[*agent] = maxLengthPerAgent
+		remainSkipMap[*agent] = maxSkip
 	}
 
 	rand.Shuffle(len(agents), func(i, j int) {
 		agents[i], agents[j] = agents[j], agents[i]
 	})
-	skipMap := make(map[model.Agent]int)
-	idx := 0
 
-	for i := 0; i < maxTurn; i++ {
+	idx := 0
+	for i := range maxCountPerDay {
 		cnt := false
 		for _, agent := range agents {
-			if remainMap[*agent] <= 0 {
+			if remainCountMap[*agent] <= 0 {
 				continue
 			}
-			text := g.getTalkWhisperText(agent, request, skipMap, remainMap)
+			text := g.getTalkWhisperText(agent, request)
+			remainCountMap[*agent]--
+			if text == model.T_SKIP {
+				if remainSkipMap[*agent] <= 0 {
+					text = model.T_OVER
+					slog.Warn("スキップ回数が上限に達したため、発言をオーバーに置換しました", "id", g.ID, "agent", agent.String())
+				} else {
+					remainSkipMap[*agent]--
+					slog.Info("発言をスキップしました", "id", g.ID, "agent", agent.String())
+				}
+			} else if text == model.T_FORCE_SKIP {
+				text = model.T_SKIP
+				slog.Warn("強制スキップが指定されたため、発言をスキップに置換しました", "id", g.ID, "agent", agent.String())
+			}
+			if text != model.T_OVER && text != model.T_SKIP {
+				remainSkipMap[*agent] = maxSkip
+				slog.Info("発言がオーバーもしくはスキップではないため、スキップ回数をリセットしました", "id", g.ID, "agent", agent.String())
+			}
+			if maxLengthPerAgent != -1 {
+				length := utf8.RuneCountInString(text)
+				length -= baseLength
+				if remainLengthMap[*agent] == 0 {
+					text = model.T_OVER
+					slog.Warn("残り文字数が0のため、発言をオーバーに置換しました", "id", g.ID, "agent", agent.String())
+				} else if length > remainLengthMap[*agent] {
+					text = string([]rune(text)[:remainLengthMap[*agent]])
+					remainLengthMap[*agent] = 0
+					slog.Warn("発言が最大文字数を超えたため、切り捨てました", "id", g.ID, "agent", agent.String())
+				} else {
+					remainLengthMap[*agent] -= length
+				}
+			}
+			if maxLengthPerTalk != -1 {
+				if utf8.RuneCountInString(text) > maxLengthPerTalk {
+					text = string([]rune(text)[:maxLengthPerTalk])
+					slog.Warn("発言が最大文字数を超えたため、切り捨てました", "id", g.ID, "agent", agent.String())
+				}
+			}
 			talk := model.Talk{
 				Idx:   idx,
 				Day:   g.gameStatuses[g.currentDay].Day,
@@ -344,7 +392,7 @@ func (g *Game) conductCommunication(request model.Request) {
 			if text != model.T_OVER {
 				cnt = true
 			} else {
-				remainMap[*agent] = 0
+				remainCountMap[*agent] = 0
 				slog.Info("発言がオーバーであるため、残り発言回数を0にしました", "id", g.ID, "agent", agent.String())
 			}
 			if g.gameLogger != nil {
@@ -371,7 +419,7 @@ func (g *Game) conductCommunication(request model.Request) {
 					g.realtimeBroadcaster.Broadcast(packet)
 				}
 			}
-			slog.Info("発言を受信しました", "id", g.ID, "agent", agent.String(), "text", text, "skip", skipMap[*agent], "remain", remainMap[*agent])
+			slog.Info("発言を受信しました", "id", g.ID, "agent", agent.String(), "text", text, "count", remainCountMap[*agent], "length", remainLengthMap[*agent], "skip", remainSkipMap[*agent])
 		}
 		if !cnt {
 			break
@@ -379,7 +427,7 @@ func (g *Game) conductCommunication(request model.Request) {
 	}
 }
 
-func (g *Game) getTalkWhisperText(agent *model.Agent, request model.Request, skipMap map[model.Agent]int, remainMap map[model.Agent]int) string {
+func (g *Game) getTalkWhisperText(agent *model.Agent, request model.Request) string {
 	text, err := g.requestToAgent(agent, request)
 	if text == model.T_FORCE_SKIP {
 		text = model.T_SKIP
@@ -388,26 +436,6 @@ func (g *Game) getTalkWhisperText(agent *model.Agent, request model.Request, ski
 	if err != nil {
 		text = model.T_FORCE_SKIP
 		slog.Warn("リクエストの送受信に失敗したため、発言をスキップに置換しました", "id", g.ID, "agent", agent.String())
-	}
-	remainMap[*agent]--
-	if _, exists := skipMap[*agent]; !exists {
-		skipMap[*agent] = 0
-	}
-	if text == model.T_SKIP {
-		skipMap[*agent]++
-		if skipMap[*agent] >= g.settings.MaxSkip {
-			text = model.T_OVER
-			slog.Warn("スキップ回数が上限に達したため、発言をオーバーに置換しました", "id", g.ID, "agent", agent.String())
-		} else {
-			slog.Info("発言をスキップしました", "id", g.ID, "agent", agent.String())
-		}
-	} else if text == model.T_FORCE_SKIP {
-		text = model.T_SKIP
-		slog.Warn("強制スキップが指定されたため、発言をスキップに置換しました", "id", g.ID, "agent", agent.String())
-	}
-	if text != model.T_OVER && text != model.T_SKIP {
-		skipMap[*agent] = 0
-		slog.Info("発言がオーバーもしくはスキップではないため、スキップ回数をリセットしました", "id", g.ID, "agent", agent.String())
 	}
 	return text
 }

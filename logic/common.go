@@ -47,14 +47,14 @@ func (g *Game) requestToEveryone(request model.Request) {
 }
 
 func (g *Game) requestToAgent(agent *model.Agent, request model.Request) (string, error) {
-	info := model.NewInfo(g.ID, agent, g.gameStatuses[g.currentDay], g.gameStatuses[g.currentDay-1], g.settings)
+	info := model.NewInfo(g.ID, agent, g.gameStatuses[g.currentDay], g.gameStatuses[g.currentDay-1], g.setting)
 	var packet model.Packet
 	switch request {
 	case model.R_NAME:
 		packet = model.Packet{Request: &request}
 	case model.R_INITIALIZE, model.R_DAILY_INITIALIZE:
 		g.resetLastIdxMaps()
-		packet = model.Packet{Request: &request, Info: &info, Setting: g.settings}
+		packet = model.Packet{Request: &request, Info: &info, Setting: g.setting}
 	case model.R_VOTE, model.R_DIVINE, model.R_GUARD:
 		packet = model.Packet{Request: &request, Info: &info}
 	case model.R_DAILY_FINISH, model.R_TALK, model.R_WHISPER, model.R_ATTACK:
@@ -75,7 +75,7 @@ func (g *Game) requestToAgent(agent *model.Agent, request model.Request) (string
 	if g.jsonLogger != nil {
 		g.jsonLogger.TrackStartRequest(g.ID, *agent, packet)
 	}
-	resp, err := agent.SendPacket(packet, time.Duration(g.settings.ActionTimeout)*time.Millisecond, time.Duration(g.settings.ResponseTimeout)*time.Millisecond, g.config.Game.Timeout.Acceptable)
+	resp, err := agent.SendPacket(packet, time.Duration(g.setting.Timeout.Action)*time.Millisecond, time.Duration(g.setting.Timeout.Response)*time.Millisecond, g.config.Game.Timeout.Acceptable)
 	if g.jsonLogger != nil {
 		g.jsonLogger.TrackEndRequest(g.ID, *agent, resp, err)
 	}

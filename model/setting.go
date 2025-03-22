@@ -6,20 +6,45 @@ import (
 )
 
 type Setting struct {
-	PlayerNum        int          `json:"playerNum"`
-	RoleNumMap       map[Role]int `json:"roleNumMap"`
-	MaxTalk          int          `json:"maxTalk"`
-	MaxTalkTurn      int          `json:"maxTalkTurn"`
-	MaxWhisper       int          `json:"maxWhisper"`
-	MaxWhisperTurn   int          `json:"maxWhisperTurn"`
-	MaxSkip          int          `json:"maxSkip"`
-	IsEnableNoAttack bool         `json:"isEnableNoAttack"`
-	IsVoteVisible    bool         `json:"isVoteVisible"`
-	IsTalkOnFirstDay bool         `json:"isTalkOnFirstDay"`
-	ResponseTimeout  int          `json:"responseTimeout"`
-	ActionTimeout    int          `json:"actionTimeout"`
-	MaxRevote        int          `json:"maxRevote"`
-	MaxAttackRevote  int          `json:"maxAttackRevote"`
+	AgentCount     int          `json:"agentCount"`
+	RoleNumMap     map[Role]int `json:"roleNumMap"`
+	VoteVisibility bool         `json:"voteVisibility"`
+	TalkOnFirstDay bool         `json:"talkOnFirstDay"`
+	Talk           struct {
+		MaxCount struct {
+			PerAgent int `json:"perAgent"`
+			PerDay   int `json:"perDay"`
+		} `json:"maxCount"`
+		MaxLength struct {
+			PerTalk    int `json:"perTalk"`
+			PerAgent   int `json:"perAgent"`
+			BaseLength int `json:"baseLength"`
+		} `json:"maxLength"`
+		MaxSkip int `json:"maxSkip"`
+	} `json:"talk"`
+	Whisper struct {
+		MaxCount struct {
+			PerAgent int `json:"perAgent"`
+			PerDay   int `json:"perDay"`
+		} `json:"maxCount"`
+		MaxLength struct {
+			PerTalk    int `json:"perTalk"`
+			PerAgent   int `json:"perAgent"`
+			BaseLength int `json:"baseLength"`
+		} `json:"maxLength"`
+		MaxSkip int `json:"maxSkip"`
+	} `json:"whisper"`
+	Vote struct {
+		MaxCount int `json:"maxCount"`
+	} `json:"vote"`
+	AttackVote struct {
+		MaxCount      int  `json:"maxCount"`
+		AllowNoTarget bool `json:"allowNoTarget"`
+	} `json:"attackVote"`
+	Timeout struct {
+		Action   int `json:"action"`
+		Response int `json:"response"`
+	} `json:"timeout"`
 }
 
 func NewSetting(config Config) (*Setting, error) {
@@ -28,20 +53,89 @@ func NewSetting(config Config) (*Setting, error) {
 		return nil, errors.New("対応する役職の人数がありません")
 	}
 	return &Setting{
-		PlayerNum:        config.Game.AgentCount,
-		RoleNumMap:       roleNumMap,
-		MaxTalk:          config.Game.Talk.MaxCount.PerAgent,
-		MaxTalkTurn:      config.Game.Talk.MaxCount.PerDay,
-		MaxWhisper:       config.Game.Whisper.MaxCount.PerAgent,
-		MaxWhisperTurn:   config.Game.Whisper.MaxCount.PerDay,
-		MaxSkip:          config.Game.Skip.MaxCount,
-		IsEnableNoAttack: config.Game.Attack.AllowNoTarget,
-		IsVoteVisible:    config.Game.VoteVisibility,
-		IsTalkOnFirstDay: config.Game.TalkOnFirstDay,
-		ResponseTimeout:  int(config.Game.Timeout.Response.Milliseconds()),
-		ActionTimeout:    int(config.Game.Timeout.Action.Milliseconds()),
-		MaxRevote:        config.Game.Vote.MaxCount,
-		MaxAttackRevote:  config.Game.Attack.MaxCount,
+		AgentCount:     config.Game.AgentCount,
+		RoleNumMap:     roleNumMap,
+		VoteVisibility: config.Game.VoteVisibility,
+		TalkOnFirstDay: config.Game.TalkOnFirstDay,
+		Talk: struct {
+			MaxCount struct {
+				PerAgent int `json:"perAgent"`
+				PerDay   int `json:"perDay"`
+			} `json:"maxCount"`
+			MaxLength struct {
+				PerTalk    int `json:"perTalk"`
+				PerAgent   int `json:"perAgent"`
+				BaseLength int `json:"baseLength"`
+			} `json:"maxLength"`
+			MaxSkip int `json:"maxSkip"`
+		}{
+			MaxCount: struct {
+				PerAgent int `json:"perAgent"`
+				PerDay   int `json:"perDay"`
+			}{
+				PerAgent: config.Game.Talk.MaxCount.PerAgent,
+				PerDay:   config.Game.Talk.MaxCount.PerDay,
+			},
+			MaxLength: struct {
+				PerTalk    int `json:"perTalk"`
+				PerAgent   int `json:"perAgent"`
+				BaseLength int `json:"baseLength"`
+			}{
+				PerTalk:    config.Game.Talk.MaxLength.PerTalk,
+				PerAgent:   config.Game.Talk.MaxLength.PerAgent,
+				BaseLength: config.Game.Talk.MaxLength.BaseLength,
+			},
+			MaxSkip: config.Game.Talk.MaxSkip,
+		},
+		Whisper: struct {
+			MaxCount struct {
+				PerAgent int `json:"perAgent"`
+				PerDay   int `json:"perDay"`
+			} `json:"maxCount"`
+			MaxLength struct {
+				PerTalk    int `json:"perTalk"`
+				PerAgent   int `json:"perAgent"`
+				BaseLength int `json:"baseLength"`
+			} `json:"maxLength"`
+			MaxSkip int `json:"maxSkip"`
+		}{
+			MaxCount: struct {
+				PerAgent int `json:"perAgent"`
+				PerDay   int `json:"perDay"`
+			}{
+				PerAgent: config.Game.Whisper.MaxCount.PerAgent,
+				PerDay:   config.Game.Whisper.MaxCount.PerDay,
+			},
+			MaxLength: struct {
+				PerTalk    int `json:"perTalk"`
+				PerAgent   int `json:"perAgent"`
+				BaseLength int `json:"baseLength"`
+			}{
+				PerTalk:    config.Game.Whisper.MaxLength.PerTalk,
+				PerAgent:   config.Game.Whisper.MaxLength.PerAgent,
+				BaseLength: config.Game.Whisper.MaxLength.BaseLength,
+			},
+			MaxSkip: config.Game.Whisper.MaxSkip,
+		},
+		Vote: struct {
+			MaxCount int `json:"maxCount"`
+		}{
+			MaxCount: config.Game.Vote.MaxCount,
+		},
+		AttackVote: struct {
+			MaxCount      int  `json:"maxCount"`
+			AllowNoTarget bool `json:"allowNoTarget"`
+		}{
+			MaxCount:      config.Game.AttackVote.MaxCount,
+			AllowNoTarget: config.Game.AttackVote.AllowNoTarget,
+		},
+		Timeout: struct {
+			Action   int `json:"action"`
+			Response int `json:"response"`
+		}{
+			Action:   int(config.Game.Timeout.Action.Milliseconds()),
+			Response: int(config.Game.Timeout.Response.Milliseconds()),
+		},
 	}, nil
 }
 

@@ -15,7 +15,7 @@ type Game struct {
 	Agents                       []*model.Agent
 	IsFinished                   bool
 	config                       *model.Config
-	settings                     *model.Setting
+	setting                      *model.Setting
 	currentDay                   int
 	gameStatuses                 map[int]*model.GameStatus
 	lastTalkIdxMap               map[*model.Agent]int
@@ -38,7 +38,7 @@ func NewGame(config *model.Config, settings *model.Setting, conns []model.Connec
 		Agents:            agents,
 		IsFinished:        false,
 		config:            config,
-		settings:          settings,
+		setting:           settings,
 		currentDay:        0,
 		gameStatuses:      gameStatuses,
 		lastTalkIdxMap:    make(map[*model.Agent]int),
@@ -56,7 +56,7 @@ func NewGameWithRole(config *model.Config, settings *model.Setting, roleMapConns
 	return &Game{
 		config:            config,
 		ID:                id,
-		settings:          settings,
+		setting:           settings,
 		Agents:            agents,
 		currentDay:        0,
 		gameStatuses:      gameStatuses,
@@ -136,7 +136,7 @@ func (g *Game) progressDay() {
 			g.gameLogger.AppendLog(g.ID, fmt.Sprintf("%d,status,%d,%s,%s,%s", g.currentDay, agent.Idx, agent.Role.Name, g.gameStatuses[g.currentDay].StatusMap[*agent].String(), agent.Name))
 		}
 	}
-	if g.settings.IsTalkOnFirstDay && g.currentDay == 0 {
+	if g.setting.TalkOnFirstDay && g.currentDay == 0 {
 		g.doWhisper()
 	}
 	g.doTalk()
@@ -146,7 +146,7 @@ func (g *Game) progressDay() {
 func (g *Game) progressNight() {
 	slog.Info("夜を開始します", "id", g.ID, "day", g.currentDay)
 	g.requestToEveryone(model.R_DAILY_FINISH)
-	if g.settings.IsTalkOnFirstDay && g.currentDay == 0 {
+	if g.setting.TalkOnFirstDay && g.currentDay == 0 {
 		g.doWhisper()
 	}
 	if g.currentDay != 0 {

@@ -58,10 +58,10 @@ func NewInfo(id string, agent *Agent, gameStatus *GameStatus, lastGameStatus *Ga
 		if lastGameStatus.AttackedAgent != nil {
 			info.AttackedAgent = lastGameStatus.AttackedAgent
 		}
-		if settings.IsVoteVisible {
+		if settings.VoteVisibility {
 			info.VoteList = lastGameStatus.Votes
 		}
-		if settings.IsVoteVisible && agent.Role == R_WEREWOLF {
+		if settings.VoteVisibility && agent.Role == R_WEREWOLF {
 			info.AttackVoteList = lastGameStatus.AttackVotes
 		}
 	}
