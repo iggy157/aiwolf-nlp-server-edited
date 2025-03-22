@@ -365,15 +365,16 @@ func (g *Game) conductCommunication(request model.Request) {
 			}
 			if maxLengthPerAgent != -1 {
 				length := utf8.RuneCountInString(text)
-				if baseLength+remainLengthMap[*agent] <= 0 {
+				remainLength := baseLength + remainLengthMap[*agent]
+				if remainLength <= 0 {
 					text = model.T_OVER
 					slog.Warn("残り文字数がないため、発言をオーバーに置換しました", "id", g.ID, "agent", agent.String())
-				} else if length > baseLength+remainLengthMap[*agent] {
-					text = string([]rune(text)[:baseLength+remainLengthMap[*agent]])
+				} else if length > remainLength {
+					text = string([]rune(text)[:remainLength])
 					remainLengthMap[*agent] = 0
 					slog.Warn("発言が最大文字数を超えたため、切り捨てました", "id", g.ID, "agent", agent.String())
 				} else {
-					if length-baseLength > 0 {
+					if length > baseLength {
 						remainLengthMap[*agent] -= length - baseLength
 					}
 				}
