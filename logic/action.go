@@ -342,11 +342,11 @@ func (g *Game) conductCommunication(request model.Request) {
 	for i := range maxCountPerDay {
 		cnt := false
 		for _, agent := range agents {
-			if remainCountMap[*agent] <= 0 || remainLengthMap[*agent] <= 0 {
+			if remainCountMap[*agent] <= 0 || remainLengthMap[*agent] == 0 {
 				continue
 			}
-			text := g.getTalkWhisperText(agent, request)
 			remainCountMap[*agent]--
+			text := g.getTalkWhisperText(agent, request)
 			if text == model.T_SKIP {
 				if remainSkipMap[*agent] <= 0 {
 					text = model.T_OVER
