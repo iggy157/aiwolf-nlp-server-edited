@@ -293,9 +293,9 @@ func (g *Game) doTalk() {
 
 func (g *Game) conductCommunication(request model.Request) {
 	var agents []*model.Agent
-	var maxCountPerAgent, maxLengthPerTalk, maxLengthPerAgent, maxSkip int
+	var maxCountPerAgent, maxSkip, maxCountPerDay int
+	var maxLengthPerTalk, maxLengthPerAgent, baseLength *int
 	var talkList *[]model.Talk
-	var maxCountPerDay, baseLength int
 	switch request {
 	case model.R_TALK:
 		agents = g.getAliveAgents()
@@ -327,7 +327,9 @@ func (g *Game) conductCommunication(request model.Request) {
 	remainSkipMap := make(map[model.Agent]int)
 	for _, agent := range agents {
 		remainCountMap[*agent] = maxCountPerAgent
-		remainLengthMap[*agent] = maxLengthPerAgent
+		if maxLengthPerAgent != nil {
+			remainLengthMap[*agent] = *maxLengthPerAgent
+		}
 		remainSkipMap[*agent] = maxSkip
 	}
 	g.getCurrentGameStatus().RemainCountMap = &remainCountMap
@@ -342,8 +344,13 @@ func (g *Game) conductCommunication(request model.Request) {
 	for i := range maxCountPerDay {
 		cnt := false
 		for _, agent := range agents {
-			if remainCountMap[*agent] <= 0 || remainLengthMap[*agent] == 0 {
+			if remainCountMap[*agent] <= 0 {
 				continue
+			}
+			if value, exists := remainLengthMap[*agent]; exists {
+				if value <= 0 {
+					continue
+				}
 			}
 			remainCountMap[*agent]--
 			text := g.getTalkWhisperText(agent, request)
@@ -363,9 +370,9 @@ func (g *Game) conductCommunication(request model.Request) {
 				remainSkipMap[*agent] = maxSkip
 				slog.Info("発言がオーバーもしくはスキップではないため、スキップ回数をリセットしました", "id", g.ID, "agent", agent.String())
 			}
-			if maxLengthPerAgent != -1 {
+			if maxLengthPerAgent != nil {
 				length := utf8.RuneCountInString(text)
-				remainLength := baseLength + remainLengthMap[*agent]
+				remainLength := *baseLength + remainLengthMap[*agent]
 				if remainLength <= 0 {
 					text = model.T_OVER
 					slog.Warn("残り文字数がないため、発言をオーバーに置換しました", "id", g.ID, "agent", agent.String())
@@ -374,14 +381,14 @@ func (g *Game) conductCommunication(request model.Request) {
 					remainLengthMap[*agent] = 0
 					slog.Warn("発言が最大文字数を超えたため、切り捨てました", "id", g.ID, "agent", agent.String())
 				} else {
-					if length > baseLength {
-						remainLengthMap[*agent] -= length - baseLength
+					if length > *baseLength {
+						remainLengthMap[*agent] -= length - *baseLength
 					}
 				}
 			}
-			if maxLengthPerTalk != -1 {
-				if utf8.RuneCountInString(text) > maxLengthPerTalk {
-					text = string([]rune(text)[:maxLengthPerTalk])
+			if maxLengthPerTalk != nil {
+				if utf8.RuneCountInString(text) > *maxLengthPerTalk {
+					text = string([]rune(text)[:*maxLengthPerTalk])
 					slog.Warn("発言が最大文字数を超えたため、切り捨てました", "id", g.ID, "agent", agent.String())
 				}
 			}

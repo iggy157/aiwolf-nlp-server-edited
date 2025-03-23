@@ -16,9 +16,9 @@ type Setting struct {
 			PerDay   int `json:"perDay"`
 		} `json:"maxCount"`
 		MaxLength struct {
-			PerTalk    int `json:"perTalk"`
-			PerAgent   int `json:"perAgent"`
-			BaseLength int `json:"baseLength"`
+			PerTalk    *int `json:"perTalk,omitempty"`
+			PerAgent   *int `json:"perAgent,omitempty"`
+			BaseLength *int `json:"baseLength,omitempty"`
 		} `json:"maxLength"`
 		MaxSkip int `json:"maxSkip"`
 	} `json:"talk"`
@@ -28,9 +28,9 @@ type Setting struct {
 			PerDay   int `json:"perDay"`
 		} `json:"maxCount"`
 		MaxLength struct {
-			PerTalk    int `json:"perTalk"`
-			PerAgent   int `json:"perAgent"`
-			BaseLength int `json:"baseLength"`
+			PerTalk    *int `json:"perTalk,omitempty"`
+			PerAgent   *int `json:"perAgent,omitempty"`
+			BaseLength *int `json:"baseLength,omitempty"`
 		} `json:"maxLength"`
 		MaxSkip int `json:"maxSkip"`
 	} `json:"whisper"`
@@ -52,7 +52,7 @@ func NewSetting(config Config) (*Setting, error) {
 	if roleNumMap == nil {
 		return nil, errors.New("対応する役職の人数がありません")
 	}
-	return &Setting{
+	setting := Setting{
 		AgentCount:     config.Game.AgentCount,
 		RoleNumMap:     roleNumMap,
 		VoteVisibility: config.Game.VoteVisibility,
@@ -63,9 +63,9 @@ func NewSetting(config Config) (*Setting, error) {
 				PerDay   int `json:"perDay"`
 			} `json:"maxCount"`
 			MaxLength struct {
-				PerTalk    int `json:"perTalk"`
-				PerAgent   int `json:"perAgent"`
-				BaseLength int `json:"baseLength"`
+				PerTalk    *int `json:"perTalk,omitempty"`
+				PerAgent   *int `json:"perAgent,omitempty"`
+				BaseLength *int `json:"baseLength,omitempty"`
 			} `json:"maxLength"`
 			MaxSkip int `json:"maxSkip"`
 		}{
@@ -77,13 +77,13 @@ func NewSetting(config Config) (*Setting, error) {
 				PerDay:   config.Game.Talk.MaxCount.PerDay,
 			},
 			MaxLength: struct {
-				PerTalk    int `json:"perTalk"`
-				PerAgent   int `json:"perAgent"`
-				BaseLength int `json:"baseLength"`
+				PerTalk    *int `json:"perTalk,omitempty"`
+				PerAgent   *int `json:"perAgent,omitempty"`
+				BaseLength *int `json:"baseLength,omitempty"`
 			}{
-				PerTalk:    config.Game.Talk.MaxLength.PerTalk,
-				PerAgent:   config.Game.Talk.MaxLength.PerAgent,
-				BaseLength: config.Game.Talk.MaxLength.BaseLength,
+				// PerTalk:    config.Game.Talk.MaxLength.PerTalk,
+				// PerAgent:   config.Game.Talk.MaxLength.PerAgent,
+				// BaseLength: config.Game.Talk.MaxLength.BaseLength,
 			},
 			MaxSkip: config.Game.Talk.MaxSkip,
 		},
@@ -93,9 +93,9 @@ func NewSetting(config Config) (*Setting, error) {
 				PerDay   int `json:"perDay"`
 			} `json:"maxCount"`
 			MaxLength struct {
-				PerTalk    int `json:"perTalk"`
-				PerAgent   int `json:"perAgent"`
-				BaseLength int `json:"baseLength"`
+				PerTalk    *int `json:"perTalk,omitempty"`
+				PerAgent   *int `json:"perAgent,omitempty"`
+				BaseLength *int `json:"baseLength,omitempty"`
 			} `json:"maxLength"`
 			MaxSkip int `json:"maxSkip"`
 		}{
@@ -107,13 +107,13 @@ func NewSetting(config Config) (*Setting, error) {
 				PerDay:   config.Game.Whisper.MaxCount.PerDay,
 			},
 			MaxLength: struct {
-				PerTalk    int `json:"perTalk"`
-				PerAgent   int `json:"perAgent"`
-				BaseLength int `json:"baseLength"`
+				PerTalk    *int `json:"perTalk,omitempty"`
+				PerAgent   *int `json:"perAgent,omitempty"`
+				BaseLength *int `json:"baseLength,omitempty"`
 			}{
-				PerTalk:    config.Game.Whisper.MaxLength.PerTalk,
-				PerAgent:   config.Game.Whisper.MaxLength.PerAgent,
-				BaseLength: config.Game.Whisper.MaxLength.BaseLength,
+				// PerTalk:    config.Game.Whisper.MaxLength.PerTalk,
+				// PerAgent:   config.Game.Whisper.MaxLength.PerAgent,
+				// BaseLength: config.Game.Whisper.MaxLength.BaseLength,
 			},
 			MaxSkip: config.Game.Whisper.MaxSkip,
 		},
@@ -136,7 +136,22 @@ func NewSetting(config Config) (*Setting, error) {
 			Action:   int(config.Game.Timeout.Action.Milliseconds()),
 			Response: int(config.Game.Timeout.Response.Milliseconds()),
 		},
-	}, nil
+	}
+	if config.Game.Talk.MaxLength.PerTalk != -1 {
+		setting.Talk.MaxLength.PerTalk = &config.Game.Talk.MaxLength.PerTalk
+	}
+	if config.Game.Talk.MaxLength.PerAgent != -1 {
+		setting.Talk.MaxLength.PerAgent = &config.Game.Talk.MaxLength.PerAgent
+		setting.Talk.MaxLength.BaseLength = &config.Game.Talk.MaxLength.BaseLength
+	}
+	if config.Game.Whisper.MaxLength.PerTalk != -1 {
+		setting.Whisper.MaxLength.PerTalk = &config.Game.Whisper.MaxLength.PerTalk
+	}
+	if config.Game.Whisper.MaxLength.PerAgent != -1 {
+		setting.Whisper.MaxLength.PerAgent = &config.Game.Whisper.MaxLength.PerAgent
+		setting.Whisper.MaxLength.BaseLength = &config.Game.Whisper.MaxLength.BaseLength
+	}
+	return &setting, nil
 }
 
 func (s Setting) MarshalJSON() ([]byte, error) {

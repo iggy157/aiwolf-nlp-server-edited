@@ -88,8 +88,9 @@ func NewInfo(id string, agent *Agent, gameStatus *GameStatus, lastGameStatus *Ga
 		info.RemainCount = &count
 	}
 	if gameStatus.RemainLengthMap != nil {
-		count := (*gameStatus.RemainLengthMap)[*agent]
-		info.RemainLength = &count
+		if value, exists := (*gameStatus.RemainLengthMap)[*agent]; exists {
+			info.RemainLength = &value
+		}
 	}
 	if gameStatus.RemainSkipMap != nil {
 		count := (*gameStatus.RemainSkipMap)[*agent]

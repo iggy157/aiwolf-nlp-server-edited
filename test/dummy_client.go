@@ -87,10 +87,10 @@ func (dc *DummyClient) listen(t *testing.T) {
 }
 
 func (dc *DummyClient) setInfo(recv map[string]interface{}) error {
-	if info, ok := recv["info"].(map[string]interface{}); ok {
+	if info, exists := recv["info"].(map[string]interface{}); exists {
 		dc.info = info
 		if dc.role.String() == "" {
-			if roleMap, ok := info["roleMap"].(map[string]interface{}); ok {
+			if roleMap, exists := info["roleMap"].(map[string]interface{}); exists {
 				for _, v := range roleMap {
 					dc.role = model.RoleFromString(v.(string))
 					break
@@ -104,7 +104,7 @@ func (dc *DummyClient) setInfo(recv map[string]interface{}) error {
 }
 
 func (dc *DummyClient) setSetting(recv map[string]interface{}) error {
-	if setting, ok := recv["setting"].(map[string]interface{}); ok {
+	if setting, exists := recv["setting"].(map[string]interface{}); exists {
 		dc.setting = setting
 	} else {
 		return errors.New("setting not found")
@@ -130,7 +130,7 @@ func (dc *DummyClient) handleInitialize(recv map[string]interface{}) (string, er
 
 func (dc *DummyClient) handleCommunication(recv map[string]interface{}) (string, error) {
 	request := recv["request"].(string)
-	if _, ok := recv[strings.ToLower(request)+"History"].([]interface{}); ok {
+	if _, exists := recv[strings.ToLower(request)+"History"].([]interface{}); exists {
 	} else {
 		return "", errors.New("history not found")
 	}
@@ -142,7 +142,7 @@ func (dc *DummyClient) handleCommunication(recv map[string]interface{}) (string,
 }
 
 func (dc *DummyClient) handleTarget(_ map[string]interface{}) (string, error) {
-	if statusMap, ok := dc.info["statusMap"].(map[string]interface{}); ok {
+	if statusMap, exists := dc.info["statusMap"].(map[string]interface{}); exists {
 		for k, v := range statusMap {
 			if v == model.S_ALIVE.String() {
 				return k, nil
@@ -154,17 +154,17 @@ func (dc *DummyClient) handleTarget(_ map[string]interface{}) (string, error) {
 }
 
 func (dc *DummyClient) handleDailyFinish(recv map[string]interface{}) (string, error) {
-	if _, ok := recv["talkHistory"].([]interface{}); ok {
+	if _, exists := recv["talkHistory"].([]interface{}); exists {
 	} else {
 		return "", errors.New("talkHistory not found")
 	}
 	if dc.role == model.R_WEREWOLF {
-		if _, ok := recv["whisperHistory"].([]interface{}); ok {
+		if _, exists := recv["whisperHistory"].([]interface{}); exists {
 		} else {
 			return "", errors.New("whisperHistory not found")
 		}
 	} else {
-		if _, ok := recv["whisperHistory"]; ok {
+		if _, exists := recv["whisperHistory"]; exists {
 			return "", errors.New("whisperHistory found")
 		}
 	}
