@@ -5,7 +5,7 @@ import "encoding/json"
 type Info struct {
 	GameID         string           `json:"gameID,omitempty"`
 	Day            int              `json:"day"`
-	Agent          *Agent           `json:"agent,omitempty"`
+	Agent          *Agent           `json:"agent"`
 	MediumResult   *Judge           `json:"mediumResult,omitempty"`
 	DivineResult   *Judge           `json:"divineResult,omitempty"`
 	ExecutedAgent  *Agent           `json:"executedAgent,omitempty"`
@@ -16,6 +16,9 @@ type Info struct {
 	WhisperList    []Talk           `json:"-"`
 	StatusMap      map[Agent]Status `json:"statusMap"`
 	RoleMap        map[Agent]Role   `json:"roleMap"`
+	RemainCount    *int             `json:"remainCount,omitempty"`
+	RemainLength   *int             `json:"remainLength,omitempty"`
+	RemainSkip     *int             `json:"remainSkip,omitempty"`
 }
 
 func (i Info) MarshalJSON() ([]byte, error) {
@@ -58,10 +61,10 @@ func NewInfo(id string, agent *Agent, gameStatus *GameStatus, lastGameStatus *Ga
 		if lastGameStatus.AttackedAgent != nil {
 			info.AttackedAgent = lastGameStatus.AttackedAgent
 		}
-		if settings.IsVoteVisible {
+		if settings.VoteVisibility {
 			info.VoteList = lastGameStatus.Votes
 		}
-		if settings.IsVoteVisible && agent.Role == R_WEREWOLF {
+		if settings.VoteVisibility && agent.Role == R_WEREWOLF {
 			info.AttackVoteList = lastGameStatus.AttackVotes
 		}
 	}
@@ -80,5 +83,18 @@ func NewInfo(id string, agent *Agent, gameStatus *GameStatus, lastGameStatus *Ga
 		}
 	}
 	info.RoleMap = roleMap
+	if gameStatus.RemainCountMap != nil {
+		count := (*gameStatus.RemainCountMap)[*agent]
+		info.RemainCount = &count
+	}
+	if gameStatus.RemainLengthMap != nil {
+		if value, exists := (*gameStatus.RemainLengthMap)[*agent]; exists {
+			info.RemainLength = &value
+		}
+	}
+	if gameStatus.RemainSkipMap != nil {
+		count := (*gameStatus.RemainSkipMap)[*agent]
+		info.RemainSkip = &count
+	}
 	return info
 }

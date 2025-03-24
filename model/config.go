@@ -29,23 +29,32 @@ type Config struct {
 				PerAgent int `yaml:"per_agent"`
 				PerDay   int `yaml:"per_day"`
 			} `yaml:"max_count"`
+			MaxLength struct {
+				PerTalk    int `yaml:"per_talk"`
+				PerAgent   int `yaml:"per_agent"`
+				BaseLength int `yaml:"base_length"`
+			} `yaml:"max_length"`
+			MaxSkip int `yaml:"max_skip"`
 		} `yaml:"talk"`
 		Whisper struct {
 			MaxCount struct {
 				PerAgent int `yaml:"per_agent"`
 				PerDay   int `yaml:"per_day"`
 			} `yaml:"max_count"`
+			MaxLength struct {
+				PerTalk    int `yaml:"per_talk"`
+				PerAgent   int `yaml:"per_agent"`
+				BaseLength int `yaml:"base_length"`
+			} `yaml:"max_length"`
+			MaxSkip int `yaml:"max_skip"`
 		} `yaml:"whisper"`
-		Skip struct {
-			MaxCount int `yaml:"max_count"`
-		} `yaml:"skip"`
 		Vote struct {
 			MaxCount int `yaml:"max_count"`
 		} `yaml:"vote"`
-		Attack struct {
+		AttackVote struct {
 			MaxCount      int  `yaml:"max_count"`
 			AllowNoTarget bool `yaml:"allow_no_target"`
-		} `yaml:"attack"`
+		} `yaml:"attack_vote"`
 		Timeout struct {
 			Action     time.Duration `yaml:"action"`
 			Response   time.Duration `yaml:"response"`

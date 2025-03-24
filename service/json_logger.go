@@ -96,7 +96,7 @@ func (j *JSONLogger) TrackEndRequest(id string, agent model.Agent, response stri
 			"request_timestamp":  data.timestampMap[agent.Name] / 1e6,
 			"response_timestamp": timestamp / 1e6,
 		}
-		if request, ok := data.requestMap[agent.Name]; ok {
+		if request, exists := data.requestMap[agent.Name]; exists {
 			jsonData, err := json.Marshal(request)
 			if err == nil {
 				entry["request"] = string(jsonData)
