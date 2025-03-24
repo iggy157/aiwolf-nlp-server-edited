@@ -9,8 +9,6 @@ require (
 	golang.org/x/exp v0.0.0-20241217172543-b2144cdd0a67
 )
 
-require github.com/creasty/defaults v1.8.0 // indirect
-
 require (
 	github.com/bytedance/sonic v1.12.6 // indirect
 	github.com/bytedance/sonic/loader v0.2.1 // indirect
