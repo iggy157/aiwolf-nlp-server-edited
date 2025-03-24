@@ -5,6 +5,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/creasty/defaults"
 	"gopkg.in/yaml.v2"
 )
 
@@ -30,9 +31,9 @@ type Config struct {
 				PerDay   int `yaml:"per_day"`
 			} `yaml:"max_count"`
 			MaxLength struct {
-				PerTalk    int `yaml:"per_talk"`
-				PerAgent   int `yaml:"per_agent"`
-				BaseLength int `yaml:"base_length"`
+				PerTalk    int `yaml:"per_talk" default:"-1"`
+				PerAgent   int `yaml:"per_agent" default:"-1"`
+				BaseLength int `yaml:"base_length" default:"0"`
 			} `yaml:"max_length"`
 			MaxSkip int `yaml:"max_skip"`
 		} `yaml:"talk"`
@@ -42,9 +43,9 @@ type Config struct {
 				PerDay   int `yaml:"per_day"`
 			} `yaml:"max_count"`
 			MaxLength struct {
-				PerTalk    int `yaml:"per_talk"`
-				PerAgent   int `yaml:"per_agent"`
-				BaseLength int `yaml:"base_length"`
+				PerTalk    int `yaml:"per_talk" default:"-1"`
+				PerAgent   int `yaml:"per_agent" default:"-1"`
+				BaseLength int `yaml:"base_length" default:"0"`
 			} `yaml:"max_length"`
 			MaxSkip int `yaml:"max_skip"`
 		} `yaml:"whisper"`
@@ -82,6 +83,15 @@ type Config struct {
 		OutputPath   string `yaml:"output_path"`
 		InfiniteLoop bool   `yaml:"infinite_loop"`
 	} `yaml:"matching"`
+}
+
+func (c *Config) UnmarshalYAML(unmarshal func(any) error) error {
+	defaults.Set(c)
+	type plain Config
+	if err := unmarshal((*plain)(c)); err != nil {
+		return err
+	}
+	return nil
 }
 
 func LoadFromPath(path string) (*Config, error) {

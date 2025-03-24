@@ -5,7 +5,7 @@ import "encoding/json"
 type Info struct {
 	GameID         string           `json:"gameID,omitempty"`
 	Day            int              `json:"day"`
-	Agent          *Agent           `json:"agent,omitempty"`
+	Agent          *Agent           `json:"agent"`
 	MediumResult   *Judge           `json:"mediumResult,omitempty"`
 	DivineResult   *Judge           `json:"divineResult,omitempty"`
 	ExecutedAgent  *Agent           `json:"executedAgent,omitempty"`

@@ -80,11 +80,7 @@ func NewSetting(config Config) (*Setting, error) {
 				PerTalk    *int `json:"perTalk,omitempty"`
 				PerAgent   *int `json:"perAgent,omitempty"`
 				BaseLength *int `json:"baseLength,omitempty"`
-			}{
-				// PerTalk:    config.Game.Talk.MaxLength.PerTalk,
-				// PerAgent:   config.Game.Talk.MaxLength.PerAgent,
-				// BaseLength: config.Game.Talk.MaxLength.BaseLength,
-			},
+			}{},
 			MaxSkip: config.Game.Talk.MaxSkip,
 		},
 		Whisper: struct {
@@ -110,11 +106,7 @@ func NewSetting(config Config) (*Setting, error) {
 				PerTalk    *int `json:"perTalk,omitempty"`
 				PerAgent   *int `json:"perAgent,omitempty"`
 				BaseLength *int `json:"baseLength,omitempty"`
-			}{
-				// PerTalk:    config.Game.Whisper.MaxLength.PerTalk,
-				// PerAgent:   config.Game.Whisper.MaxLength.PerAgent,
-				// BaseLength: config.Game.Whisper.MaxLength.BaseLength,
-			},
+			}{},
 			MaxSkip: config.Game.Whisper.MaxSkip,
 		},
 		Vote: struct {
