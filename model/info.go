@@ -3,7 +3,7 @@ package model
 import "encoding/json"
 
 type Info struct {
-	GameID         string           `json:"gameID,omitempty"`
+	GameID         string           `json:"gameID"`
 	Day            int              `json:"day"`
 	Agent          *Agent           `json:"agent"`
 	MediumResult   *Judge           `json:"mediumResult,omitempty"`
