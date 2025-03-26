@@ -109,36 +109,7 @@
 
 ### ゲームの流れ
 
-5人ゲームの場合を例に説明します。  
-ゲームの設定は以下の通りです。
-
-```yaml
-game:
-  agent_count: 5 # 1ゲームあたりのエージェント数
-  vote_visibility: false # 投票の結果を公開するか
-  talk_on_first_day: true # 1日目の発言を許可するか
-  max_continue_error_ratio: 0.2 # ゲームを継続するエラーエージェントの最大割合
-  talk:
-    max_count:
-      per_agent: 3 # 1日あたりの1エージェントの最大発言回数
-      per_day: 15 # 1日あたりの全体の発言回数
-  whisper:
-    max_count:
-      per_agent: 3 # 1日あたりの1エージェントの最大囁き回数
-      per_day: 15 # 1日あたりの全体の囁き回数
-  skip:
-    max_count: 3 # 1日あたりの1エージェントの最大スキップ回数
-  vote:
-    max_count: 1 # 1位タイの場合の最大再投票回数
-  attack:
-    max_count: 1 # 1位タイの場合の最大襲撃再投票回数
-    allow_no_target: true # 襲撃なしの日を許可するか
-  timeout:
-    action: 60s # エージェントのアクションのタイムアウト時間
-    response: 90s # エージェントの生存確認のタイムアウト時間
-```
-
-#### ゲームの開始 
+#### ゲームの開始
 
 全エージェントに対して、 `INITIALIZE` リクエストを送信します。
 

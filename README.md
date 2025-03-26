@@ -9,6 +9,7 @@
 
 > [!IMPORTANT]
 > 次回大会では以下の修正が予定されています。
+>
 > - トークリクエストならびに囁きリクエストにおける発言の文字数制限の追加
 > - 13人ゲームの追加
 > - カスタムプレイヤー名とカスタムプロフィールの追加
@@ -45,10 +46,7 @@ curl -LJO https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/downlo
 > [!NOTE]
 > 開発元が不明なアプリケーションとしてブロックされる場合があります。  
 > 下記サイトを参考に、実行許可を与えてください。  
-> https://support.apple.com/ja-jp/guide/mac-help/mh40616/mac
-
-> [!WARNING]
-> 動作確認が取れていないため、動作しない可能性があります。
+> <https://support.apple.com/ja-jp/guide/mac-help/mh40616/mac>
 
 ```bash
 curl -LJO https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/aiwolf-nlp-server-darwin-amd64
@@ -62,7 +60,7 @@ chmod u+x ./aiwolf-nlp-server-darwin-amd64
 > [!NOTE]
 > 開発元が不明なアプリケーションとしてブロックされる場合があります。  
 > 下記サイトを参考に、実行許可を与えてください。  
-> https://support.apple.com/ja-jp/guide/mac-help/mh40616/mac
+> <https://support.apple.com/ja-jp/guide/mac-help/mh40616/mac>
 
 ```bash
 curl -LJO https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/aiwolf-nlp-server-darwin-arm64
