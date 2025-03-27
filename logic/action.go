@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log/slog"
 	"math/rand"
+	"strings"
 	"unicode/utf8"
 
 	"github.com/aiwolfdial/aiwolf-nlp-server/model"
@@ -14,7 +15,7 @@ func (g *Game) doExecution() {
 	slog.Info("追放フェーズを開始します", "id", g.ID, "day", g.currentDay)
 	var executed *model.Agent
 	candidates := make([]model.Agent, 0)
-	for i := 0; i < g.setting.Vote.MaxCount; i++ {
+	for range g.setting.Vote.MaxCount {
 		g.executeVote()
 		candidates = g.getVotedCandidates(g.getCurrentGameStatus().Votes)
 		if len(candidates) == 1 {
@@ -58,8 +59,6 @@ func (g *Game) doExecution() {
 		slog.Warn("追放対象がいないため、追放結果を設定しません", "id", g.ID)
 	}
 	slog.Info("追放フェーズを終了します", "id", g.ID, "day", g.currentDay)
-	if g.realtimeBroadcaster != nil {
-	}
 }
 
 func (g *Game) doAttack() {
@@ -68,7 +67,7 @@ func (g *Game) doAttack() {
 	werewolfs := g.getAliveWerewolves()
 	if len(werewolfs) > 0 {
 		candidates := make([]model.Agent, 0)
-		for i := 0; i < g.setting.AttackVote.MaxCount; i++ {
+		for range g.setting.AttackVote.MaxCount {
 			g.executeAttackVote()
 			candidates = g.getAttackVotedCandidates(g.getCurrentGameStatus().AttackVotes)
 			if len(candidates) == 1 {
@@ -293,28 +292,18 @@ func (g *Game) doTalk() {
 
 func (g *Game) conductCommunication(request model.Request) {
 	var agents []*model.Agent
-	var maxCountPerAgent, maxSkip, maxCountPerDay int
-	var maxLengthPerTalk, maxLengthPerAgent, baseLength *int
+	var talkSetting *model.TalkSetting
 	var talkList *[]model.Talk
+
 	switch request {
 	case model.R_TALK:
 		agents = g.getAliveAgents()
-		maxCountPerAgent = g.setting.Talk.MaxCount.PerAgent
-		maxLengthPerTalk = g.setting.Talk.MaxLength.PerTalk
-		maxLengthPerAgent = g.setting.Talk.MaxLength.PerAgent
-		maxSkip = g.setting.Talk.MaxSkip
+		talkSetting = &g.setting.Talk.TalkSetting
 		talkList = &g.getCurrentGameStatus().Talks
-		maxCountPerDay = g.setting.Talk.MaxCount.PerDay
-		baseLength = g.setting.Talk.MaxLength.BaseLength
 	case model.R_WHISPER:
 		agents = g.getAliveWerewolves()
-		maxCountPerAgent = g.setting.Whisper.MaxCount.PerAgent
-		maxLengthPerTalk = g.setting.Whisper.MaxLength.PerTalk
-		maxLengthPerAgent = g.setting.Whisper.MaxLength.PerAgent
-		maxSkip = g.setting.Whisper.MaxSkip
+		talkSetting = &g.setting.Whisper.TalkSetting
 		talkList = &g.getCurrentGameStatus().Whispers
-		maxCountPerDay = g.setting.Whisper.MaxCount.PerDay
-		baseLength = g.setting.Whisper.MaxLength.BaseLength
 	default:
 		return
 	}
@@ -322,15 +311,16 @@ func (g *Game) conductCommunication(request model.Request) {
 		slog.Warn("エージェント数が2未満のため、通信を行いません", "id", g.ID, "agentNum", len(agents))
 		return
 	}
+
 	remainCountMap := make(map[model.Agent]int)
 	remainLengthMap := make(map[model.Agent]int)
 	remainSkipMap := make(map[model.Agent]int)
 	for _, agent := range agents {
-		remainCountMap[*agent] = maxCountPerAgent
-		if maxLengthPerAgent != nil {
-			remainLengthMap[*agent] = *maxLengthPerAgent
+		remainCountMap[*agent] = talkSetting.MaxCount.PerAgent
+		if talkSetting.MaxLength.PerAgent != nil {
+			remainLengthMap[*agent] = *talkSetting.MaxLength.PerAgent
 		}
-		remainSkipMap[*agent] = maxSkip
+		remainSkipMap[*agent] = talkSetting.MaxSkip
 	}
 	g.getCurrentGameStatus().RemainCountMap = &remainCountMap
 	g.getCurrentGameStatus().RemainLengthMap = &remainLengthMap
@@ -341,7 +331,7 @@ func (g *Game) conductCommunication(request model.Request) {
 	})
 
 	idx := 0
-	for i := range maxCountPerDay {
+	for i := range talkSetting.MaxCount.PerDay {
 		cnt := false
 		for _, agent := range agents {
 			if remainCountMap[*agent] <= 0 {
@@ -367,12 +357,17 @@ func (g *Game) conductCommunication(request model.Request) {
 				slog.Warn("強制スキップが指定されたため、発言をスキップに置換しました", "id", g.ID, "agent", agent.String())
 			}
 			if text != model.T_OVER && text != model.T_SKIP {
-				remainSkipMap[*agent] = maxSkip
+				remainSkipMap[*agent] = talkSetting.MaxSkip
 				slog.Info("発言がオーバーもしくはスキップではないため、スキップ回数をリセットしました", "id", g.ID, "agent", agent.String())
 			}
-			if maxLengthPerAgent != nil {
-				length := utf8.RuneCountInString(text)
-				remainLength := *baseLength + remainLengthMap[*agent]
+			if talkSetting.MaxLength.PerAgent != nil {
+				var length int
+				if *talkSetting.MaxLength.CountInWord {
+					length = utf8.RuneCountInString(text)
+				} else {
+					length = len(strings.Fields(text))
+				}
+				remainLength := *talkSetting.MaxLength.BaseLength + remainLengthMap[*agent]
 				if remainLength <= 0 {
 					text = model.T_OVER
 					slog.Warn("残り文字数がないため、発言をオーバーに置換しました", "id", g.ID, "agent", agent.String())
@@ -381,14 +376,14 @@ func (g *Game) conductCommunication(request model.Request) {
 					remainLengthMap[*agent] = 0
 					slog.Warn("発言が最大文字数を超えたため、切り捨てました", "id", g.ID, "agent", agent.String())
 				} else {
-					if length > *baseLength {
-						remainLengthMap[*agent] -= length - *baseLength
+					if length > *talkSetting.MaxLength.BaseLength {
+						remainLengthMap[*agent] -= length - *talkSetting.MaxLength.BaseLength
 					}
 				}
 			}
-			if maxLengthPerTalk != nil {
-				if utf8.RuneCountInString(text) > *maxLengthPerTalk {
-					text = string([]rune(text)[:*maxLengthPerTalk])
+			if talkSetting.MaxLength.PerTalk != nil {
+				if utf8.RuneCountInString(text) > *talkSetting.MaxLength.PerTalk {
+					text = string([]rune(text)[:*talkSetting.MaxLength.PerTalk])
 					slog.Warn("発言が最大文字数を超えたため、切り捨てました", "id", g.ID, "agent", agent.String())
 				}
 			}
