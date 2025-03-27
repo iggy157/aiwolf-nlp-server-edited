@@ -12,22 +12,24 @@ import (
 )
 
 type Agent struct {
-	Idx        int
-	Team       string
-	Name       string
-	Role       Role
-	Connection *websocket.Conn
-	HasError   bool
+	Idx          int
+	TeamName     string
+	OriginalName string
+	GameName     string
+	Role         Role
+	Connection   *websocket.Conn
+	HasError     bool
 }
 
 func NewAgent(idx int, role Role, conn Connection) (*Agent, error) {
 	agent := &Agent{
-		Idx:        idx,
-		Team:       conn.Team,
-		Name:       conn.Name,
-		Role:       role,
-		Connection: conn.Conn,
-		HasError:   false,
+		Idx:          idx,
+		TeamName:     conn.TeamName,
+		OriginalName: conn.OriginalName,
+		GameName:     "Agent[" + fmt.Sprintf("%02d", idx) + "]",
+		Role:         role,
+		Connection:   conn.Conn,
+		HasError:     false,
 	}
 	slog.Info("エージェントを作成しました", "idx", agent.Idx, "agent", agent.String(), "role", agent.Role, "connection", agent.Connection.RemoteAddr())
 	return agent, nil
@@ -91,7 +93,7 @@ func (a *Agent) SendPacket(packet Packet, actionTimeout, responseTimeout, accept
 		slog.Info("NAMEパケットを送信しました", "agent", a.String())
 		select {
 		case res := <-responseChan:
-			if strings.TrimRight(string(res), "\n") == a.Name {
+			if strings.TrimRight(string(res), "\n") == a.OriginalName {
 				slog.Info("NAMEリクエストのレスポンスを受信しました", "agent", a.String(), "response", string(res))
 				return "", errors.New("リクエストのレスポンス受信がタイムアウトしました")
 			} else {
@@ -118,7 +120,7 @@ func (a *Agent) Close() {
 }
 
 func (a Agent) String() string {
-	return "Agent[" + fmt.Sprintf("%02d", a.Idx) + "]"
+	return a.GameName
 }
 
 func (a Agent) MarshalJSON() ([]byte, error) {

@@ -10,10 +10,10 @@ import (
 )
 
 type Connection struct {
-	Team   string
-	Name   string
-	Conn   *websocket.Conn
-	Header *http.Header
+	TeamName     string
+	OriginalName string
+	Conn         *websocket.Conn
+	Header       *http.Header
 }
 
 func NewConnection(conn *websocket.Conn, header *http.Header) (*Connection, error) {
@@ -35,14 +35,14 @@ func NewConnection(conn *websocket.Conn, header *http.Header) (*Connection, erro
 		slog.Error("NAMEリクエストの受信に失敗しました", "error", err)
 		return nil, err
 	}
-	name := strings.TrimRight(string(res), "\n")
-	team := strings.TrimRight(name, "1234567890")
+	originalName := strings.TrimRight(string(res), "\n")
+	teamName := strings.TrimRight(originalName, "1234567890")
 	connection := Connection{
-		Team:   team,
-		Name:   name,
-		Conn:   conn,
-		Header: header,
+		TeamName:     teamName,
+		OriginalName: originalName,
+		Conn:         conn,
+		Header:       header,
 	}
-	slog.Info("クライアントが接続しました", "team", team, "name", name, "remote_addr", conn.RemoteAddr().String())
+	slog.Info("クライアントが接続しました", "team_name", connection.TeamName, "original_name", connection.OriginalName, "remote_addr", conn.RemoteAddr().String())
 	return &connection, nil
 }

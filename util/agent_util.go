@@ -28,7 +28,7 @@ func FindAgentByName(agents []*model.Agent, name string) *model.Agent {
 		}
 	}
 	for _, agent := range agents {
-		if agent.Name == name {
+		if agent.OriginalName == name {
 			slog.Warn("対象エージェントを名前で検索しました", "name", name)
 			return agent
 		}

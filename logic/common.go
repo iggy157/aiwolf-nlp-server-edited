@@ -195,8 +195,8 @@ func (g *Game) getRealtimeBroadcastPacket() model.BroadcastPacket {
 			IsAlive bool   `json:"isAlive"`
 		}{
 			Idx:     agent.Idx,
-			Team:    agent.Team,
-			Name:    agent.Name,
+			Team:    agent.TeamName,
+			Name:    agent.OriginalName,
 			Role:    agent.Role.Name,
 			IsAlive: g.isAlive(agent),
 		})

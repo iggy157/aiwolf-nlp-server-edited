@@ -3,6 +3,8 @@ package util
 import (
 	"log/slog"
 
+	"maps"
+
 	"github.com/aiwolfdial/aiwolf-nlp-server/model"
 )
 
@@ -52,9 +54,7 @@ func GetRoleMap(agents []*model.Agent) map[model.Agent]model.Role {
 
 func CreateAgents(conns []model.Connection, roles map[model.Role]int) []*model.Agent {
 	rolesCopy := make(map[model.Role]int)
-	for role, count := range roles {
-		rolesCopy[role] = count
-	}
+	maps.Copy(rolesCopy, roles)
 	agents := make([]*model.Agent, 0)
 	for i, conn := range conns {
 		role := assignRole(rolesCopy)
@@ -122,7 +122,7 @@ func getMaxCountCandidates(counter map[model.Agent]int) []model.Agent {
 func GetRoleTeamNamesMap(agents []*model.Agent) map[model.Role][]string {
 	roleTeamNamesMap := make(map[model.Role][]string)
 	for _, a := range agents {
-		roleTeamNamesMap[a.Role] = append(roleTeamNamesMap[a.Role], a.Team)
+		roleTeamNamesMap[a.Role] = append(roleTeamNamesMap[a.Role], a.TeamName)
 	}
 	return roleTeamNamesMap
 }

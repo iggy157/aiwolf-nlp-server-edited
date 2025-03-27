@@ -9,7 +9,7 @@ import (
 
 func IsValidPlayerToken(secret string, tokenString string, team string) bool {
 	slog.Info("参加者トークンを検証します", "token", tokenString, "team", team)
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (any, error) {
 		if _, exists := token.Method.(*jwt.SigningMethodHMAC); !exists {
 			return nil, errors.New("unexpected signing method")
 		}
@@ -36,7 +36,7 @@ func IsValidPlayerToken(secret string, tokenString string, team string) bool {
 
 func IsValidReceiver(secret string, tokenString string) bool {
 	slog.Info("閲覧者トークンを検証します", "token", tokenString)
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (any, error) {
 		if _, exists := token.Method.(*jwt.SigningMethodHMAC); !exists {
 			return nil, errors.New("unexpected signing method")
 		}

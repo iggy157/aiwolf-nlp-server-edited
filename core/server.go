@@ -147,23 +147,23 @@ func (s *Server) handleConnections(w http.ResponseWriter, r *http.Request) {
 	if s.config.Server.Authentication.Enable {
 		token := r.URL.Query().Get("token")
 		if token != "" {
-			if !util.IsValidPlayerToken(s.config.Server.Authentication.Secret, token, conn.Team) {
-				slog.Warn("トークンが無効です", "team", conn.Team)
+			if !util.IsValidPlayerToken(s.config.Server.Authentication.Secret, token, conn.TeamName) {
+				slog.Warn("トークンが無効です", "team_name", conn.TeamName)
 				conn.Conn.Close()
-				slog.Info("クライアントの接続を切断しました", "team", conn.Team)
+				slog.Info("クライアントの接続を切断しました", "team_name", conn.TeamName)
 				return
 			}
 		} else {
 			token = strings.ReplaceAll(conn.Header.Get("Authorization"), "Bearer ", "")
-			if !util.IsValidPlayerToken(s.config.Server.Authentication.Secret, token, conn.Team) {
-				slog.Warn("トークンが無効です", "team", conn.Team)
+			if !util.IsValidPlayerToken(s.config.Server.Authentication.Secret, token, conn.TeamName) {
+				slog.Warn("トークンが無効です", "team_name", conn.TeamName)
 				conn.Conn.Close()
-				slog.Info("クライアントの接続を切断しました", "team", conn.Team)
+				slog.Info("クライアントの接続を切断しました", "team_name", conn.TeamName)
 				return
 			}
 		}
 	}
-	s.waitingRoom.AddConnection(conn.Team, *conn)
+	s.waitingRoom.AddConnection(conn.TeamName, *conn)
 
 	s.mu.Lock()
 	var game *logic.Game

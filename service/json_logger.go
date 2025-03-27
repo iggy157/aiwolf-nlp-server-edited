@@ -20,11 +20,11 @@ type JSONLogger struct {
 type JSONLog struct {
 	id           string
 	filename     string
-	agents       []interface{}
+	agents       []any
 	winSide      model.Team
-	entries      []interface{}
+	entries      []any
 	timestampMap map[string]int64
-	requestMap   map[string]interface{}
+	requestMap   map[string]any
 }
 
 func NewJSONLogger(config model.Config) *JSONLogger {
@@ -38,18 +38,18 @@ func NewJSONLogger(config model.Config) *JSONLogger {
 func (j *JSONLogger) TrackStartGame(id string, agents []*model.Agent) {
 	data := &JSONLog{
 		id:           id,
-		agents:       make([]interface{}, 0),
-		entries:      make([]interface{}, 0),
+		agents:       make([]any, 0),
+		entries:      make([]any, 0),
 		timestampMap: make(map[string]int64),
-		requestMap:   make(map[string]interface{}),
+		requestMap:   make(map[string]any),
 		winSide:      model.T_NONE,
 	}
 	for _, agent := range agents {
 		data.agents = append(data.agents,
-			map[string]interface{}{
+			map[string]any{
 				"idx":  agent.Idx,
-				"team": agent.Team,
-				"name": agent.Name,
+				"team": agent.TeamName,
+				"name": agent.OriginalName,
 				"role": agent.Role,
 			},
 		)
@@ -58,7 +58,7 @@ func (j *JSONLogger) TrackStartGame(id string, agents []*model.Agent) {
 	filename = strings.ReplaceAll(filename, "{timestamp}", fmt.Sprintf("%d", time.Now().Unix()))
 	teams := make(map[string]struct{})
 	for _, agent := range data.agents {
-		team := agent.(map[string]interface{})["team"].(string)
+		team := agent.(map[string]any)["team"].(string)
 		teams[team] = struct{}{}
 	}
 	teamStr := ""
@@ -83,20 +83,20 @@ func (j *JSONLogger) TrackEndGame(id string, winSide model.Team) {
 
 func (j *JSONLogger) TrackStartRequest(id string, agent model.Agent, packet model.Packet) {
 	if data, exists := j.data[id]; exists {
-		data.timestampMap[agent.Name] = time.Now().UnixNano()
-		data.requestMap[agent.Name] = packet
+		data.timestampMap[agent.OriginalName] = time.Now().UnixNano()
+		data.requestMap[agent.OriginalName] = packet
 	}
 }
 
 func (j *JSONLogger) TrackEndRequest(id string, agent model.Agent, response string, err error) {
 	if data, exists := j.data[id]; exists {
 		timestamp := time.Now().UnixNano()
-		entry := map[string]interface{}{
+		entry := map[string]any{
 			"agent":              agent.String(),
-			"request_timestamp":  data.timestampMap[agent.Name] / 1e6,
+			"request_timestamp":  data.timestampMap[agent.OriginalName] / 1e6,
 			"response_timestamp": timestamp / 1e6,
 		}
-		if request, exists := data.requestMap[agent.Name]; exists {
+		if request, exists := data.requestMap[agent.OriginalName]; exists {
 			jsonData, err := json.Marshal(request)
 			if err == nil {
 				entry["request"] = string(jsonData)
@@ -109,8 +109,8 @@ func (j *JSONLogger) TrackEndRequest(id string, agent model.Agent, response stri
 			entry["error"] = err.Error()
 		}
 		data.entries = append(data.entries, entry)
-		delete(data.timestampMap, agent.Name)
-		delete(data.requestMap, agent.Name)
+		delete(data.timestampMap, agent.OriginalName)
+		delete(data.requestMap, agent.OriginalName)
 
 		j.saveGameData(id)
 	}
@@ -118,7 +118,7 @@ func (j *JSONLogger) TrackEndRequest(id string, agent model.Agent, response stri
 
 func (j *JSONLogger) saveGameData(id string) {
 	if data, exists := j.data[id]; exists {
-		game := map[string]interface{}{
+		game := map[string]any{
 			"game_id":  id,
 			"win_side": data.winSide,
 			"agents":   data.agents,
