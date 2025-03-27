@@ -20,7 +20,11 @@ type Config struct {
 		} `yaml:"authentication"`
 	} `yaml:"server"`
 	Game struct {
-		AgentCount            int     `yaml:"agent_count"`
+		AgentCount    int `yaml:"agent_count"`
+		CustomProfile struct {
+			Enable  bool              `yaml:"enable"`
+			Profile map[string]string `yaml:"profile"`
+		} `yaml:"custom_profile"`
 		VoteVisibility        bool    `yaml:"vote_visibility"`
 		TalkOnFirstDay        bool    `yaml:"talk_on_first_day"`
 		MaxContinueErrorRatio float64 `yaml:"max_continue_error_ratio"`
