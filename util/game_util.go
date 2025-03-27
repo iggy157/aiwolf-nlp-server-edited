@@ -1,8 +1,6 @@
 package util
 
 import (
-	"log/slog"
-
 	"maps"
 
 	"github.com/aiwolfdial/aiwolf-nlp-server/model"
@@ -58,10 +56,7 @@ func CreateAgents(conns []model.Connection, roles map[model.Role]int) []*model.A
 	agents := make([]*model.Agent, 0)
 	for i, conn := range conns {
 		role := assignRole(rolesCopy)
-		agent, err := model.NewAgent(i+1, role, conn)
-		if err != nil {
-			slog.Error("エージェントの作成に失敗しました", "error", err)
-		}
+		agent := model.NewAgent(i+1, role, conn)
 		agents = append(agents, agent)
 	}
 	return agents
@@ -72,11 +67,8 @@ func CreateAgentsWithRole(roleMapConns map[model.Role][]model.Connection) []*mod
 	i := 0
 	for role, conns := range roleMapConns {
 		for _, conn := range conns {
-			agent, err := model.NewAgent(i+1, role, conn)
+			agent := model.NewAgent(i+1, role, conn)
 			i++
-			if err != nil {
-				slog.Error("エージェントの作成に失敗しました", "error", err)
-			}
 			agents = append(agents, agent)
 		}
 	}

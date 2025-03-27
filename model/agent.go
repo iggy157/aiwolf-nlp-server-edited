@@ -16,23 +16,40 @@ type Agent struct {
 	TeamName     string
 	OriginalName string
 	GameName     string
+	Profile      *string
 	Role         Role
 	Connection   *websocket.Conn
 	HasError     bool
 }
 
-func NewAgent(idx int, role Role, conn Connection) (*Agent, error) {
+func NewAgent(idx int, role Role, conn Connection) *Agent {
 	agent := &Agent{
 		Idx:          idx,
 		TeamName:     conn.TeamName,
 		OriginalName: conn.OriginalName,
 		GameName:     "Agent[" + fmt.Sprintf("%02d", idx) + "]",
+		Profile:      nil,
 		Role:         role,
 		Connection:   conn.Conn,
 		HasError:     false,
 	}
 	slog.Info("エージェントを作成しました", "idx", agent.Idx, "agent", agent.String(), "role", agent.Role, "connection", agent.Connection.RemoteAddr())
-	return agent, nil
+	return agent
+}
+
+func NewAgentWithCustomProfile(idx int, role Role, conn Connection, name string, profile *string) *Agent {
+	agent := &Agent{
+		Idx:          idx,
+		TeamName:     conn.TeamName,
+		OriginalName: conn.OriginalName,
+		GameName:     name,
+		Profile:      profile,
+		Role:         role,
+		Connection:   conn.Conn,
+		HasError:     false,
+	}
+	slog.Info("エージェントを作成しました", "idx", agent.Idx, "agent", agent.String(), "role", agent.Role, "connection", agent.Connection.RemoteAddr())
+	return agent
 }
 
 func (a *Agent) SendPacket(packet Packet, actionTimeout, responseTimeout, acceptableTimeout time.Duration) (string, error) {
