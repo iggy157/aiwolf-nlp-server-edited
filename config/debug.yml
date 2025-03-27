@@ -12,6 +12,19 @@ server:
 
 game:
   agent_count: 5 # 1ゲームあたりのエージェント数
+  custom_profile:
+    enable: False # カスタムプロファイルを有効にするか
+    profile:
+      Agent01: |-
+        Profile01
+      Agent02: |-
+        Profile02
+      Agent03: |-
+        Profile03
+      Agent04: |-
+        Profile04
+      Agent05: |-
+        Profile05
   vote_visibility: false # 投票の結果を公開するか
   talk_on_first_day: true # 1日目の発言を許可するか
   max_continue_error_ratio: 0.2 # ゲームを継続するエラーエージェントの最大割合
@@ -23,6 +36,7 @@ game:
       per_talk: -1 # 1回のトークあたりの最大文字数 制限無しの場合は-1
       per_agent: -1 # 1日あたりの1エージェントの最大文字数 制限無しの場合は-1
       base_length: 0 # 1日あたりの1エージェントの最大文字数に含まない最低文字数
+      count_in_word: false # 単語数でカウントするか
     max_skip: 0 # 1日あたりの1エージェントの最大スキップ回数
   whisper:
     max_count:
@@ -32,6 +46,7 @@ game:
       per_talk: -1 # 1回のトークあたりの最大文字数 制限無しの場合は-1
       per_agent: -1 # 1日あたりの1エージェントの最大文字数 制限無しの場合は-1
       base_length: 0 # 1日あたりの1エージェントの最大文字数に含まない最低文字数
+      count_in_word: false # 単語数でカウントするか
     max_skip: 0 # 1日あたりの1エージェントの最大スキップ回数
   vote:
     max_count: 1 # 1位タイの場合の最大再投票回数

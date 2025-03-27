@@ -20,33 +20,19 @@ type Config struct {
 		} `yaml:"authentication"`
 	} `yaml:"server"`
 	Game struct {
-		AgentCount            int     `yaml:"agent_count"`
+		AgentCount    int `yaml:"agent_count"`
+		CustomProfile struct {
+			Enable  bool              `yaml:"enable"`
+			Profile map[string]string `yaml:"profile"`
+		} `yaml:"custom_profile"`
 		VoteVisibility        bool    `yaml:"vote_visibility"`
 		TalkOnFirstDay        bool    `yaml:"talk_on_first_day"`
 		MaxContinueErrorRatio float64 `yaml:"max_continue_error_ratio"`
 		Talk                  struct {
-			MaxCount struct {
-				PerAgent int `yaml:"per_agent"`
-				PerDay   int `yaml:"per_day"`
-			} `yaml:"max_count"`
-			MaxLength struct {
-				PerTalk    int `yaml:"per_talk"`
-				PerAgent   int `yaml:"per_agent"`
-				BaseLength int `yaml:"base_length"`
-			} `yaml:"max_length"`
-			MaxSkip int `yaml:"max_skip"`
+			TalkConfig `yaml:",inline"`
 		} `yaml:"talk"`
 		Whisper struct {
-			MaxCount struct {
-				PerAgent int `yaml:"per_agent"`
-				PerDay   int `yaml:"per_day"`
-			} `yaml:"max_count"`
-			MaxLength struct {
-				PerTalk    int `yaml:"per_talk"`
-				PerAgent   int `yaml:"per_agent"`
-				BaseLength int `yaml:"base_length"`
-			} `yaml:"max_length"`
-			MaxSkip int `yaml:"max_skip"`
+			TalkConfig `yaml:",inline"`
 		} `yaml:"whisper"`
 		Vote struct {
 			MaxCount int `yaml:"max_count"`
@@ -82,6 +68,20 @@ type Config struct {
 		OutputPath   string `yaml:"output_path"`
 		InfiniteLoop bool   `yaml:"infinite_loop"`
 	} `yaml:"matching"`
+}
+
+type TalkConfig struct {
+	MaxCount struct {
+		PerAgent int `yaml:"per_agent"`
+		PerDay   int `yaml:"per_day"`
+	} `yaml:"max_count"`
+	MaxLength struct {
+		PerTalk     int  `yaml:"per_talk"`
+		PerAgent    int  `yaml:"per_agent"`
+		BaseLength  int  `yaml:"base_length"`
+		CountInWord bool `yaml:"count_in_word"`
+	} `yaml:"max_length"`
+	MaxSkip int `yaml:"max_skip"`
 }
 
 func LoadFromPath(path string) (*Config, error) {

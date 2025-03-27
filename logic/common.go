@@ -46,8 +46,67 @@ func (g *Game) requestToEveryone(request model.Request) {
 	}
 }
 
+func (g *Game) buildInfo(agent *model.Agent) model.Info {
+	info := model.Info{
+		GameID: g.ID,
+		Day:    g.currentDay,
+		Agent:  agent,
+	}
+	gameStatus := g.getCurrentGameStatus()
+	lastGameStatus := g.gameStatuses[g.currentDay-1]
+	if lastGameStatus != nil {
+		if lastGameStatus.MediumResult != nil && agent.Role == model.R_MEDIUM {
+			info.MediumResult = lastGameStatus.MediumResult
+		}
+		if lastGameStatus.DivineResult != nil && agent.Role == model.R_SEER {
+			info.DivineResult = lastGameStatus.DivineResult
+		}
+		if lastGameStatus.ExecutedAgent != nil {
+			info.ExecutedAgent = lastGameStatus.ExecutedAgent
+		}
+		if lastGameStatus.AttackedAgent != nil {
+			info.AttackedAgent = lastGameStatus.AttackedAgent
+		}
+		if g.setting.VoteVisibility {
+			info.VoteList = lastGameStatus.Votes
+		}
+		if g.setting.VoteVisibility && agent.Role == model.R_WEREWOLF {
+			info.AttackVoteList = lastGameStatus.AttackVotes
+		}
+	}
+	info.TalkList = gameStatus.Talks
+	if agent.Role == model.R_WEREWOLF {
+		info.WhisperList = gameStatus.Whispers
+	}
+	info.StatusMap = gameStatus.StatusMap
+	roleMap := make(map[model.Agent]model.Role)
+	roleMap[*agent] = agent.Role
+	if agent.Role == model.R_WEREWOLF {
+		for a := range gameStatus.StatusMap {
+			if a.Role == model.R_WEREWOLF {
+				roleMap[a] = a.Role
+			}
+		}
+	}
+	info.RoleMap = roleMap
+	if gameStatus.RemainCountMap != nil {
+		count := (*gameStatus.RemainCountMap)[*agent]
+		info.RemainCount = &count
+	}
+	if gameStatus.RemainLengthMap != nil {
+		if value, exists := (*gameStatus.RemainLengthMap)[*agent]; exists {
+			info.RemainLength = &value
+		}
+	}
+	if gameStatus.RemainSkipMap != nil {
+		count := (*gameStatus.RemainSkipMap)[*agent]
+		info.RemainSkip = &count
+	}
+	return info
+}
+
 func (g *Game) requestToAgent(agent *model.Agent, request model.Request) (string, error) {
-	info := model.NewInfo(g.ID, agent, g.getCurrentGameStatus(), g.gameStatuses[g.currentDay-1], g.setting)
+	info := g.buildInfo(agent)
 	var packet model.Packet
 	switch request {
 	case model.R_NAME:
@@ -55,6 +114,9 @@ func (g *Game) requestToAgent(agent *model.Agent, request model.Request) (string
 	case model.R_INITIALIZE, model.R_DAILY_INITIALIZE:
 		g.resetLastIdxMaps()
 		packet = model.Packet{Request: &request, Info: &info, Setting: g.setting}
+		if request == model.R_INITIALIZE {
+			packet.Info.Profile = agent.Profile
+		}
 	case model.R_VOTE, model.R_DIVINE, model.R_GUARD:
 		packet = model.Packet{Request: &request, Info: &info}
 	case model.R_DAILY_FINISH, model.R_TALK, model.R_WHISPER, model.R_ATTACK:
@@ -133,11 +195,11 @@ func (g *Game) getRealtimeBroadcastPacket() model.BroadcastPacket {
 			Team    string `json:"team"`
 			Name    string `json:"name"`
 			Role    string `json:"role"`
-			IsAlive bool   `json:"isAlive"`
+			IsAlive bool   `json:"is_alive"`
 		}{
 			Idx:     agent.Idx,
-			Team:    agent.Team,
-			Name:    agent.Name,
+			Team:    agent.TeamName,
+			Name:    agent.OriginalName,
 			Role:    agent.Role.Name,
 			IsAlive: g.isAlive(agent),
 		})

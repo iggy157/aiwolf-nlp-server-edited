@@ -1,7 +1,6 @@
 package util
 
 import (
-	"log/slog"
 	"math/rand"
 
 	"github.com/aiwolfdial/aiwolf-nlp-server/model"
@@ -24,12 +23,6 @@ func FilterAgents(agents []*model.Agent, filter func(*model.Agent) bool) []*mode
 func FindAgentByName(agents []*model.Agent, name string) *model.Agent {
 	for _, agent := range agents {
 		if agent.String() == name {
-			return agent
-		}
-	}
-	for _, agent := range agents {
-		if agent.Name == name {
-			slog.Warn("対象エージェントを名前で検索しました", "name", name)
 			return agent
 		}
 	}

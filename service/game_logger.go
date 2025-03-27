@@ -19,7 +19,7 @@ type GameLogger struct {
 type GameLog struct {
 	id       string
 	filename string
-	agents   []interface{}
+	agents   []any
 	logs     []string
 }
 
@@ -38,10 +38,10 @@ func (g *GameLogger) TrackStartGame(id string, agents []*model.Agent) {
 	}
 	for _, agent := range agents {
 		data.agents = append(data.agents,
-			map[string]interface{}{
+			map[string]any{
 				"idx":  agent.Idx,
-				"team": agent.Team,
-				"name": agent.Name,
+				"team": agent.TeamName,
+				"name": agent.OriginalName,
 				"role": agent.Role,
 			},
 		)
@@ -50,7 +50,7 @@ func (g *GameLogger) TrackStartGame(id string, agents []*model.Agent) {
 	filename = strings.ReplaceAll(filename, "{timestamp}", fmt.Sprintf("%d", time.Now().Unix()))
 	teams := make(map[string]struct{})
 	for _, agent := range data.agents {
-		team := agent.(map[string]interface{})["team"].(string)
+		team := agent.(map[string]any)["team"].(string)
 		teams[team] = struct{}{}
 	}
 	teamStr := ""
