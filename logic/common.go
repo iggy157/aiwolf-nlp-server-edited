@@ -3,7 +3,6 @@ package logic
 import (
 	"errors"
 	"log/slog"
-	"time"
 
 	"github.com/aiwolfdial/aiwolf-nlp-server/model"
 	"github.com/aiwolfdial/aiwolf-nlp-server/util"
@@ -137,7 +136,7 @@ func (g *Game) requestToAgent(agent *model.Agent, request model.Request) (string
 	if g.jsonLogger != nil {
 		g.jsonLogger.TrackStartRequest(g.ID, *agent, packet)
 	}
-	resp, err := agent.SendPacket(packet, time.Duration(g.setting.Timeout.Action)*time.Millisecond, time.Duration(g.setting.Timeout.Response)*time.Millisecond, g.config.Game.Timeout.Acceptable)
+	resp, err := agent.SendPacket(packet, g.config.Game.Timeout.Action, g.config.Game.Timeout.Response, g.config.Game.Timeout.Acceptable)
 	if g.jsonLogger != nil {
 		g.jsonLogger.TrackEndRequest(g.ID, *agent, resp, err)
 	}
