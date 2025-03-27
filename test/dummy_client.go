@@ -90,7 +90,7 @@ func (dc *DummyClient) setInfo(recv map[string]any) error {
 	if info, exists := recv["info"].(map[string]any); exists {
 		dc.info = info
 		if dc.role.String() == "" {
-			if roleMap, exists := info["roleMap"].(map[string]any); exists {
+			if roleMap, exists := info["role_map"].(map[string]any); exists {
 				for _, v := range roleMap {
 					dc.role = model.RoleFromString(v.(string))
 					break
@@ -130,7 +130,7 @@ func (dc *DummyClient) handleInitialize(recv map[string]any) (string, error) {
 
 func (dc *DummyClient) handleCommunication(recv map[string]any) (string, error) {
 	request := recv["request"].(string)
-	if _, exists := recv[strings.ToLower(request)+"History"].([]any); exists {
+	if _, exists := recv[strings.ToLower(request)+"_history"].([]any); exists {
 	} else {
 		return "", errors.New("history not found")
 	}
@@ -142,7 +142,7 @@ func (dc *DummyClient) handleCommunication(recv map[string]any) (string, error) 
 }
 
 func (dc *DummyClient) handleTarget(_ map[string]any) (string, error) {
-	if statusMap, exists := dc.info["statusMap"].(map[string]any); exists {
+	if statusMap, exists := dc.info["status_map"].(map[string]any); exists {
 		for k, v := range statusMap {
 			if v == model.S_ALIVE.String() {
 				return k, nil
@@ -150,22 +150,22 @@ func (dc *DummyClient) handleTarget(_ map[string]any) (string, error) {
 		}
 		return "", errors.New("target not found")
 	}
-	return "", errors.New("statusMap not found")
+	return "", errors.New("status_map not found")
 }
 
 func (dc *DummyClient) handleDailyFinish(recv map[string]any) (string, error) {
-	if _, exists := recv["talkHistory"].([]any); exists {
+	if _, exists := recv["talk_history"].([]any); exists {
 	} else {
-		return "", errors.New("talkHistory not found")
+		return "", errors.New("talk_history not found")
 	}
 	if dc.role == model.R_WEREWOLF {
-		if _, exists := recv["whisperHistory"].([]any); exists {
+		if _, exists := recv["whisper_history"].([]any); exists {
 		} else {
-			return "", errors.New("whisperHistory not found")
+			return "", errors.New("whisper_history not found")
 		}
 	} else {
-		if _, exists := recv["whisperHistory"]; exists {
-			return "", errors.New("whisperHistory found")
+		if _, exists := recv["whisper_history"]; exists {
+			return "", errors.New("whisper_history found")
 		}
 	}
 	return "", nil
