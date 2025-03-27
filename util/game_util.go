@@ -2,6 +2,7 @@ package util
 
 import (
 	"maps"
+	"math/rand/v2"
 	"slices"
 
 	"github.com/aiwolfdial/aiwolf-nlp-server/model"
@@ -68,6 +69,7 @@ func CreateAgentsWithProfile(conns []model.Connection, roles map[model.Role]int,
 	maps.Copy(rolesCopy, roles)
 	agents := make([]*model.Agent, 0)
 	names := slices.Collect(maps.Keys(profiles))
+	rand.Shuffle(len(names), func(i, j int) { names[i], names[j] = names[j], names[i] })
 	for i, conn := range conns {
 		role := assignRole(rolesCopy)
 		agent := model.NewAgentWithProfile(i+1, role, conn, names[i], profiles[names[i]])
@@ -93,6 +95,7 @@ func CreateAgentsWithRoleAndProfile(roleMapConns map[model.Role][]model.Connecti
 	// TODO: mapのキー順が保証されないため、プロフィールの紐づけまで復元できない
 	agents := make([]*model.Agent, 0)
 	names := slices.Collect(maps.Keys(profiles))
+	rand.Shuffle(len(names), func(i, j int) { names[i], names[j] = names[j], names[i] })
 	i := 0
 	for role, conns := range roleMapConns {
 		for _, conn := range conns {

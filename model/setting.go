@@ -48,6 +48,11 @@ func NewSetting(config Config) (*Setting, error) {
 	if roleNumMap == nil {
 		return nil, errors.New("対応する役職の人数がありません")
 	}
+	if config.Game.CustomProfile.Enable {
+		if len(config.Game.CustomProfile.Profile) < config.Game.AgentCount {
+			return nil, errors.New("カスタムプロファイルの人数がエージェント数より少ないです")
+		}
+	}
 	setting := Setting{
 		AgentCount:     config.Game.AgentCount,
 		RoleNumMap:     roleNumMap,
