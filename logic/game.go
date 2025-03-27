@@ -28,7 +28,12 @@ type Game struct {
 
 func NewGame(config *model.Config, settings *model.Setting, conns []model.Connection) *Game {
 	id := ulid.Make().String()
-	agents := util.CreateAgents(conns, settings.RoleNumMap)
+	var agents []*model.Agent
+	if config.Game.CustomProfile.Enable {
+		agents = util.CreateAgentsWithProfile(conns, settings.RoleNumMap, config.Game.CustomProfile.Profile)
+	} else {
+		agents = util.CreateAgents(conns, settings.RoleNumMap)
+	}
 	gameStatus := model.NewInitializeGameStatus(agents)
 	gameStatuses := make(map[int]*model.GameStatus)
 	gameStatuses[0] = &gameStatus
@@ -48,7 +53,12 @@ func NewGame(config *model.Config, settings *model.Setting, conns []model.Connec
 
 func NewGameWithRole(config *model.Config, settings *model.Setting, roleMapConns map[model.Role][]model.Connection) *Game {
 	id := ulid.Make().String()
-	agents := util.CreateAgentsWithRole(roleMapConns)
+	var agents []*model.Agent
+	if config.Game.CustomProfile.Enable {
+		agents = util.CreateAgentsWithRoleAndProfile(roleMapConns, config.Game.CustomProfile.Profile)
+	} else {
+		agents = util.CreateAgentsWithRole(roleMapConns)
+	}
 	gameStatus := model.NewInitializeGameStatus(agents)
 	gameStatuses := make(map[int]*model.GameStatus)
 	gameStatuses[0] = &gameStatus

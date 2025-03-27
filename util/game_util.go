@@ -2,6 +2,7 @@ package util
 
 import (
 	"maps"
+	"slices"
 
 	"github.com/aiwolfdial/aiwolf-nlp-server/model"
 )
@@ -62,12 +63,40 @@ func CreateAgents(conns []model.Connection, roles map[model.Role]int) []*model.A
 	return agents
 }
 
+func CreateAgentsWithProfile(conns []model.Connection, roles map[model.Role]int, profiles map[string]string) []*model.Agent {
+	rolesCopy := make(map[model.Role]int)
+	maps.Copy(rolesCopy, roles)
+	agents := make([]*model.Agent, 0)
+	names := slices.Collect(maps.Keys(profiles))
+	for i, conn := range conns {
+		role := assignRole(rolesCopy)
+		agent := model.NewAgentWithProfile(i+1, role, conn, names[i], profiles[names[i]])
+		agents = append(agents, agent)
+	}
+	return agents
+}
+
 func CreateAgentsWithRole(roleMapConns map[model.Role][]model.Connection) []*model.Agent {
 	agents := make([]*model.Agent, 0)
 	i := 0
 	for role, conns := range roleMapConns {
 		for _, conn := range conns {
 			agent := model.NewAgent(i+1, role, conn)
+			i++
+			agents = append(agents, agent)
+		}
+	}
+	return agents
+}
+
+func CreateAgentsWithRoleAndProfile(roleMapConns map[model.Role][]model.Connection, profiles map[string]string) []*model.Agent {
+	// TODO: mapのキー順が保証されないため、プロフィールの紐づけまで復元できない
+	agents := make([]*model.Agent, 0)
+	names := slices.Collect(maps.Keys(profiles))
+	i := 0
+	for role, conns := range roleMapConns {
+		for _, conn := range conns {
+			agent := model.NewAgentWithProfile(i+1, role, conn, names[i], profiles[names[i]])
 			i++
 			agents = append(agents, agent)
 		}

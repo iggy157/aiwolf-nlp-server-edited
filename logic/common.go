@@ -114,6 +114,9 @@ func (g *Game) requestToAgent(agent *model.Agent, request model.Request) (string
 	case model.R_INITIALIZE, model.R_DAILY_INITIALIZE:
 		g.resetLastIdxMaps()
 		packet = model.Packet{Request: &request, Info: &info, Setting: g.setting}
+		if request == model.R_INITIALIZE {
+			packet.Info.Profile = agent.Profile
+		}
 	case model.R_VOTE, model.R_DIVINE, model.R_GUARD:
 		packet = model.Packet{Request: &request, Info: &info}
 	case model.R_DAILY_FINISH, model.R_TALK, model.R_WHISPER, model.R_ATTACK:

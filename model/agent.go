@@ -37,18 +37,18 @@ func NewAgent(idx int, role Role, conn Connection) *Agent {
 	return agent
 }
 
-func NewAgentWithCustomProfile(idx int, role Role, conn Connection, name string, profile *string) *Agent {
+func NewAgentWithProfile(idx int, role Role, conn Connection, name string, profile string) *Agent {
 	agent := &Agent{
 		Idx:          idx,
 		TeamName:     conn.TeamName,
 		OriginalName: conn.OriginalName,
 		GameName:     name,
-		Profile:      profile,
+		Profile:      &profile,
 		Role:         role,
 		Connection:   conn.Conn,
 		HasError:     false,
 	}
-	slog.Info("エージェントを作成しました", "idx", agent.Idx, "agent", agent.String(), "role", agent.Role, "connection", agent.Connection.RemoteAddr())
+	slog.Info("エージェントを作成しました", "idx", agent.Idx, "agent", agent.String(), "profile", agent.Profile, "role", agent.Role, "connection", agent.Connection.RemoteAddr())
 	return agent
 }
 

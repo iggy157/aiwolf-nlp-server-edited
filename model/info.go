@@ -6,6 +6,7 @@ type Info struct {
 	GameID         string           `json:"gameID"`
 	Day            int              `json:"day"`
 	Agent          *Agent           `json:"agent"`
+	Profile        *string          `json:"profile,omitempty"`
 	MediumResult   *Judge           `json:"mediumResult,omitempty"`
 	DivineResult   *Judge           `json:"divineResult,omitempty"`
 	ExecutedAgent  *Agent           `json:"executedAgent,omitempty"`

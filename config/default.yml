@@ -11,6 +11,19 @@ server:
 
 game:
   agent_count: 5 # 1ゲームあたりのエージェント数
+  custom_profile:
+    enable: False # カスタムプロファイルを有効にするか
+    profile:
+      Agent01: |-
+        Profile01
+      Agent02: |-
+        Profile02
+      Agent03: |-
+        Profile03
+      Agent04: |-
+        Profile04
+      Agent05: |-
+        Profile05
   vote_visibility: false # 投票の結果を公開するか
   talk_on_first_day: true # 1日目の発言を許可するか
   max_continue_error_ratio: 0.2 # ゲームを継続するエラーエージェントの最大割合
