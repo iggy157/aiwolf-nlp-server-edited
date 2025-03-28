@@ -8,6 +8,12 @@ import (
 	"github.com/aiwolfdial/aiwolf-nlp-server/util"
 )
 
+func (g *Game) getVotedCandidates(votes []model.Vote) []model.Agent {
+	return util.GetCandidates(votes, func(vote model.Vote) bool {
+		return true
+	})
+}
+
 func (g *Game) doExecution() {
 	slog.Info("追放フェーズを開始します", "id", g.ID, "day", g.currentDay)
 	var executed *model.Agent

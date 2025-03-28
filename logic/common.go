@@ -20,19 +20,6 @@ func (g *Game) findTargetByRequest(agent *model.Agent, request model.Request) (*
 	slog.Info("対象エージェントを受信しました", "id", g.ID, "agent", agent.String(), "target", target.String())
 	return target, nil
 }
-
-func (g *Game) getVotedCandidates(votes []model.Vote) []model.Agent {
-	return util.GetCandidates(votes, func(vote model.Vote) bool {
-		return true
-	})
-}
-
-func (g *Game) getAttackVotedCandidates(votes []model.Vote) []model.Agent {
-	return util.GetCandidates(votes, func(vote model.Vote) bool {
-		return vote.Target.Role.Species != model.S_WEREWOLF
-	})
-}
-
 func (g *Game) closeAllAgents() {
 	for _, agent := range g.Agents {
 		agent.Close()

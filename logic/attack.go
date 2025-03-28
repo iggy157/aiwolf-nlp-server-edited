@@ -8,6 +8,12 @@ import (
 	"github.com/aiwolfdial/aiwolf-nlp-server/util"
 )
 
+func (g *Game) getAttackVotedCandidates(votes []model.Vote) []model.Agent {
+	return util.GetCandidates(votes, func(vote model.Vote) bool {
+		return vote.Target.Role == model.R_WEREWOLF
+	})
+}
+
 func (g *Game) doAttack() {
 	slog.Info("襲撃フェーズを開始します", "id", g.ID, "day", g.currentDay)
 	var attacked *model.Agent
