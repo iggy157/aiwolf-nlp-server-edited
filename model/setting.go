@@ -50,7 +50,7 @@ func NewSetting(config Config) (*Setting, error) {
 	}
 	if config.Game.CustomProfile.Enable {
 		if len(config.Game.CustomProfile.Profile) < config.Game.AgentCount {
-			return nil, errors.New("カスタムプロファイルの人数がエージェント数より少ないです")
+			return nil, errors.New("カスタムプロフィールの人数がエージェント数より少ないです")
 		}
 	}
 	setting := Setting{

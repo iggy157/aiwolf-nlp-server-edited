@@ -11,10 +11,10 @@ server:
     secret: your-256-bit-secret # 秘密鍵
 
 game:
-  agent_count: 5 # 1ゲームあたりのエージェント数
+  agent_count: 13 # 1ゲームあたりのエージェント数
   custom_profile:
-    enable: False # カスタムプロファイルを有効にするか
-    profile:
+    enable: False # カスタムプロフィールを有効にするか
+    profile: # カスタムプロフィール
       Agent01: |-
         Profile01
       Agent02: |-
@@ -25,6 +25,22 @@ game:
         Profile04
       Agent05: |-
         Profile05
+      Agent06: |-
+        Profile06
+      Agent07: |-
+        Profile07
+      Agent08: |-
+        Profile08
+      Agent09: |-
+        Profile09
+      Agent10: |-
+        Profile10
+      Agent11: |-
+        Profile11
+      Agent12: |-
+        Profile12
+      Agent13: |-
+        Profile13
   vote_visibility: false # 投票の結果を公開するか
   talk_on_first_day: true # 1日目の発言を許可するか
   max_continue_error_ratio: 0.2 # ゲームを継続するエラーエージェントの最大割合
