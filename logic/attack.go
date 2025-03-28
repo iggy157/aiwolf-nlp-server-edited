@@ -10,7 +10,7 @@ import (
 
 func (g *Game) getAttackVotedCandidates(votes []model.Vote) []model.Agent {
 	return util.GetCandidates(votes, func(vote model.Vote) bool {
-		return vote.Target.Role == model.R_WEREWOLF
+		return vote.Target.Role != model.R_WEREWOLF
 	})
 }
 
