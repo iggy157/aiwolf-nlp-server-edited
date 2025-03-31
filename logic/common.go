@@ -188,7 +188,7 @@ func (g *Game) getRealtimeBroadcastPacket() model.BroadcastPacket {
 		}{
 			Idx:     a.Idx,
 			Team:    a.TeamName,
-			Name:    a.OriginalName,
+			Name:    a.GameName,
 			Profile: a.Profile,
 			Avatar:  a.Avatar,
 			Role:    a.Role.Name,
