@@ -64,7 +64,7 @@ func CreateAgents(conns []model.Connection, roles map[model.Role]int) []*model.A
 	return agents
 }
 
-func CreateAgentsWithProfile(conns []model.Connection, roles map[model.Role]int, profiles map[string]string) []*model.Agent {
+func CreateAgentsWithProfile(conns []model.Connection, roles map[model.Role]int, profiles map[string]map[string]string) []*model.Agent {
 	rolesCopy := make(map[model.Role]int)
 	maps.Copy(rolesCopy, roles)
 	agents := make([]*model.Agent, 0)
@@ -91,8 +91,7 @@ func CreateAgentsWithRole(roleMapConns map[model.Role][]model.Connection) []*mod
 	return agents
 }
 
-func CreateAgentsWithRoleAndProfile(roleMapConns map[model.Role][]model.Connection, profiles map[string]string) []*model.Agent {
-	// TODO: mapのキー順が保証されないため、プロフィールの紐づけまで復元できない
+func CreateAgentsWithRoleAndProfile(roleMapConns map[model.Role][]model.Connection, profiles map[string]map[string]string) []*model.Agent {
 	agents := make([]*model.Agent, 0)
 	names := slices.Collect(maps.Keys(profiles))
 	rand.Shuffle(len(names), func(i, j int) { names[i], names[j] = names[j], names[i] })

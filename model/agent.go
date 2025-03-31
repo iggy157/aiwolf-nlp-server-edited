@@ -17,6 +17,7 @@ type Agent struct {
 	OriginalName string
 	GameName     string
 	Profile      *string
+	Avatar       *string
 	Role         Role
 	Connection   *websocket.Conn
 	HasError     bool
@@ -29,6 +30,7 @@ func NewAgent(idx int, role Role, conn Connection) *Agent {
 		OriginalName: conn.OriginalName,
 		GameName:     "Agent[" + fmt.Sprintf("%02d", idx) + "]",
 		Profile:      nil,
+		Avatar:       nil,
 		Role:         role,
 		Connection:   conn.Conn,
 		HasError:     false,
@@ -37,16 +39,26 @@ func NewAgent(idx int, role Role, conn Connection) *Agent {
 	return agent
 }
 
-func NewAgentWithProfile(idx int, role Role, conn Connection, name string, profile string) *Agent {
+func NewAgentWithProfile(idx int, role Role, conn Connection, name string, profile map[string]string) *Agent {
+	var desc []string
+	for key, value := range profile {
+		if key != "avatar" {
+			desc = append(desc, key+": "+value)
+		}
+	}
+	description := strings.Join(desc, "\n")
 	agent := &Agent{
 		Idx:          idx,
 		TeamName:     conn.TeamName,
 		OriginalName: conn.OriginalName,
 		GameName:     name,
-		Profile:      &profile,
+		Profile:      &description,
 		Role:         role,
 		Connection:   conn.Conn,
 		HasError:     false,
+	}
+	if avatar, ok := profile["avatar"]; ok {
+		agent.Avatar = &avatar
 	}
 	slog.Info("エージェントを作成しました", "idx", agent.Idx, "agent", agent.String(), "profile", agent.Profile, "role", agent.Role, "connection", agent.Connection.RemoteAddr())
 	return agent

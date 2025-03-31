@@ -176,20 +176,25 @@ func (g *Game) getRealtimeBroadcastPacket() model.BroadcastPacket {
 		ToIdx:     nil,
 		BubbleIdx: nil,
 	}
-	for _, agent := range g.Agents {
-		packet.Agents = append(packet.Agents, struct {
-			Idx     int    `json:"idx"`
-			Team    string `json:"team"`
-			Name    string `json:"name"`
-			Role    string `json:"role"`
-			IsAlive bool   `json:"is_alive"`
+	for _, a := range g.Agents {
+		agent := struct {
+			Idx     int     `json:"idx"`
+			Team    string  `json:"team"`
+			Name    string  `json:"name"`
+			Profile *string `json:"profile,omitempty"`
+			Avatar  *string `json:"avatar,omitempty"`
+			Role    string  `json:"role"`
+			IsAlive bool    `json:"is_alive"`
 		}{
-			Idx:     agent.Idx,
-			Team:    agent.TeamName,
-			Name:    agent.OriginalName,
-			Role:    agent.Role.Name,
-			IsAlive: g.isAlive(agent),
-		})
+			Idx:     a.Idx,
+			Team:    a.TeamName,
+			Name:    a.OriginalName,
+			Profile: a.Profile,
+			Avatar:  a.Avatar,
+			Role:    a.Role.Name,
+			IsAlive: g.isAlive(a),
+		}
+		packet.Agents = append(packet.Agents, agent)
 	}
 	return packet
 }

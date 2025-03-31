@@ -6,11 +6,13 @@ type BroadcastPacket struct {
 	Day    int    `json:"day"`
 	IsDay  bool   `json:"is_day"`
 	Agents []struct {
-		Idx     int    `json:"idx"`
-		Team    string `json:"team"`
-		Name    string `json:"name"`
-		Role    string `json:"role"`
-		IsAlive bool   `json:"is_alive"`
+		Idx     int     `json:"idx"`
+		Team    string  `json:"team"`
+		Name    string  `json:"name"`
+		Profile *string `json:"profile,omitempty"`
+		Avatar  *string `json:"avatar,omitempty"`
+		Role    string  `json:"role"`
+		IsAlive bool    `json:"is_alive"`
 	} `json:"agents"`
 	Event     string  `json:"event"`
 	Message   *string `json:"message,omitempty"`
