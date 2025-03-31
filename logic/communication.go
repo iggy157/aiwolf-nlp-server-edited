@@ -10,7 +10,6 @@ import (
 	"github.com/aiwolfdial/aiwolf-nlp-server/model"
 )
 
-
 func (g *Game) doWhisper() {
 	slog.Info("囁きフェーズを開始します", "id", g.ID, "day", g.currentDay)
 	g.conductCommunication(model.R_WHISPER)
@@ -143,14 +142,12 @@ func (g *Game) conductCommunication(request model.Request) {
 			if g.realtimeBroadcaster != nil {
 				if request == model.R_TALK {
 					packet := g.getRealtimeBroadcastPacket()
-					packet.IsDay = true
 					packet.Event = "トーク"
 					packet.Message = &talk.Text
 					packet.BubbleIdx = &agent.Idx
 					g.realtimeBroadcaster.Broadcast(packet)
 				} else {
 					packet := g.getRealtimeBroadcastPacket()
-					packet.IsDay = true
 					packet.Event = "囁き"
 					packet.Message = &talk.Text
 					packet.BubbleIdx = &agent.Idx

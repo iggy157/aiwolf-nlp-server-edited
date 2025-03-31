@@ -144,6 +144,9 @@ func (dc *DummyClient) handleCommunication(recv map[string]any) (string, error) 
 func (dc *DummyClient) handleTarget(_ map[string]any) (string, error) {
 	if statusMap, exists := dc.info["status_map"].(map[string]any); exists {
 		for k, v := range statusMap {
+			if k == dc.info["agent"].(string) {
+				continue
+			}
 			if v == model.S_ALIVE.String() {
 				return k, nil
 			}

@@ -169,6 +169,7 @@ func (g *Game) getRealtimeBroadcastPacket() model.BroadcastPacket {
 		Id:        g.ID,
 		Idx:       g.realtimeBroadcasterPacketIdx,
 		Day:       g.currentDay,
+		IsDay:     g.isDaytime,
 		Event:     "なし",
 		Message:   nil,
 		FromIdx:   nil,

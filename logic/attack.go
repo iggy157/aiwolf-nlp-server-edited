@@ -41,7 +41,6 @@ func (g *Game) doAttack() {
 			}
 			if g.realtimeBroadcaster != nil {
 				packet := g.getRealtimeBroadcastPacket()
-				packet.IsDay = false
 				packet.Event = "襲撃"
 				packet.ToIdx = &attacked.Idx
 				g.realtimeBroadcaster.Broadcast(packet)
@@ -53,7 +52,6 @@ func (g *Game) doAttack() {
 			}
 			if g.realtimeBroadcaster != nil {
 				packet := g.getRealtimeBroadcastPacket()
-				packet.IsDay = false
 				packet.Event = "襲撃"
 				idx := -1
 				packet.FromIdx = &idx
@@ -67,7 +65,6 @@ func (g *Game) doAttack() {
 			}
 			if g.realtimeBroadcaster != nil {
 				packet := g.getRealtimeBroadcastPacket()
-				packet.IsDay = false
 				packet.Event = "襲撃"
 				g.realtimeBroadcaster.Broadcast(packet)
 			}

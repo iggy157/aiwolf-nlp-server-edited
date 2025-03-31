@@ -38,7 +38,6 @@ func (g *Game) doExecution() {
 		}
 		if g.realtimeBroadcaster != nil {
 			packet := g.getRealtimeBroadcastPacket()
-			packet.IsDay = false
 			packet.Event = "追放"
 			packet.ToIdx = &executed.Idx
 			g.realtimeBroadcaster.Broadcast(packet)
@@ -55,7 +54,6 @@ func (g *Game) doExecution() {
 	} else {
 		if g.realtimeBroadcaster != nil {
 			packet := g.getRealtimeBroadcastPacket()
-			packet.IsDay = false
 			packet.Event = "追放"
 			g.realtimeBroadcaster.Broadcast(packet)
 		}

@@ -47,14 +47,12 @@ func (g *Game) collectVotes(request model.Request, agents []*model.Agent) []mode
 		if g.realtimeBroadcaster != nil {
 			if request == model.R_VOTE {
 				packet := g.getRealtimeBroadcastPacket()
-				packet.IsDay = false
 				packet.Event = "投票"
 				packet.FromIdx = &agent.Idx
 				packet.ToIdx = &target.Idx
 				g.realtimeBroadcaster.Broadcast(packet)
 			} else {
 				packet := g.getRealtimeBroadcastPacket()
-				packet.IsDay = false
 				packet.Event = "襲撃投票"
 				packet.FromIdx = &agent.Idx
 				packet.ToIdx = &target.Idx

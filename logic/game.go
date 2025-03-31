@@ -17,6 +17,7 @@ type Game struct {
 	config                       *model.Config
 	setting                      *model.Setting
 	currentDay                   int
+	isDaytime                    bool
 	gameStatuses                 map[int]*model.GameStatus
 	lastTalkIdxMap               map[*model.Agent]int
 	lastWhisperIdxMap            map[*model.Agent]int
@@ -120,7 +121,6 @@ func (g *Game) Start() model.Team {
 	}
 	if g.realtimeBroadcaster != nil {
 		packet := g.getRealtimeBroadcastPacket()
-		packet.IsDay = true
 		packet.Event = "終了"
 		message := string(winSide)
 		packet.Message = &message
@@ -140,6 +140,7 @@ func (g *Game) Start() model.Team {
 
 func (g *Game) progressDay() {
 	slog.Info("昼を開始します", "id", g.ID, "day", g.currentDay)
+	g.isDaytime = true
 	g.requestToEveryone(model.R_DAILY_INITIALIZE)
 	if g.gameLogger != nil {
 		for _, agent := range g.Agents {
@@ -155,6 +156,7 @@ func (g *Game) progressDay() {
 
 func (g *Game) progressNight() {
 	slog.Info("夜を開始します", "id", g.ID, "day", g.currentDay)
+	g.isDaytime = false
 	g.requestToEveryone(model.R_DAILY_FINISH)
 	if g.setting.TalkOnFirstDay && g.currentDay == 0 {
 		g.doWhisper()

@@ -44,7 +44,6 @@ func (g *Game) conductDivination(agent *model.Agent) {
 	}
 	if g.realtimeBroadcaster != nil {
 		packet := g.getRealtimeBroadcastPacket()
-		packet.IsDay = false
 		packet.Event = "占い"
 		packet.FromIdx = &agent.Idx
 		packet.ToIdx = &target.Idx
