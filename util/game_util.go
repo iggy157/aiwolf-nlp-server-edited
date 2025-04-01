@@ -167,7 +167,7 @@ func TrimLength(text string, length int, inWord bool) string {
 		}
 		return text
 	}
-	if len(text) > length {
+	if utf8.RuneCountInString(text) > length {
 		return string([]rune(text)[:length])
 	}
 	return text
