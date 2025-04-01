@@ -93,7 +93,12 @@ func (g *Game) conductCommunication(request model.Request) {
 			}
 
 			if text != model.T_OVER && text != model.T_SKIP && text != model.T_FORCE_SKIP {
-				if talkSetting.MaxLength.PerAgent != nil {
+				if talkSetting.MaxLength.PerAgent != nil || talkSetting.MaxLength.BaseLength != nil {
+					baseLength := 0
+					if talkSetting.MaxLength.BaseLength != nil {
+						baseLength = *talkSetting.MaxLength.BaseLength
+					}
+
 					mention := ""
 					mentionIdx := -1
 					if talkSetting.MaxLength.MentionLength != nil {
@@ -109,12 +114,12 @@ func (g *Game) conductCommunication(request model.Request) {
 					}
 
 					if mentionIdx != -1 {
-						remainLength := *talkSetting.MaxLength.BaseLength + remainLengthMap[*agent]
+						remainLength := baseLength + remainLengthMap[*agent]
 						mentionBefore := text[:mentionIdx]
 						mentionAfter := text[mentionIdx+utf8.RuneCountInString(mention):]
 
 						text = util.TrimLength(mentionBefore, remainLength, *talkSetting.MaxLength.CountInWord)
-						cost := util.CountLength(mentionBefore, *talkSetting.MaxLength.CountInWord) - *talkSetting.MaxLength.BaseLength
+						cost := util.CountLength(mentionBefore, *talkSetting.MaxLength.CountInWord) - baseLength
 						if cost > 0 {
 							remainLengthMap[*agent] -= cost
 						}
@@ -128,9 +133,9 @@ func (g *Game) conductCommunication(request model.Request) {
 							remainLengthMap[*agent] -= mentionCost
 						}
 					} else {
-						remainLength := *talkSetting.MaxLength.BaseLength + remainLengthMap[*agent]
+						remainLength := baseLength + remainLengthMap[*agent]
 						text = util.TrimLength(text, remainLength, *talkSetting.MaxLength.CountInWord)
-						cost := util.CountLength(text, *talkSetting.MaxLength.CountInWord) - *talkSetting.MaxLength.BaseLength
+						cost := util.CountLength(text, *talkSetting.MaxLength.CountInWord) - baseLength
 						if cost > 0 {
 							remainLengthMap[*agent] -= cost
 						}

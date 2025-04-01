@@ -129,6 +129,9 @@ func NewSetting(config Config) (*Setting, error) {
 	if config.Game.Talk.MaxLength.PerAgent != -1 {
 		setting.Talk.MaxLength.CountInWord = &config.Game.Talk.MaxLength.CountInWord
 		setting.Talk.MaxLength.PerAgent = &config.Game.Talk.MaxLength.PerAgent
+	}
+	if config.Game.Talk.MaxLength.BaseLength != -1 {
+		setting.Talk.MaxLength.CountInWord = &config.Game.Talk.MaxLength.CountInWord
 		setting.Talk.MaxLength.BaseLength = &config.Game.Talk.MaxLength.BaseLength
 	}
 	if config.Game.Whisper.MaxLength.PerTalk != -1 {
@@ -139,6 +142,9 @@ func NewSetting(config Config) (*Setting, error) {
 	if config.Game.Whisper.MaxLength.PerAgent != -1 {
 		setting.Whisper.MaxLength.CountInWord = &config.Game.Whisper.MaxLength.CountInWord
 		setting.Whisper.MaxLength.PerAgent = &config.Game.Whisper.MaxLength.PerAgent
+	}
+	if config.Game.Whisper.MaxLength.BaseLength != -1 {
+		setting.Whisper.MaxLength.CountInWord = &config.Game.Whisper.MaxLength.CountInWord
 		setting.Whisper.MaxLength.BaseLength = &config.Game.Whisper.MaxLength.BaseLength
 	}
 	return &setting, nil
