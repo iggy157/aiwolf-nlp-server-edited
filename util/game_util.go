@@ -4,6 +4,8 @@ import (
 	"maps"
 	"math/rand/v2"
 	"slices"
+	"strings"
+	"unicode/utf8"
 
 	"github.com/aiwolfdial/aiwolf-nlp-server/model"
 )
@@ -148,4 +150,25 @@ func GetRoleTeamNamesMap(agents []*model.Agent) map[model.Role][]string {
 		roleTeamNamesMap[a.Role] = append(roleTeamNamesMap[a.Role], a.TeamName)
 	}
 	return roleTeamNamesMap
+}
+
+func CountLength(text string, inWord bool) int {
+	if inWord {
+		return len(strings.Fields(text))
+	}
+	return utf8.RuneCountInString(text)
+}
+
+func TrimLength(text string, length int, inWord bool) string {
+	if inWord {
+		words := strings.Fields(text)
+		if len(words) > length {
+			return strings.Join(words[:length], " ")
+		}
+		return text
+	}
+	if len(text) > length {
+		return string([]rune(text)[:length])
+	}
+	return text
 }

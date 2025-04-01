@@ -35,10 +35,11 @@ type TalkSetting struct {
 		PerDay   int `json:"per_day"`
 	} `json:"max_count"`
 	MaxLength struct {
-		PerTalk     *int  `json:"per_talk,omitempty"`
-		PerAgent    *int  `json:"per_agent,omitempty"`
-		BaseLength  *int  `json:"base_length,omitempty"`
-		CountInWord *bool `json:"count_in_word,omitempty"`
+		CountInWord   *bool `json:"count_in_word,omitempty"`
+		PerTalk       *int  `json:"per_talk,omitempty"`
+		MentionLength *int  `json:"mention_length,omitempty"`
+		PerAgent      *int  `json:"per_agent,omitempty"`
+		BaseLength    *int  `json:"base_length,omitempty"`
 	} `json:"max_length"`
 	MaxSkip int `json:"max_skip"`
 }
@@ -70,10 +71,11 @@ func NewSetting(config Config) (*Setting, error) {
 					PerDay:   config.Game.Talk.MaxCount.PerDay,
 				},
 				MaxLength: struct {
-					PerTalk     *int  `json:"per_talk,omitempty"`
-					PerAgent    *int  `json:"per_agent,omitempty"`
-					BaseLength  *int  `json:"base_length,omitempty"`
-					CountInWord *bool `json:"count_in_word,omitempty"`
+					CountInWord   *bool `json:"count_in_word,omitempty"`
+					PerTalk       *int  `json:"per_talk,omitempty"`
+					MentionLength *int  `json:"mention_length,omitempty"`
+					PerAgent      *int  `json:"per_agent,omitempty"`
+					BaseLength    *int  `json:"base_length,omitempty"`
 				}{},
 				MaxSkip: config.Game.Talk.MaxSkip,
 			},
@@ -90,10 +92,11 @@ func NewSetting(config Config) (*Setting, error) {
 					PerDay:   config.Game.Whisper.MaxCount.PerDay,
 				},
 				MaxLength: struct {
-					PerTalk     *int  `json:"per_talk,omitempty"`
-					PerAgent    *int  `json:"per_agent,omitempty"`
-					BaseLength  *int  `json:"base_length,omitempty"`
-					CountInWord *bool `json:"count_in_word,omitempty"`
+					CountInWord   *bool `json:"count_in_word,omitempty"`
+					PerTalk       *int  `json:"per_talk,omitempty"`
+					MentionLength *int  `json:"mention_length,omitempty"`
+					PerAgent      *int  `json:"per_agent,omitempty"`
+					BaseLength    *int  `json:"base_length,omitempty"`
 				}{},
 				MaxSkip: config.Game.Whisper.MaxSkip,
 			},
@@ -119,22 +122,24 @@ func NewSetting(config Config) (*Setting, error) {
 		},
 	}
 	if config.Game.Talk.MaxLength.PerTalk != -1 {
-		setting.Talk.MaxLength.PerTalk = &config.Game.Talk.MaxLength.PerTalk
 		setting.Talk.MaxLength.CountInWord = &config.Game.Talk.MaxLength.CountInWord
+		setting.Talk.MaxLength.PerTalk = &config.Game.Talk.MaxLength.PerTalk
+		setting.Talk.MaxLength.MentionLength = &config.Game.Talk.MaxLength.MentionLength
 	}
 	if config.Game.Talk.MaxLength.PerAgent != -1 {
+		setting.Talk.MaxLength.CountInWord = &config.Game.Talk.MaxLength.CountInWord
 		setting.Talk.MaxLength.PerAgent = &config.Game.Talk.MaxLength.PerAgent
 		setting.Talk.MaxLength.BaseLength = &config.Game.Talk.MaxLength.BaseLength
-		setting.Talk.MaxLength.CountInWord = &config.Game.Talk.MaxLength.CountInWord
 	}
 	if config.Game.Whisper.MaxLength.PerTalk != -1 {
-		setting.Whisper.MaxLength.PerTalk = &config.Game.Whisper.MaxLength.PerTalk
 		setting.Whisper.MaxLength.CountInWord = &config.Game.Whisper.MaxLength.CountInWord
+		setting.Whisper.MaxLength.PerTalk = &config.Game.Whisper.MaxLength.PerTalk
+		setting.Whisper.MaxLength.MentionLength = &config.Game.Whisper.MaxLength.MentionLength
 	}
 	if config.Game.Whisper.MaxLength.PerAgent != -1 {
+		setting.Whisper.MaxLength.CountInWord = &config.Game.Whisper.MaxLength.CountInWord
 		setting.Whisper.MaxLength.PerAgent = &config.Game.Whisper.MaxLength.PerAgent
 		setting.Whisper.MaxLength.BaseLength = &config.Game.Whisper.MaxLength.BaseLength
-		setting.Whisper.MaxLength.CountInWord = &config.Game.Whisper.MaxLength.CountInWord
 	}
 	return &setting, nil
 }

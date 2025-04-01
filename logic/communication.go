@@ -8,6 +8,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/aiwolfdial/aiwolf-nlp-server/model"
+	"github.com/aiwolfdial/aiwolf-nlp-server/util"
 )
 
 func (g *Game) doWhisper() {
@@ -90,33 +91,64 @@ func (g *Game) conductCommunication(request model.Request) {
 				remainSkipMap[*agent] = talkSetting.MaxSkip
 				slog.Info("発言がオーバーもしくはスキップではないため、スキップ回数をリセットしました", "id", g.ID, "agent", agent.String())
 			}
-			if talkSetting.MaxLength.PerAgent != nil {
-				var length int
-				if *talkSetting.MaxLength.CountInWord {
-					length = utf8.RuneCountInString(text)
-				} else {
-					length = len(strings.Fields(text))
-				}
-				remainLength := *talkSetting.MaxLength.BaseLength + remainLengthMap[*agent]
-				if remainLength <= 0 {
-					text = model.T_OVER
-					slog.Warn("残り文字数がないため、発言をオーバーに置換しました", "id", g.ID, "agent", agent.String())
-				} else if length > remainLength {
-					text = string([]rune(text)[:remainLength])
-					remainLengthMap[*agent] = 0
-					slog.Warn("発言が最大文字数を超えたため、切り捨てました", "id", g.ID, "agent", agent.String())
-				} else {
-					if length > *talkSetting.MaxLength.BaseLength {
-						remainLengthMap[*agent] -= length - *talkSetting.MaxLength.BaseLength
+
+			if text != model.T_OVER && text != model.T_SKIP && text != model.T_FORCE_SKIP {
+				if talkSetting.MaxLength.PerAgent != nil {
+					mention := ""
+					mentionIdx := -1
+					if talkSetting.MaxLength.MentionLength != nil {
+						for _, a := range g.Agents {
+							if a != agent {
+								mention = "@" + a.String()
+								if strings.Contains(text, mention) {
+									mentionIdx = strings.Index(text, mention)
+									break
+								}
+							}
+						}
+					}
+
+					if mentionIdx != -1 {
+						remainLength := *talkSetting.MaxLength.BaseLength + remainLengthMap[*agent]
+						mentionBefore := text[:mentionIdx]
+						mentionAfter := text[mentionIdx+utf8.RuneCountInString(mention):]
+
+						text = util.TrimLength(mentionBefore, remainLength, *talkSetting.MaxLength.CountInWord)
+						cost := util.CountLength(mentionBefore, *talkSetting.MaxLength.CountInWord) - *talkSetting.MaxLength.BaseLength
+						if cost > 0 {
+							remainLengthMap[*agent] -= cost
+						}
+
+						text += mention
+
+						remainLength = *talkSetting.MaxLength.MentionLength + remainLengthMap[*agent]
+						mentionText := util.TrimLength(mentionAfter, remainLength, *talkSetting.MaxLength.CountInWord)
+						mentionCost := util.CountLength(mentionText, *talkSetting.MaxLength.CountInWord) - *talkSetting.MaxLength.MentionLength
+						if mentionCost > 0 {
+							remainLengthMap[*agent] -= mentionCost
+						}
+					} else {
+						remainLength := *talkSetting.MaxLength.BaseLength + remainLengthMap[*agent]
+						text = util.TrimLength(text, remainLength, *talkSetting.MaxLength.CountInWord)
+						cost := util.CountLength(text, *talkSetting.MaxLength.CountInWord) - *talkSetting.MaxLength.BaseLength
+						if cost > 0 {
+							remainLengthMap[*agent] -= cost
+						}
 					}
 				}
-			}
-			if talkSetting.MaxLength.PerTalk != nil {
-				if utf8.RuneCountInString(text) > *talkSetting.MaxLength.PerTalk {
-					text = string([]rune(text)[:*talkSetting.MaxLength.PerTalk])
-					slog.Warn("発言が最大文字数を超えたため、切り捨てました", "id", g.ID, "agent", agent.String())
+				if talkSetting.MaxLength.PerTalk != nil {
+					length := util.CountLength(text, *talkSetting.MaxLength.CountInWord)
+					if length > *talkSetting.MaxLength.PerTalk {
+						text = util.TrimLength(text, *talkSetting.MaxLength.PerTalk, *talkSetting.MaxLength.CountInWord)
+						slog.Warn("発言が最大文字数を超えたため、切り捨てました", "id", g.ID, "agent", agent.String())
+					}
+				}
+				if utf8.RuneCountInString(text) == 0 {
+					text = model.T_OVER
+					slog.Warn("文字数が0のため、発言をオーバーに置換しました", "id", g.ID, "agent", agent.String())
 				}
 			}
+
 			talk := model.Talk{
 				Idx:   idx,
 				Day:   g.getCurrentGameStatus().Day,

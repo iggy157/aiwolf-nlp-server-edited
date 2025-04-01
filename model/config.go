@@ -76,10 +76,11 @@ type TalkConfig struct {
 		PerDay   int `yaml:"per_day"`
 	} `yaml:"max_count"`
 	MaxLength struct {
-		PerTalk     int  `yaml:"per_talk"`
-		PerAgent    int  `yaml:"per_agent"`
-		BaseLength  int  `yaml:"base_length"`
-		CountInWord bool `yaml:"count_in_word"`
+		CountInWord   bool `yaml:"count_in_word"`
+		PerTalk       int  `yaml:"per_talk"`
+		MentionLength int  `yaml:"mention_length"`
+		PerAgent      int  `yaml:"per_agent"`
+		BaseLength    int  `yaml:"base_length"`
 	} `yaml:"max_length"`
 	MaxSkip int `yaml:"max_skip"`
 }
