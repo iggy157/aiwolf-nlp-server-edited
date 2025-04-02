@@ -104,7 +104,7 @@ func (a *Agent) SendPacket(packet Packet, actionTimeout, responseTimeout, accept
 				return "", err
 			}
 			slog.Warn("レスポンスの受信に失敗したため、NAMEリクエストを送信します", "agent", a.String(), "error", err)
-		case <-time.After(actionTimeout + time.Second*5):
+		case <-time.After(actionTimeout + acceptableTimeout):
 			slog.Warn("レスポンスの受信がタイムアウトしたため、NAMEリクエストを送信します", "agent", a.String())
 		}
 		nameReq, err := json.Marshal(Packet{Request: &R_NAME})
