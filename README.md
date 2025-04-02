@@ -38,6 +38,7 @@ chmod u+x ./aiwolf-nlp-server-linux-amd64
 ```bash
 curl -LJO https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/aiwolf-nlp-server-windows-amd64.exe
 curl -LJO https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/default.yml
+chmod u+x ./aiwolf-nlp-server-linux-amd64
 .\aiwolf-nlp-server-windows-amd64.exe
 ```
 
