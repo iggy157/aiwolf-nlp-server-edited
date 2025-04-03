@@ -14,8 +14,7 @@ import (
 type RealtimeBroadcaster struct {
 	config   model.Config
 	upgrader websocket.Upgrader
-	clients  map[*websocket.Conn]bool
-	mu       sync.Mutex
+	clients  *sync.Map
 }
 
 func NewRealtimeBroadcaster(config model.Config) *RealtimeBroadcaster {
@@ -26,22 +25,23 @@ func NewRealtimeBroadcaster(config model.Config) *RealtimeBroadcaster {
 				return true
 			},
 		},
-		clients: make(map[*websocket.Conn]bool),
+		clients: &sync.Map{},
 	}
 }
 
 func (rb *RealtimeBroadcaster) Broadcast(packet model.BroadcastPacket) {
-	rb.mu.Lock()
-	defer rb.mu.Unlock()
-
-	for client := range rb.clients {
-		err := client.WriteJSON(packet)
-		if err != nil {
-			rb.mu.Lock()
-			delete(rb.clients, client)
-			rb.mu.Unlock()
-			client.Close()
+	var disconnectedClients []*websocket.Conn
+	rb.clients.Range(func(key, value any) bool {
+		client := key.(*websocket.Conn)
+		if err := client.WriteJSON(packet); err != nil {
+			slog.Warn("クライアントへのメッセージ送信に失敗しました", "error", err)
+			disconnectedClients = append(disconnectedClients, client)
 		}
+		return true
+	})
+	for _, client := range disconnectedClients {
+		client.Close()
+		rb.clients.Delete(client)
 	}
 	slog.Info("リアルタイムブロードキャストを送信しました", "packet", packet)
 }
@@ -72,15 +72,8 @@ func (rb *RealtimeBroadcaster) HandleConnections(w http.ResponseWriter, r *http.
 	}
 	defer ws.Close()
 
-	rb.mu.Lock()
-	rb.clients[ws] = true
-	rb.mu.Unlock()
-
-	defer func() {
-		rb.mu.Lock()
-		delete(rb.clients, ws)
-		rb.mu.Unlock()
-	}()
+	rb.clients.Store(ws, nil)
+	defer rb.clients.Delete(ws)
 
 	for {
 		_, _, err := ws.ReadMessage()
