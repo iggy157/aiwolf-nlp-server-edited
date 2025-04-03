@@ -4,9 +4,6 @@
 
 サンプルエージェントについては、[aiwolfdial/aiwolf-nlp-agent](https://github.com/aiwolfdial/aiwolf-nlp-agent) を参考にしてください。
 
-~~大会の詳細ならびに参加登録については、[AIWolfDial2024WinterJp](https://sites.google.com/view/aiwolfdial2024winterjp/) を参考にしてください。~~  
-次回大会の詳細についてはしばらくお待ちください。
-
 > [!IMPORTANT]
 > 次回大会では以下の修正が予定されています。
 >
@@ -21,7 +18,7 @@
 
 ## 実行方法
 
-デフォルトのサーバアドレスは `ws://127.0.0.1:8080/ws` です。エージェントプログラムの接続先には、このアドレスを指定してください。  
+デフォルトのサーバアドレスは `ws://127.0.0.1:8080/ws` です。エージェントプログラムの接続先には、このアドレスを指定してください。\
 同じチーム名のエージェント同士のみをマッチングさせる自己対戦モードは、デフォルトで有効になっています。そのため、異なるチーム名のエージェント同士をマッチングさせる場合は、設定ファイルを変更してください。
 
 ### Linux
@@ -44,7 +41,7 @@ curl -LJO https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/downlo
 ### macOS (Intel)
 
 > [!NOTE]
-> 開発元が不明なアプリケーションとしてブロックされる場合があります。  
+> 開発元が不明なアプリケーションとしてブロックされる場合があります。\
 > 下記サイトを参考に、実行許可を与えてください。  
 > <https://support.apple.com/ja-jp/guide/mac-help/mh40616/mac>
 
@@ -58,7 +55,7 @@ chmod u+x ./aiwolf-nlp-server-darwin-amd64
 ### macOS (Apple Silicon)
 
 > [!NOTE]
-> 開発元が不明なアプリケーションとしてブロックされる場合があります。  
+> 開発元が不明なアプリケーションとしてブロックされる場合があります。\
 > 下記サイトを参考に、実行許可を与えてください。  
 > <https://support.apple.com/ja-jp/guide/mac-help/mh40616/mac>
 
