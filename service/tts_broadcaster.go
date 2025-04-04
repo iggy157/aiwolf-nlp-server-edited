@@ -374,17 +374,27 @@ func (t *TTSBroadcaster) HandlePlaylist(c *gin.Context) {
 }
 
 func (t *TTSBroadcaster) HandleSegment(c *gin.Context) {
-	segmentPath := c.Param("segment")
-	if segmentPath == "" || segmentPath == "/" {
+	segment := c.Param("segment")
+	if segment == "" || segment == "/" {
 		c.Status(http.StatusNotFound)
 		return
 	}
 
-	segmentName := strings.TrimPrefix(segmentPath, "/")
-	fullPath := filepath.Join(t.config.TTSBroadcaster.SegmentDir, segmentName)
+	segmentName := strings.TrimPrefix(segment, "/")
+	if !strings.HasSuffix(segmentName, ".ts") || strings.Contains(segmentName, "/") || strings.Contains(segmentName, "\\") {
+		c.Status(http.StatusNotFound)
+		return
+	}
 
-	if _, err := os.Stat(fullPath); os.IsNotExist(err) {
-		slog.Error("セグメントファイルが見つかりません", "path", fullPath)
+	segmentPath := filepath.Join(t.config.TTSBroadcaster.SegmentDir, segmentName)
+	cleanPath := filepath.Clean(segmentPath)
+	if !strings.HasPrefix(cleanPath, filepath.Clean(t.config.TTSBroadcaster.SegmentDir)) {
+		c.Status(http.StatusNotFound)
+		return
+	}
+
+	if _, err := os.Stat(cleanPath); os.IsNotExist(err) {
+		slog.Error("セグメントファイルが見つかりません", "path", cleanPath)
 		c.Status(http.StatusNotFound)
 		return
 	}
@@ -394,7 +404,7 @@ func (t *TTSBroadcaster) HandleSegment(c *gin.Context) {
 	c.Header("Pragma", "no-cache")
 	c.Header("Expires", "0")
 	c.Header("Access-Control-Allow-Origin", "*")
-	c.File(fullPath)
+	c.File(segmentPath)
 }
 
 func (t *TTSBroadcaster) HandleText(c *gin.Context) {
