@@ -33,14 +33,14 @@ func (g *Game) doExecution() {
 	if executed != nil {
 		g.getCurrentGameStatus().StatusMap[*executed] = model.S_DEAD
 		g.getCurrentGameStatus().ExecutedAgent = executed
-		if g.gameLogger != nil {
-			g.gameLogger.AppendLog(g.ID, fmt.Sprintf("%d,execute,%d,%s", g.currentDay, executed.Idx, executed.Role.Name))
+		if g.GameLogger != nil {
+			g.GameLogger.AppendLog(g.ID, fmt.Sprintf("%d,execute,%d,%s", g.currentDay, executed.Idx, executed.Role.Name))
 		}
-		if g.realtimeBroadcaster != nil {
+		if g.RealtimeBroadcaster != nil {
 			packet := g.getRealtimeBroadcastPacket()
 			packet.Event = "追放"
 			packet.ToIdx = &executed.Idx
-			g.realtimeBroadcaster.Broadcast(packet)
+			g.RealtimeBroadcaster.Broadcast(packet)
 		}
 		slog.Info("追放結果を設定しました", "id", g.ID, "agent", executed.String())
 
@@ -52,10 +52,10 @@ func (g *Game) doExecution() {
 		}
 		slog.Info("霊能結果を設定しました", "id", g.ID, "target", executed.String(), "result", executed.Role.Species)
 	} else {
-		if g.realtimeBroadcaster != nil {
+		if g.RealtimeBroadcaster != nil {
 			packet := g.getRealtimeBroadcastPacket()
 			packet.Event = "追放"
-			g.realtimeBroadcaster.Broadcast(packet)
+			g.RealtimeBroadcaster.Broadcast(packet)
 		}
 		slog.Warn("追放対象がいないため、追放結果を設定しません", "id", g.ID)
 	}

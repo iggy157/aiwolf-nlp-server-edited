@@ -36,27 +36,27 @@ func (g *Game) collectVotes(request model.Request, agents []*model.Agent) []mode
 			Agent:  *agent,
 			Target: *target,
 		})
-		if g.gameLogger != nil {
+		if g.GameLogger != nil {
 			if request == model.R_VOTE {
-				g.gameLogger.AppendLog(g.ID, fmt.Sprintf("%d,vote,%d,%d", g.currentDay, agent.Idx, target.Idx))
+				g.GameLogger.AppendLog(g.ID, fmt.Sprintf("%d,vote,%d,%d", g.currentDay, agent.Idx, target.Idx))
 			} else {
-				g.gameLogger.AppendLog(g.ID, fmt.Sprintf("%d,attackVote,%d,%d", g.currentDay, agent.Idx, target.Idx))
+				g.GameLogger.AppendLog(g.ID, fmt.Sprintf("%d,attackVote,%d,%d", g.currentDay, agent.Idx, target.Idx))
 			}
 		}
 
-		if g.realtimeBroadcaster != nil {
+		if g.RealtimeBroadcaster != nil {
 			if request == model.R_VOTE {
 				packet := g.getRealtimeBroadcastPacket()
 				packet.Event = "投票"
 				packet.FromIdx = &agent.Idx
 				packet.ToIdx = &target.Idx
-				g.realtimeBroadcaster.Broadcast(packet)
+				g.RealtimeBroadcaster.Broadcast(packet)
 			} else {
 				packet := g.getRealtimeBroadcastPacket()
 				packet.Event = "襲撃投票"
 				packet.FromIdx = &agent.Idx
 				packet.ToIdx = &target.Idx
-				g.realtimeBroadcaster.Broadcast(packet)
+				g.RealtimeBroadcaster.Broadcast(packet)
 			}
 		}
 		slog.Info("投票を受信しました", "id", g.ID, "agent", agent.String(), "target", target.String())

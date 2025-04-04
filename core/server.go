@@ -189,13 +189,13 @@ func (s *Server) handleConnections(w http.ResponseWriter, r *http.Request) {
 		game = logic.NewGame(&s.config, s.gameSetting, connections)
 	}
 	if s.jsonLogger != nil {
-		game.SetJSONLogger(s.jsonLogger)
+		game.JsonLogger = s.jsonLogger
 	}
 	if s.gameLogger != nil {
-		game.SetGameLogger(s.gameLogger)
+		game.GameLogger = s.gameLogger
 	}
 	if s.realtimeBroadcaster != nil {
-		game.SetRealtimeBroadcaster(s.realtimeBroadcaster)
+		game.RealtimeBroadcaster = s.realtimeBroadcaster
 	}
 	s.games = append(s.games, game)
 	s.mu.Unlock()

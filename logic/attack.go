@@ -36,37 +36,37 @@ func (g *Game) doAttack() {
 		if attacked != nil && !g.isGuarded(attacked) {
 			g.getCurrentGameStatus().StatusMap[*attacked] = model.S_DEAD
 			g.getCurrentGameStatus().AttackedAgent = attacked
-			if g.gameLogger != nil {
-				g.gameLogger.AppendLog(g.ID, fmt.Sprintf("%d,attack,%d,true", g.currentDay, attacked.Idx))
+			if g.GameLogger != nil {
+				g.GameLogger.AppendLog(g.ID, fmt.Sprintf("%d,attack,%d,true", g.currentDay, attacked.Idx))
 			}
-			if g.realtimeBroadcaster != nil {
+			if g.RealtimeBroadcaster != nil {
 				packet := g.getRealtimeBroadcastPacket()
 				packet.Event = "襲撃"
 				packet.ToIdx = &attacked.Idx
-				g.realtimeBroadcaster.Broadcast(packet)
+				g.RealtimeBroadcaster.Broadcast(packet)
 			}
 			slog.Info("襲撃結果を設定しました", "id", g.ID, "agent", attacked.String())
 		} else if attacked != nil {
-			if g.gameLogger != nil {
-				g.gameLogger.AppendLog(g.ID, fmt.Sprintf("%d,attack,%d,false", g.currentDay, attacked.Idx))
+			if g.GameLogger != nil {
+				g.GameLogger.AppendLog(g.ID, fmt.Sprintf("%d,attack,%d,false", g.currentDay, attacked.Idx))
 			}
-			if g.realtimeBroadcaster != nil {
+			if g.RealtimeBroadcaster != nil {
 				packet := g.getRealtimeBroadcastPacket()
 				packet.Event = "襲撃"
 				idx := -1
 				packet.FromIdx = &idx
 				packet.ToIdx = &attacked.Idx
-				g.realtimeBroadcaster.Broadcast(packet)
+				g.RealtimeBroadcaster.Broadcast(packet)
 			}
 			slog.Info("護衛されたため、襲撃結果を設定しません", "id", g.ID, "agent", attacked.String())
 		} else {
-			if g.gameLogger != nil {
-				g.gameLogger.AppendLog(g.ID, fmt.Sprintf("%d,attack,-1,true", g.currentDay))
+			if g.GameLogger != nil {
+				g.GameLogger.AppendLog(g.ID, fmt.Sprintf("%d,attack,-1,true", g.currentDay))
 			}
-			if g.realtimeBroadcaster != nil {
+			if g.RealtimeBroadcaster != nil {
 				packet := g.getRealtimeBroadcastPacket()
 				packet.Event = "襲撃"
-				g.realtimeBroadcaster.Broadcast(packet)
+				g.RealtimeBroadcaster.Broadcast(packet)
 			}
 			slog.Info("襲撃対象がいないため、襲撃結果を設定しません", "id", g.ID)
 		}

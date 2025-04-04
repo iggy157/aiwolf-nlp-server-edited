@@ -169,26 +169,26 @@ func (g *Game) conductCommunication(request model.Request) {
 				remainCountMap[*agent] = 0
 				slog.Info("発言がオーバーであるため、残り発言回数を0にしました", "id", g.ID, "agent", agent.String())
 			}
-			if g.gameLogger != nil {
+			if g.GameLogger != nil {
 				if request == model.R_TALK {
-					g.gameLogger.AppendLog(g.ID, fmt.Sprintf("%d,talk,%d,%d,%d,%s", g.currentDay, talk.Idx, talk.Turn, talk.Agent.Idx, talk.Text))
+					g.GameLogger.AppendLog(g.ID, fmt.Sprintf("%d,talk,%d,%d,%d,%s", g.currentDay, talk.Idx, talk.Turn, talk.Agent.Idx, talk.Text))
 				} else {
-					g.gameLogger.AppendLog(g.ID, fmt.Sprintf("%d,whisper,%d,%d,%d,%s", g.currentDay, talk.Idx, talk.Turn, talk.Agent.Idx, talk.Text))
+					g.GameLogger.AppendLog(g.ID, fmt.Sprintf("%d,whisper,%d,%d,%d,%s", g.currentDay, talk.Idx, talk.Turn, talk.Agent.Idx, talk.Text))
 				}
 			}
-			if g.realtimeBroadcaster != nil {
+			if g.RealtimeBroadcaster != nil {
 				if request == model.R_TALK {
 					packet := g.getRealtimeBroadcastPacket()
 					packet.Event = "トーク"
 					packet.Message = &talk.Text
 					packet.BubbleIdx = &agent.Idx
-					g.realtimeBroadcaster.Broadcast(packet)
+					g.RealtimeBroadcaster.Broadcast(packet)
 				} else {
 					packet := g.getRealtimeBroadcastPacket()
 					packet.Event = "囁き"
 					packet.Message = &talk.Text
 					packet.BubbleIdx = &agent.Idx
-					g.realtimeBroadcaster.Broadcast(packet)
+					g.RealtimeBroadcaster.Broadcast(packet)
 				}
 			}
 			slog.Info("発言を受信しました", "id", g.ID, "agent", agent.String(), "text", text, "count", remainCountMap[*agent], "length", remainLengthMap[*agent], "skip", remainSkipMap[*agent])

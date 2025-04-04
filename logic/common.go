@@ -120,12 +120,12 @@ func (g *Game) requestToAgent(agent *model.Agent, request model.Request) (string
 	default:
 		return "", errors.New("一致するリクエストがありません")
 	}
-	if g.jsonLogger != nil {
-		g.jsonLogger.TrackStartRequest(g.ID, *agent, packet)
+	if g.JsonLogger != nil {
+		g.JsonLogger.TrackStartRequest(g.ID, *agent, packet)
 	}
 	resp, err := agent.SendPacket(packet, g.config.Game.Timeout.Action, g.config.Game.Timeout.Response, g.config.Game.Timeout.Acceptable)
-	if g.jsonLogger != nil {
-		g.jsonLogger.TrackEndRequest(g.ID, *agent, resp, err)
+	if g.JsonLogger != nil {
+		g.JsonLogger.TrackEndRequest(g.ID, *agent, resp, err)
 	}
 	return resp, err
 }

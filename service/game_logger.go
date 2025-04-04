@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/aiwolfdial/aiwolf-nlp-server/model"
@@ -14,6 +15,7 @@ type GameLogger struct {
 	data             map[string]*GameLog
 	outputDir        string
 	templateFilename string
+	mu               sync.RWMutex
 }
 
 type GameLog struct {
@@ -21,6 +23,7 @@ type GameLog struct {
 	filename string
 	agents   []any
 	logs     []string
+	mu       sync.Mutex
 }
 
 func NewGameLogger(config model.Config) *GameLogger {
@@ -63,29 +66,53 @@ func (g *GameLogger) TrackStartGame(id string, agents []*model.Agent) {
 	filename = strings.ReplaceAll(filename, "{teams}", teamStr)
 	data.filename = filename
 
+	g.mu.Lock()
 	g.data[id] = data
+	g.mu.Unlock()
 }
 
 func (g *GameLogger) TrackEndGame(id string) {
-	if _, exists := g.data[id]; exists {
+	g.mu.RLock()
+	_, exists := g.data[id]
+	g.mu.RUnlock()
+
+	if exists {
 		g.saveLog(id)
+
+		g.mu.Lock()
 		delete(g.data, id)
+		g.mu.Unlock()
 	}
 }
 
 func (g *GameLogger) AppendLog(id string, log string) {
-	if data, exists := g.data[id]; exists {
+	g.mu.RLock()
+	data, exists := g.data[id]
+	g.mu.RUnlock()
+
+	if exists {
+		data.mu.Lock()
 		data.logs = append(data.logs, log)
+		data.mu.Unlock()
+
 		g.saveLog(id)
 	}
 }
 
 func (g *GameLogger) saveLog(id string) {
-	if data, exists := g.data[id]; exists {
+	g.mu.RLock()
+	data, exists := g.data[id]
+	g.mu.RUnlock()
+
+	if exists {
+		data.mu.Lock()
 		str := strings.Join(data.logs, "\n")
+		data.mu.Unlock()
+
 		if _, err := os.Stat(g.outputDir); os.IsNotExist(err) {
 			os.MkdirAll(g.outputDir, 0755)
 		}
+
 		filePath := filepath.Join(g.outputDir, fmt.Sprintf("%s.log", data.filename))
 		file, err := os.Create(filePath)
 		if err != nil {

@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/aiwolfdial/aiwolf-nlp-server/model"
@@ -15,6 +16,7 @@ type JSONLogger struct {
 	data             map[string]*JSONLog
 	outputDir        string
 	templateFilename string
+	mu               sync.RWMutex
 }
 
 type JSONLog struct {
@@ -25,6 +27,7 @@ type JSONLog struct {
 	entries      []any
 	timestampMap map[string]int64
 	requestMap   map[string]any
+	mu           sync.Mutex
 }
 
 func NewJSONLogger(config model.Config) *JSONLogger {
@@ -71,25 +74,45 @@ func (j *JSONLogger) TrackStartGame(id string, agents []*model.Agent) {
 	filename = strings.ReplaceAll(filename, "{teams}", teamStr)
 	data.filename = filename
 
+	j.mu.Lock()
 	j.data[id] = data
+	j.mu.Unlock()
 }
 
 func (j *JSONLogger) TrackEndGame(id string, winSide model.Team) {
-	if data, exists := j.data[id]; exists {
-		data.winSide = winSide
+	j.mu.RLock()
+	_, exists := j.data[id]
+	j.mu.RUnlock()
+
+	if exists {
 		j.saveGameData(id)
+
+		j.mu.Lock()
+		delete(j.data, id)
+		j.mu.Unlock()
 	}
 }
 
 func (j *JSONLogger) TrackStartRequest(id string, agent model.Agent, packet model.Packet) {
-	if data, exists := j.data[id]; exists {
+	j.mu.RLock()
+	data, exists := j.data[id]
+	j.mu.RUnlock()
+
+	if exists {
+		data.mu.Lock()
 		data.timestampMap[agent.OriginalName] = time.Now().UnixNano()
 		data.requestMap[agent.OriginalName] = packet
+		data.mu.Unlock()
 	}
 }
 
 func (j *JSONLogger) TrackEndRequest(id string, agent model.Agent, response string, err error) {
-	if data, exists := j.data[id]; exists {
+	j.mu.RLock()
+	data, exists := j.data[id]
+	j.mu.RUnlock()
+
+	if exists {
+		data.mu.Lock()
 		timestamp := time.Now().UnixNano()
 		entry := map[string]any{
 			"agent":              agent.String(),
@@ -111,13 +134,19 @@ func (j *JSONLogger) TrackEndRequest(id string, agent model.Agent, response stri
 		data.entries = append(data.entries, entry)
 		delete(data.timestampMap, agent.OriginalName)
 		delete(data.requestMap, agent.OriginalName)
+		data.mu.Unlock()
 
 		j.saveGameData(id)
 	}
 }
 
 func (j *JSONLogger) saveGameData(id string) {
-	if data, exists := j.data[id]; exists {
+	j.mu.RLock()
+	data, exists := j.data[id]
+	j.mu.RUnlock()
+
+	if exists {
+		data.mu.Lock()
 		game := map[string]any{
 			"game_id":  id,
 			"win_side": data.winSide,
@@ -125,9 +154,11 @@ func (j *JSONLogger) saveGameData(id string) {
 			"entries":  data.entries,
 		}
 		jsonData, err := json.Marshal(game)
+		data.mu.Unlock()
 		if err != nil {
 			return
 		}
+
 		if _, err := os.Stat(j.outputDir); os.IsNotExist(err) {
 			os.Mkdir(j.outputDir, 0755)
 		}

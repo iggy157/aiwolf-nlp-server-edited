@@ -21,9 +21,9 @@ type Game struct {
 	gameStatuses                 map[int]*model.GameStatus
 	lastTalkIdxMap               map[*model.Agent]int
 	lastWhisperIdxMap            map[*model.Agent]int
-	jsonLogger                   *service.JSONLogger
-	gameLogger                   *service.GameLogger
-	realtimeBroadcaster          *service.RealtimeBroadcaster
+	JsonLogger                   *service.JSONLogger
+	GameLogger                   *service.GameLogger
+	RealtimeBroadcaster          *service.RealtimeBroadcaster
 	realtimeBroadcasterPacketIdx int
 }
 
@@ -77,25 +77,13 @@ func NewGameWithRole(config *model.Config, settings *model.Setting, roleMapConns
 	}
 }
 
-func (g *Game) SetJSONLogger(jsonLogger *service.JSONLogger) {
-	g.jsonLogger = jsonLogger
-}
-
-func (g *Game) SetGameLogger(gameLogger *service.GameLogger) {
-	g.gameLogger = gameLogger
-}
-
-func (g *Game) SetRealtimeBroadcaster(realtimeBroadcaster *service.RealtimeBroadcaster) {
-	g.realtimeBroadcaster = realtimeBroadcaster
-}
-
 func (g *Game) Start() model.Team {
 	slog.Info("ゲームを開始します", "id", g.ID)
-	if g.jsonLogger != nil {
-		g.jsonLogger.TrackStartGame(g.ID, g.Agents)
+	if g.JsonLogger != nil {
+		g.JsonLogger.TrackStartGame(g.ID, g.Agents)
 	}
-	if g.gameLogger != nil {
-		g.gameLogger.TrackStartGame(g.ID, g.Agents)
+	if g.GameLogger != nil {
+		g.GameLogger.TrackStartGame(g.ID, g.Agents)
 	}
 	g.requestToEveryone(model.R_INITIALIZE)
 	var winSide model.Team = model.T_NONE
@@ -112,26 +100,26 @@ func (g *Game) Start() model.Team {
 		slog.Warn("エラーが多発したため、ゲームを終了します", "id", g.ID)
 	}
 	g.requestToEveryone(model.R_FINISH)
-	if g.gameLogger != nil {
+	if g.GameLogger != nil {
 		for _, agent := range g.Agents {
-			g.gameLogger.AppendLog(g.ID, fmt.Sprintf("%d,status,%d,%s,%s,%s", g.currentDay, agent.Idx, agent.Role.Name, g.getCurrentGameStatus().StatusMap[*agent].String(), agent.OriginalName))
+			g.GameLogger.AppendLog(g.ID, fmt.Sprintf("%d,status,%d,%s,%s,%s", g.currentDay, agent.Idx, agent.Role.Name, g.getCurrentGameStatus().StatusMap[*agent].String(), agent.OriginalName))
 		}
 		villagers, werewolves := util.CountAliveTeams(g.getCurrentGameStatus().StatusMap)
-		g.gameLogger.AppendLog(g.ID, fmt.Sprintf("%d,result,%d,%d,%s", g.currentDay, villagers, werewolves, winSide))
+		g.GameLogger.AppendLog(g.ID, fmt.Sprintf("%d,result,%d,%d,%s", g.currentDay, villagers, werewolves, winSide))
 	}
-	if g.realtimeBroadcaster != nil {
+	if g.RealtimeBroadcaster != nil {
 		packet := g.getRealtimeBroadcastPacket()
 		packet.Event = "終了"
 		message := string(winSide)
 		packet.Message = &message
-		g.realtimeBroadcaster.Broadcast(packet)
+		g.RealtimeBroadcaster.Broadcast(packet)
 	}
 	g.closeAllAgents()
-	if g.jsonLogger != nil {
-		g.jsonLogger.TrackEndGame(g.ID, winSide)
+	if g.JsonLogger != nil {
+		g.JsonLogger.TrackEndGame(g.ID, winSide)
 	}
-	if g.gameLogger != nil {
-		g.gameLogger.TrackEndGame(g.ID)
+	if g.GameLogger != nil {
+		g.GameLogger.TrackEndGame(g.ID)
 	}
 	slog.Info("ゲームが終了しました", "id", g.ID, "winSide", winSide)
 	g.IsFinished = true
@@ -142,9 +130,9 @@ func (g *Game) progressDay() {
 	slog.Info("昼を開始します", "id", g.ID, "day", g.currentDay)
 	g.isDaytime = true
 	g.requestToEveryone(model.R_DAILY_INITIALIZE)
-	if g.gameLogger != nil {
+	if g.GameLogger != nil {
 		for _, agent := range g.Agents {
-			g.gameLogger.AppendLog(g.ID, fmt.Sprintf("%d,status,%d,%s,%s,%s", g.currentDay, agent.Idx, agent.Role.Name, g.getCurrentGameStatus().StatusMap[*agent].String(), agent.OriginalName))
+			g.GameLogger.AppendLog(g.ID, fmt.Sprintf("%d,status,%d,%s,%s,%s", g.currentDay, agent.Idx, agent.Role.Name, g.getCurrentGameStatus().StatusMap[*agent].String(), agent.OriginalName))
 		}
 	}
 	if g.setting.TalkOnFirstDay && g.currentDay == 0 {
