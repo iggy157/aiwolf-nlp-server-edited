@@ -23,6 +23,7 @@ import (
 
 type TTSBroadcaster struct {
 	config          model.Config
+	baseURL         *url.URL
 	client          *http.Client
 	streamingMu     sync.Mutex
 	isStreaming     bool
@@ -43,8 +44,17 @@ const (
 )
 
 func NewTTSBroadcaster(config model.Config) *TTSBroadcaster {
+	baseURL, err := url.Parse(config.TTSBroadcaster.Host)
+	if err != nil {
+		slog.Error("音声合成サーバのURLの解析に失敗しました", "error", err)
+		baseURL = &url.URL{
+			Scheme: "http",
+			Host:   "localhost:50021",
+		}
+	}
 	return &TTSBroadcaster{
 		config:          config,
+		baseURL:         baseURL,
 		lastSegmentTime: time.Now(),
 		client: &http.Client{
 			Timeout: 5 * time.Second,
@@ -448,10 +458,13 @@ func (t *TTSBroadcaster) fetchAudioQueryAsync(ctx context.Context, text string, 
 	go func() {
 		defer close(resultCh)
 
-		queryURL := fmt.Sprintf("%s/audio_query?speaker=%d&text=%s",
-			t.config.TTSBroadcaster.Host,
-			speaker,
-			url.QueryEscape(text))
+		baseURL := *t.baseURL
+		baseURL.Path = "/audio_query"
+		params := url.Values{}
+		params.Add("speaker", fmt.Sprintf("%d", speaker))
+		params.Add("text", text)
+		baseURL.RawQuery = params.Encode()
+		queryURL := baseURL.String()
 
 		req, err := http.NewRequestWithContext(ctx, "POST", queryURL, nil)
 		if err != nil {
@@ -494,9 +507,14 @@ func (t *TTSBroadcaster) processTextToSpeech(ctx context.Context, audioQueryCh <
 		queryParams = params
 	}
 
-	synthURL := fmt.Sprintf("%s/synthesis?speaker=%d",
-		t.config.TTSBroadcaster.Host, speaker)
-	req, err := http.NewRequestWithContext(ctx, "POST", synthURL, bytes.NewBuffer(queryParams))
+	baseURL := *t.baseURL
+	baseURL.Path = "/synthesis"
+	params := url.Values{}
+	params.Add("speaker", fmt.Sprintf("%d", speaker))
+	baseURL.RawQuery = params.Encode()
+	queryURL := baseURL.String()
+
+	req, err := http.NewRequestWithContext(ctx, "POST", queryURL, bytes.NewBuffer(queryParams))
 	if err != nil {
 		return err
 	}
