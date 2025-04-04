@@ -183,11 +183,11 @@ realtime_broadcaster:
   enable: true # リアルタイムログの出力を有効にするか
 
 tts_broadcaster:
-  enable: true
-  target_duration: 2s
-  min_buffer_segments: 3
-  segment_dir: "./segment"
-  host: "http://localhost:50021"
+  enable: false # TTSのHLS配信を有効にするか (非推奨)
+  target_duration: 2s # 1セグメントの長さ
+  min_buffer_segments: 3 # バッファのセグメント数
+  segment_dir: "./segment" # セグメントの出力ディレクトリ
+  host: "http://localhost:50021" # 音声合成サーバのホスト
 
 matching:
   self_match: true # 同じチーム名のエージェント同士のみをマッチングさせるか
