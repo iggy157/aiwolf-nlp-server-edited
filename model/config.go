@@ -61,9 +61,11 @@ type Config struct {
 		Enable bool `yaml:"enable"`
 	} `yaml:"realtime_broadcaster"`
 	TTSBroadcaster struct {
-		Enable      bool   `yaml:"enable"`
-		SegmentDir  string `yaml:"segment_dir"`
-		MaxSegments int    `yaml:"max_segments"`
+		Enable            bool          `yaml:"enable"`
+		TargetDuration    time.Duration `yaml:"target_duration"`
+		MinBufferSegments int           `yaml:"min_buffer_segments"`
+		SegmentDir        string        `yaml:"segment_dir"`
+		Host              string        `yaml:"host"`
 	} `yaml:"tts_broadcaster"`
 	Matching struct {
 		SelfMatch    bool   `yaml:"self_match"`

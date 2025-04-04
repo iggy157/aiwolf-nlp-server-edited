@@ -185,8 +185,10 @@ realtime_broadcaster:
 
 tts_broadcaster:
   enable: true
+  target_duration: 2s
+  min_buffer_segments: 3
   segment_dir: "./../segment"
-  max_segments: 256
+  host: "http://localhost:50021"
 
 matching:
   self_match: false # 同じチーム名のエージェント同士のみをマッチングさせるか
