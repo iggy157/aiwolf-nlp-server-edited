@@ -32,6 +32,7 @@ type Server struct {
 	jsonLogger          *service.JSONLogger
 	gameLogger          *service.GameLogger
 	realtimeBroadcaster *service.RealtimeBroadcaster
+	ttsBroadcaster      *service.TTSBroadcaster
 }
 
 func NewServer(config model.Config) *Server {
@@ -62,6 +63,9 @@ func NewServer(config model.Config) *Server {
 	if config.RealtimeBroadcaster.Enable {
 		server.realtimeBroadcaster = service.NewRealtimeBroadcaster(config)
 	}
+	if config.TTSBroadcaster.Enable {
+		server.ttsBroadcaster = service.NewTTSBroadcaster(config)
+	}
 	if config.Matching.IsOptimize {
 		matchOptimizer, err := NewMatchOptimizer(config)
 		if err != nil {
@@ -89,6 +93,19 @@ func (s *Server) Run() {
 		router.GET("/realtime", func(c *gin.Context) {
 			s.realtimeBroadcaster.HandleConnections(c.Writer, c.Request)
 		})
+	}
+
+	if s.config.TTSBroadcaster.Enable {
+		router.GET("/tts/playlist.m3u8", func(c *gin.Context) {
+			s.ttsBroadcaster.HandlePlaylist(c)
+		})
+		router.POST("/tts/text", func(c *gin.Context) {
+			s.ttsBroadcaster.HandleText(c)
+		})
+		router.GET("/tts/segment/*segment", func(c *gin.Context) {
+			s.ttsBroadcaster.HandleSegment(c)
+		})
+		go s.ttsBroadcaster.Start()
 	}
 
 	go func() {

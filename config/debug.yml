@@ -183,6 +183,13 @@ game_logger:
 realtime_broadcaster:
   enable: true # リアルタイムログの出力を有効にするか
 
+tts_broadcaster:
+  enable: false # TTSのHLS配信を有効にするか (非推奨)
+  target_duration: 2s # 1セグメントの長さ
+  min_buffer_segments: 3 # バッファのセグメント数
+  segment_dir: "./segment" # セグメントの出力ディレクトリ
+  host: "http://localhost:50021" # 音声合成サーバのホスト
+
 matching:
   self_match: false # 同じチーム名のエージェント同士のみをマッチングさせるか
   is_optimize: false # 最適化した組み合わせマッチングを有効にするか (self_match が false の場合に限る)
