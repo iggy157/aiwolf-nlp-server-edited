@@ -182,6 +182,11 @@ game_logger:
 realtime_broadcaster:
   enable: true # リアルタイムログの出力を有効にするか
 
+tts_broadcaster:
+  enable: true
+  segment_dir: "./segment"
+  max_segments: 256
+
 matching:
   self_match: true # 同じチーム名のエージェント同士のみをマッチングさせるか
   is_optimize: false # 最適化した組み合わせマッチングを有効にするか (self_match が false の場合に限る)

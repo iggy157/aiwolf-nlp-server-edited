@@ -60,6 +60,11 @@ type Config struct {
 	RealtimeBroadcaster struct {
 		Enable bool `yaml:"enable"`
 	} `yaml:"realtime_broadcaster"`
+	TTSBroadcaster struct {
+		Enable      bool   `yaml:"enable"`
+		SegmentDir  string `yaml:"segment_dir"`
+		MaxSegments int    `yaml:"max_segments"`
+	} `yaml:"tts_broadcaster"`
 	Matching struct {
 		SelfMatch    bool   `yaml:"self_match"`
 		IsOptimize   bool   `yaml:"is_optimize"`
