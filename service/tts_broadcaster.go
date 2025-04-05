@@ -12,6 +12,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"sync"
 	"time"
@@ -22,21 +23,21 @@ import (
 )
 
 type TTSBroadcaster struct {
-	config          model.Config
-	baseURL         *url.URL
-	client          *http.Client
-	streamingMu     sync.Mutex
-	isStreaming     bool
-	lastSegmentTime time.Time
-	segmentsMu      sync.RWMutex
-	segmentCounter  int
-	playlistMu      sync.Mutex
-	playlist        *m3u8.MediaPlaylist
+	config    model.Config
+	baseURL   *url.URL
+	client    *http.Client
+	streamsMu sync.RWMutex
+	streams   map[string]*Stream
 }
 
-type Request struct {
-	Text    string `json:"text"`
-	Speaker int    `json:"speaker"`
+type Stream struct {
+	isStreaming     bool
+	lastSegmentTime time.Time
+	segmentCounter  int
+	playlist        *m3u8.MediaPlaylist
+	streamingMu     sync.Mutex
+	segmentsMu      sync.RWMutex
+	playlistMu      sync.Mutex
 }
 
 const (
@@ -53,12 +54,12 @@ func NewTTSBroadcaster(config model.Config) *TTSBroadcaster {
 		}
 	}
 	return &TTSBroadcaster{
-		config:          config,
-		baseURL:         baseURL,
-		lastSegmentTime: time.Now(),
+		config:  config,
+		baseURL: baseURL,
 		client: &http.Client{
 			Timeout: 5 * time.Second,
 		},
+		streams: make(map[string]*Stream),
 	}
 }
 
@@ -68,38 +69,74 @@ func (t *TTSBroadcaster) Start() {
 	}
 	t.cleanupSegments()
 
-	var err error
-	t.playlist, err = m3u8.NewMediaPlaylist(math.MaxInt16, math.MaxInt16)
-	if err != nil {
-		slog.Error("プレイリストの作成に失敗しました", "error", err)
-		return
-	}
-	t.playlist.TargetDuration = float64(t.config.TTSBroadcaster.TargetDuration.Seconds())
-	t.playlist.SetVersion(3)
-	t.playlist.Closed = false
-
 	if err := t.buildSilenceTemplate(); err != nil {
 		slog.Error("無音テンプレートの作成に失敗しました", "error", err)
 		return
 	}
 
-	for range t.config.TTSBroadcaster.MinBufferSegments {
-		t.addSilenceSegment()
+	go t.streamManager()
+}
+
+func (t *TTSBroadcaster) getStream(id string) *Stream {
+	t.streamsMu.RLock()
+	stream, exists := t.streams[id]
+	t.streamsMu.RUnlock()
+
+	if exists {
+		return stream
 	}
-	go t.stream()
+
+	t.streamsMu.Lock()
+	defer t.streamsMu.Unlock()
+
+	if stream, exists = t.streams[id]; exists {
+		return stream
+	}
+
+	stream = &Stream{
+		isStreaming:     false,
+		lastSegmentTime: time.Now(),
+		segmentCounter:  0,
+	}
+
+	streamDir := filepath.Join(t.config.TTSBroadcaster.SegmentDir, id)
+	if _, err := os.Stat(streamDir); os.IsNotExist(err) {
+		os.MkdirAll(streamDir, 0755)
+	}
+
+	playlist, err := m3u8.NewMediaPlaylist(math.MaxInt16, math.MaxInt16)
+	if err != nil {
+		slog.Error("プレイリストの作成に失敗しました", "error", err, "id", id)
+		return nil
+	}
+
+	playlist.TargetDuration = float64(t.config.TTSBroadcaster.TargetDuration.Seconds())
+	playlist.SetVersion(3)
+	playlist.Closed = false
+	stream.playlist = playlist
+
+	for range t.config.TTSBroadcaster.MinBufferSegments {
+		t.addSilenceSegment(id, stream)
+	}
+
+	t.streams[id] = stream
+	return stream
 }
 
 func (t *TTSBroadcaster) cleanupSegments() {
-	files, err := os.ReadDir(t.config.TTSBroadcaster.SegmentDir)
-	if err != nil {
-		slog.Error("セグメントディレクトリの読み取りに失敗しました", "error", err)
+	if err := os.RemoveAll(t.config.TTSBroadcaster.SegmentDir); err != nil {
+		slog.Error("セグメントディレクトリの削除に失敗しました", "error", err)
 		return
 	}
-	for _, file := range files {
-		if strings.HasSuffix(file.Name(), ".ts") || strings.HasSuffix(file.Name(), ".m3u8") {
-			os.Remove(filepath.Join(t.config.TTSBroadcaster.SegmentDir, file.Name()))
-		}
+	slog.Info("セグメントディレクトリのクリーンアップが完了しました")
+	if err := os.MkdirAll(t.config.TTSBroadcaster.SegmentDir, 0755); err != nil {
+		slog.Error("セグメントディレクトリの作成に失敗しました", "error", err)
+		return
 	}
+}
+
+func (t *TTSBroadcaster) getSegmentDir(id string) string {
+	return filepath.Join(t.config.TTSBroadcaster.SegmentDir, id)
 }
 
 func (t *TTSBroadcaster) buildSilenceTemplate() error {
@@ -123,32 +160,32 @@ func (t *TTSBroadcaster) buildSilenceTemplate() error {
 	return nil
 }
 
-func (t *TTSBroadcaster) addSilenceSegment() {
-	t.segmentsMu.Lock()
-	silenceSegmentName := fmt.Sprintf("segment_%d.ts", t.segmentCounter)
-	t.segmentCounter++
-	t.segmentsMu.Unlock()
+func (t *TTSBroadcaster) addSilenceSegment(id string, stream *Stream) {
+	stream.segmentsMu.Lock()
+	silenceSegmentName := fmt.Sprintf("segment_%d.ts", stream.segmentCounter)
+	stream.segmentCounter++
+	stream.segmentsMu.Unlock()
 
+	streamDir := t.getSegmentDir(id)
 	silenceTemplatePath := filepath.Join(t.config.TTSBroadcaster.SegmentDir, SILENCE_TEMPLATE_FILE)
-	silenceSegmentPath := filepath.Join(t.config.TTSBroadcaster.SegmentDir, silenceSegmentName)
+	silenceSegmentPath := filepath.Join(streamDir, silenceSegmentName)
 
 	if err := t.copyFile(silenceTemplatePath, silenceSegmentPath); err != nil {
-		slog.Error("無音セグメントのコピーに失敗しました", "error", err)
+		slog.Error("無音セグメントのコピーに失敗しました", "error", err, "id", id)
 		return
 	}
 
-	t.playlistMu.Lock()
-	defer t.playlistMu.Unlock()
+	stream.playlistMu.Lock()
+	defer stream.playlistMu.Unlock()
 
-	segmentURI := fmt.Sprintf("segment/%s", silenceSegmentName)
-	if err := t.playlist.AppendSegment(&m3u8.MediaSegment{
-		URI:      segmentURI,
+	if err := stream.playlist.AppendSegment(&m3u8.MediaSegment{
+		URI:      silenceSegmentName,
 		Duration: t.config.TTSBroadcaster.TargetDuration.Seconds(),
 	}); err != nil {
-		slog.Error("プレイリストへのセグメント追加に失敗しました", "error", err)
+		slog.Error("プレイリストへのセグメント追加に失敗しました", "error", err, "id", id)
 	}
 
-	t.writePlaylist()
+	t.writePlaylist(id, stream)
 }
 
 func (t *TTSBroadcaster) copyFile(src, dst string) error {
@@ -157,6 +194,10 @@ func (t *TTSBroadcaster) copyFile(src, dst string) error {
 		return err
 	}
 	defer sourceFile.Close()
+
+	if err := os.MkdirAll(filepath.Dir(dst), 0755); err != nil {
+		return err
+	}
 
 	destFile, err := os.Create(dst)
 	if err != nil {
@@ -168,15 +209,23 @@ func (t *TTSBroadcaster) copyFile(src, dst string) error {
 	return err
 }
 
-func (t *TTSBroadcaster) writePlaylist() {
-	playlistPath := filepath.Join(t.config.TTSBroadcaster.SegmentDir, "playlist.m3u8")
-	if err := os.WriteFile(playlistPath, t.playlist.Encode().Bytes(), 0644); err != nil {
-		slog.Error("プレイリストの書き込みに失敗しました", "error", err)
+func (t *TTSBroadcaster) writePlaylist(id string, stream *Stream) {
+	streamDir := t.getSegmentDir(id)
+	playlistPath := filepath.Join(streamDir, "playlist.m3u8")
+
+	if err := os.MkdirAll(streamDir, 0755); err != nil {
+		slog.Error("プレイリストディレクトリの作成に失敗しました", "error", err, "id", id)
+		return
+	}
+
+	if err := os.WriteFile(playlistPath, stream.playlist.Encode().Bytes(), 0644); err != nil {
+		slog.Error("プレイリストの書き込みに失敗しました", "error", err, "id", id)
 	}
 }
 
-func (t *TTSBroadcaster) convertWavToSegment(data []byte, baseName string) ([]string, error) {
-	tempWavFile, err := os.CreateTemp(t.config.TTSBroadcaster.SegmentDir, "temp-*.wav")
+func (t *TTSBroadcaster) convertWavToSegment(data []byte, id string, baseName string) ([]string, error) {
+	streamDir := t.getSegmentDir(id)
+	tempWavFile, err := os.CreateTemp(streamDir, "temp-*.wav")
 	if err != nil {
 		return nil, err
 	}
@@ -195,7 +244,7 @@ func (t *TTSBroadcaster) convertWavToSegment(data []byte, baseName string) ([]st
 	}
 
 	if duration <= t.config.TTSBroadcaster.TargetDuration.Seconds() {
-		outputPath := filepath.Join(t.config.TTSBroadcaster.SegmentDir, baseName)
+		outputPath := filepath.Join(streamDir, baseName)
 		cmd := exec.Command(
 			"ffmpeg",
 			"-i", tempWavPath,
@@ -213,8 +262,7 @@ func (t *TTSBroadcaster) convertWavToSegment(data []byte, baseName string) ([]st
 		}
 		return []string{baseName}, nil
 	}
-
-	return t.splitWavIntoSegments(tempWavPath, baseName, duration)
+	return t.splitWavIntoSegments(tempWavPath, id, baseName, duration)
 }
 
 func (t *TTSBroadcaster) getWavDuration(wavPath string) (float64, error) {
@@ -229,25 +277,23 @@ func (t *TTSBroadcaster) getWavDuration(wavPath string) (float64, error) {
 	if err != nil {
 		return 0, err
 	}
-
 	var duration float64
 	fmt.Sscanf(string(output), "%f", &duration)
 	return duration, nil
 }
 
-func (t *TTSBroadcaster) splitWavIntoSegments(wavPath, baseName string, totalDuration float64) ([]string, error) {
+func (t *TTSBroadcaster) splitWavIntoSegments(wavPath string, id string, baseName string, totalDuration float64) ([]string, error) {
+	streamDir := t.getSegmentDir(id)
 	baseNameWithoutExt := strings.TrimSuffix(baseName, filepath.Ext(baseName))
 	segmentNames := []string{}
 
-	// 一時的なディレクトリを作成
-	tempDir, err := os.MkdirTemp("", "tts-split")
+	tempDir, err := os.MkdirTemp(t.config.TTSBroadcaster.TempDir, "split-")
 	if err != nil {
 		return nil, err
 	}
 	defer os.RemoveAll(tempDir)
 
-	// まず一時的なAAC形式に変換
-	tempAacPath := filepath.Join(tempDir, "temp.aac")
+	aacPath := filepath.Join(tempDir, "input.aac")
 	convertCmd := exec.Command(
 		"ffmpeg",
 		"-i", wavPath,
@@ -255,25 +301,20 @@ func (t *TTSBroadcaster) splitWavIntoSegments(wavPath, baseName string, totalDur
 		"-b:a", "64k",
 		"-ar", "44100",
 		"-ac", "2",
-		tempAacPath,
+		aacPath,
 	)
-
 	if _, err := convertCmd.CombinedOutput(); err != nil {
-		return nil, fmt.Errorf("failed to convert to aac: %w", err)
+		return nil, err
 	}
 
-	// セグメントの数を計算
 	segmentCount := int(math.Ceil(totalDuration / t.config.TTSBroadcaster.TargetDuration.Seconds()))
 	segmentDuration := t.config.TTSBroadcaster.TargetDuration.Seconds()
 
-	// 各セグメントを個別に作成
-	for i := 0; i < segmentCount; i++ {
+	for i := range segmentCount {
 		segmentName := fmt.Sprintf("%s_part%03d.ts", baseNameWithoutExt, i)
-		segmentPath := filepath.Join(t.config.TTSBroadcaster.SegmentDir, segmentName)
-
+		segmentPath := filepath.Join(streamDir, segmentName)
 		startTime := float64(i) * segmentDuration
 
-		// 最後のセグメントは残りの時間すべて
 		duration := segmentDuration
 		if i == segmentCount-1 {
 			duration = totalDuration - startTime
@@ -281,7 +322,7 @@ func (t *TTSBroadcaster) splitWavIntoSegments(wavPath, baseName string, totalDur
 
 		segmentCmd := exec.Command(
 			"ffmpeg",
-			"-i", tempAacPath,
+			"-i", aacPath,
 			"-ss", fmt.Sprintf("%f", startTime),
 			"-t", fmt.Sprintf("%f", duration),
 			"-c:a", "copy",
@@ -290,53 +331,66 @@ func (t *TTSBroadcaster) splitWavIntoSegments(wavPath, baseName string, totalDur
 			"-f", "mpegts",
 			segmentPath,
 		)
-
 		if _, err := segmentCmd.CombinedOutput(); err != nil {
-			return nil, fmt.Errorf("failed to create segment %d: %w", i, err)
+			return nil, err
 		}
-
 		segmentNames = append(segmentNames, segmentName)
 	}
-
 	return segmentNames, nil
 }
-
-func (t *TTSBroadcaster) stream() {
+func (t *TTSBroadcaster) streamManager() {
 	ticker := time.NewTicker(500 * time.Millisecond)
 	defer ticker.Stop()
 
 	for range ticker.C {
-		t.streamingMu.Lock()
-		isStreaming := t.isStreaming
-		lastTime := t.lastSegmentTime
-		t.streamingMu.Unlock()
+		t.streamsMu.RLock()
+		streamIDs := make([]string, 0, len(t.streams))
+		for id := range t.streams {
+			streamIDs = append(streamIDs, id)
+		}
+		t.streamsMu.RUnlock()
 
-		if !isStreaming {
-			elapsed := time.Since(lastTime).Seconds()
+		for _, id := range streamIDs {
+			t.streamsMu.RLock()
+			stream, exists := t.streams[id]
+			t.streamsMu.RUnlock()
 
-			t.playlistMu.Lock()
-			segmentCount := t.playlist.Count()
-			t.playlistMu.Unlock()
+			if !exists {
+				continue
+			}
 
-			if elapsed >= t.config.TTSBroadcaster.TargetDuration.Seconds()*0.8 || segmentCount < uint(t.config.TTSBroadcaster.MinBufferSegments) {
-				t.addSilenceSegment()
-				t.streamingMu.Lock()
-				t.lastSegmentTime = time.Now()
-				t.streamingMu.Unlock()
+			stream.streamingMu.Lock()
+			isStreaming := stream.isStreaming
+			lastTime := stream.lastSegmentTime
+			stream.streamingMu.Unlock()
+
+			if !isStreaming {
+				elapsed := time.Since(lastTime).Seconds()
+				stream.playlistMu.Lock()
+				segmentCount := stream.playlist.Count()
+				stream.playlistMu.Unlock()
+
+				if elapsed >= t.config.TTSBroadcaster.TargetDuration.Seconds()*0.8 || segmentCount < uint(t.config.TTSBroadcaster.MinBufferSegments) {
+					t.addSilenceSegment(id, stream)
+					stream.streamingMu.Lock()
+					stream.lastSegmentTime = time.Now()
+					stream.streamingMu.Unlock()
+				}
 			}
 		}
+		// t.cleanupOldStreams()
 	}
 }
 
-func (t *TTSBroadcaster) ensureMinimumBuffer() {
-	t.playlistMu.Lock()
-	currentCount := t.playlist.Count()
-	t.playlistMu.Unlock()
+func (t *TTSBroadcaster) ensureMinimumBuffer(id string, stream *Stream) {
+	stream.playlistMu.Lock()
+	currentCount := stream.playlist.Count()
+	stream.playlistMu.Unlock()
 
 	neededSegments := t.config.TTSBroadcaster.MinBufferSegments - int(currentCount)
 	if neededSegments > 0 {
 		for range neededSegments {
-			t.addSilenceSegment()
+			t.addSilenceSegment(id, stream)
 		}
 	}
 }
@@ -364,12 +418,24 @@ func (t *TTSBroadcaster) getDuration(segmentPath string) float64 {
 	if duration <= 0 {
 		return t.config.TTSBroadcaster.TargetDuration.Seconds()
 	}
-
 	return duration
 }
 
 func (t *TTSBroadcaster) HandlePlaylist(c *gin.Context) {
-	playlistPath := filepath.Join(t.config.TTSBroadcaster.SegmentDir, "playlist.m3u8")
+	id := c.Param("id")
+	if id == "" || strings.ContainsAny(id, "/\\") {
+		c.Status(http.StatusBadRequest)
+		return
+	}
+
+	if !isValidID(id) {
+		c.Status(http.StatusBadRequest)
+		return
+	}
+
+	streamDir := t.getSegmentDir(id)
+	playlistPath := filepath.Join(streamDir, "playlist.m3u8")
+
 	if _, err := os.Stat(playlistPath); os.IsNotExist(err) {
 		c.Status(http.StatusNotFound)
 		return
@@ -384,27 +450,35 @@ func (t *TTSBroadcaster) HandlePlaylist(c *gin.Context) {
 }
 
 func (t *TTSBroadcaster) HandleSegment(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" || strings.ContainsAny(id, "/\\") {
+		c.Status(http.StatusBadRequest)
+		return
+	}
+
+	if !isValidID(id) {
+		c.Status(http.StatusBadRequest)
+		return
+	}
+
 	segment := c.Param("segment")
-	if segment == "" || segment == "/" {
-		c.Status(http.StatusNotFound)
-		return
-	}
-
 	segmentName := strings.TrimPrefix(segment, "/")
-	if !strings.HasSuffix(segmentName, ".ts") || strings.Contains(segmentName, "/") || strings.Contains(segmentName, "\\") {
+
+	if !strings.HasSuffix(segmentName, ".ts") || strings.ContainsAny(segmentName, "/\\") {
 		c.Status(http.StatusNotFound)
 		return
 	}
 
-	segmentPath := filepath.Join(t.config.TTSBroadcaster.SegmentDir, segmentName)
-	cleanPath := filepath.Clean(segmentPath)
-	if !strings.HasPrefix(cleanPath, filepath.Clean(t.config.TTSBroadcaster.SegmentDir)) {
-		c.Status(http.StatusNotFound)
+	if !isValidSegmentName(segmentName) {
+		c.Status(http.StatusBadRequest)
 		return
 	}
 
-	if _, err := os.Stat(cleanPath); os.IsNotExist(err) {
-		slog.Error("セグメントファイルが見つかりません", "path", cleanPath)
+	streamDir := t.getSegmentDir(id)
+	segmentPath := filepath.Join(streamDir, segmentName)
+
+	if _, err := os.Stat(segmentPath); os.IsNotExist(err) {
+		slog.Error("セグメントファイルが見つかりません", "path", segmentPath, "id", id)
 		c.Status(http.StatusNotFound)
 		return
 	}
@@ -417,44 +491,47 @@ func (t *TTSBroadcaster) HandleSegment(c *gin.Context) {
 	c.File(segmentPath)
 }
 
-func (t *TTSBroadcaster) HandleText(c *gin.Context) {
-	var request Request
-	if err := c.ShouldBindJSON(&request); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+func isValidID(id string) bool {
+	match, _ := regexp.MatchString("^[a-zA-Z0-9_-]+$", id)
+	return match
+}
+
+func isValidSegmentName(name string) bool {
+	match, _ := regexp.MatchString("^[a-zA-Z0-9_-]+\\.ts$", name)
+	return match
+}
+
+func (t *TTSBroadcaster) BroadCastText(id string, text string, speaker int) {
+	stream := t.getStream(id)
+	if stream == nil {
 		return
 	}
 
-	if request.Text == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Text is required"})
-		return
-	}
-
-	t.streamingMu.Lock()
-	t.isStreaming = true
-	t.streamingMu.Unlock()
+	stream.streamingMu.Lock()
+	stream.isStreaming = true
+	stream.streamingMu.Unlock()
 
 	go func() {
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cancel()
 
-		audioQueryCh := t.fetchAudioQueryAsync(ctx, request.Text, request.Speaker)
-
-		if err := t.processTextToSpeech(ctx, audioQueryCh, request.Speaker); err != nil {
-			slog.Error("音声合成に失敗しました", "error", err)
+		audioQueryCh := t.fetchAudioQueryAsync(ctx, text, speaker)
+		if err := t.processTextToSpeech(ctx, audioQueryCh, id, stream, speaker); err != nil {
+			slog.Error("音声合成に失敗しました", "error", err, "id", id)
 		}
 
-		t.streamingMu.Lock()
-		t.isStreaming = false
-		t.lastSegmentTime = time.Now()
-		t.streamingMu.Unlock()
+		stream.streamingMu.Lock()
+		stream.isStreaming = false
+		stream.lastSegmentTime = time.Now()
+		stream.streamingMu.Unlock()
 
-		t.ensureMinimumBuffer()
+		t.ensureMinimumBuffer(id, stream)
 	}()
-	c.JSON(http.StatusOK, gin.H{"status": "success"})
 }
 
 func (t *TTSBroadcaster) fetchAudioQueryAsync(ctx context.Context, text string, speaker int) <-chan []byte {
 	resultCh := make(chan []byte, 1)
+
 	go func() {
 		defer close(resultCh)
 
@@ -495,8 +572,9 @@ func (t *TTSBroadcaster) fetchAudioQueryAsync(ctx context.Context, text string, 
 	return resultCh
 }
 
-func (t *TTSBroadcaster) processTextToSpeech(ctx context.Context, audioQueryCh <-chan []byte, speaker int) error {
+func (t *TTSBroadcaster) processTextToSpeech(ctx context.Context, audioQueryCh <-chan []byte, id string, stream *Stream, speaker int) error {
 	var queryParams []byte
+
 	select {
 	case <-ctx.Done():
 		return ctx.Err()
@@ -518,8 +596,8 @@ func (t *TTSBroadcaster) processTextToSpeech(ctx context.Context, audioQueryCh <
 	if err != nil {
 		return err
 	}
-	req.Header.Set("Content-Type", "application/json")
 
+	req.Header.Set("Content-Type", "application/json")
 	resp, err := t.client.Do(req)
 	if err != nil {
 		return err
@@ -535,39 +613,48 @@ func (t *TTSBroadcaster) processTextToSpeech(ctx context.Context, audioQueryCh <
 		return err
 	}
 
-	t.segmentsMu.Lock()
-	baseSegmentName := fmt.Sprintf("segment_%d.ts", t.segmentCounter)
-	t.segmentCounter++
-	t.segmentsMu.Unlock()
+	stream.segmentsMu.Lock()
+	baseSegmentName := fmt.Sprintf("segment_%d.ts", stream.segmentCounter)
+	stream.segmentCounter++
+	stream.segmentsMu.Unlock()
 
-	segmentNames, err := t.convertWavToSegment(wavData, baseSegmentName)
+	segmentNames, err := t.convertWavToSegment(wavData, id, baseSegmentName)
 	if err != nil {
 		return fmt.Errorf("音声ファイルの変換に失敗しました: %w", err)
 	}
 
-	t.addSegmentsToPlaylist(segmentNames)
+	t.addSegmentsToPlaylist(id, stream, segmentNames)
 	return nil
 }
 
-func (t *TTSBroadcaster) addSegmentsToPlaylist(segmentNames []string) {
+func (t *TTSBroadcaster) addSegmentsToPlaylist(id string, stream *Stream, segmentNames []string) {
 	if len(segmentNames) == 0 {
 		return
 	}
 
-	t.playlistMu.Lock()
-	defer t.playlistMu.Unlock()
+	streamDir := t.getSegmentDir(id)
+	stream.playlistMu.Lock()
+	defer stream.playlistMu.Unlock()
 
 	for _, segmentName := range segmentNames {
-		segmentURI := fmt.Sprintf("segment/%s", segmentName)
-		duration := t.getDuration(filepath.Join(t.config.TTSBroadcaster.SegmentDir, segmentName))
+		duration := t.getDuration(filepath.Join(streamDir, segmentName))
 
-		if err := t.playlist.AppendSegment(&m3u8.MediaSegment{
-			URI:      segmentURI,
+		if err := stream.playlist.AppendSegment(&m3u8.MediaSegment{
+			URI:      segmentName,
 			Duration: duration,
 		}); err != nil {
-			slog.Error("プレイリストへのセグメント追加に失敗しました", "error", err)
+			slog.Error("プレイリストへのセグメント追加に失敗しました", "error", err, "id", id)
 		}
 	}
 
-	t.writePlaylist()
+	t.writePlaylist(id, stream)
+}
+
+func (t *TTSBroadcaster) CleanupStream(id string) {
+	t.streamsMu.Lock()
+	delete(t.streams, id)
+	t.streamsMu.Unlock()
+
+	streamDir := t.getSegmentDir(id)
+	os.RemoveAll(streamDir)
 }

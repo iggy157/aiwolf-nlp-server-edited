@@ -96,13 +96,10 @@ func (s *Server) Run() {
 	}
 
 	if s.config.TTSBroadcaster.Enable {
-		router.GET("/tts/playlist.m3u8", func(c *gin.Context) {
+		router.GET("/tts/:id/playlist.m3u8", func(c *gin.Context) {
 			s.ttsBroadcaster.HandlePlaylist(c)
 		})
-		router.POST("/tts/text", func(c *gin.Context) {
-			s.ttsBroadcaster.HandleText(c)
-		})
-		router.GET("/tts/segment/*segment", func(c *gin.Context) {
+		router.GET("/tts/:id/:segment", func(c *gin.Context) {
 			s.ttsBroadcaster.HandleSegment(c)
 		})
 		go s.ttsBroadcaster.Start()
@@ -213,6 +210,9 @@ func (s *Server) handleConnections(w http.ResponseWriter, r *http.Request) {
 	}
 	if s.realtimeBroadcaster != nil {
 		game.RealtimeBroadcaster = s.realtimeBroadcaster
+	}
+	if s.ttsBroadcaster != nil {
+		game.TTSBroadcaster = s.ttsBroadcaster
 	}
 	s.games = append(s.games, game)
 	s.mu.Unlock()

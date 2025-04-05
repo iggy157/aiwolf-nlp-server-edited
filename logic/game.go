@@ -24,6 +24,7 @@ type Game struct {
 	JsonLogger                   *service.JSONLogger
 	GameLogger                   *service.GameLogger
 	RealtimeBroadcaster          *service.RealtimeBroadcaster
+	TTSBroadcaster               *service.TTSBroadcaster
 	realtimeBroadcasterPacketIdx int
 }
 

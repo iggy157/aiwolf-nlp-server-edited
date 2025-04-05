@@ -65,6 +65,7 @@ type Config struct {
 		TargetDuration    time.Duration `yaml:"target_duration"`
 		MinBufferSegments int           `yaml:"min_buffer_segments"`
 		SegmentDir        string        `yaml:"segment_dir"`
+		TempDir           string        `yaml:"temp_dir"`
 		Host              string        `yaml:"host"`
 	} `yaml:"tts_broadcaster"`
 	Matching struct {
