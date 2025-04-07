@@ -28,6 +28,6 @@ jobs:
             dist/aiwolf-nlp-server-darwin-amd64
             dist/aiwolf-nlp-server-darwin-arm64
             config/default.yml
-            config/.env.example
+            config/example.env
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
