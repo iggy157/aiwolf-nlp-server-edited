@@ -187,7 +187,7 @@ tts_broadcaster:
   enable: false # TTSのHLS配信を有効にするか (非推奨)
   target_duration: 2s # 1セグメントの長さ
   min_buffer_segments: 3 # バッファのセグメント数
-  segment_dir: "./cache/segment" # セグメントの出力ディレクトリ
+  segment_dir: "./../cache/segment" # セグメントの出力ディレクトリ
   temp_dir: # 一時ファイルの出力ディレクトリ
   host: "http://localhost:50021" # 音声合成サーバのホスト
 
