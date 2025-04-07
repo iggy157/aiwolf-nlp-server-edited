@@ -20,7 +20,7 @@ func TestInitializeMatchOptimizer(t *testing.T) {
 	}
 
 	roleCounts := make(map[int]map[model.Role]int)
-	for i := 0; i < mo.TeamCount; i++ {
+	for i := range mo.TeamCount {
 		roleCounts[i] = make(map[model.Role]int)
 	}
 	for _, match := range mo.ScheduledMatches {
@@ -32,7 +32,7 @@ func TestInitializeMatchOptimizer(t *testing.T) {
 	}
 	t.Log(roleCounts)
 
-	for i := 0; i < mo.TeamCount; i++ {
+	for i := range mo.TeamCount {
 		slog.Info("team", "idx", i, "roles", roleCounts[i])
 	}
 }
