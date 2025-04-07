@@ -274,7 +274,7 @@ tts_broadcaster:
   split_args: # 事前変換した音声をセグメントに分割するための引数
     - "-c:a"
     - "copy"
-    - "-mpeg_ts_flags"
+    - "-mpegts_flags"
     - "initial_discontinuity"
     - "-mpegts_copyts"
     - "1"
