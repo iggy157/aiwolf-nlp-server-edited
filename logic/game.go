@@ -148,7 +148,7 @@ func (g *Game) Start() model.Team {
 }
 
 func (g *Game) progressDay() {
-	slog.Info("昼を開始します", "id", g.ID, "day", g.currentDay)
+	slog.Info("昼セクションを開始します", "id", g.ID, "day", g.currentDay)
 	g.isDaytime = true
 	g.requestToEveryone(model.R_DAILY_INITIALIZE)
 	if g.GameLogger != nil {
@@ -160,11 +160,11 @@ func (g *Game) progressDay() {
 		g.doWhisper()
 	}
 	g.doTalk()
-	slog.Info("昼を終了します", "id", g.ID, "day", g.currentDay)
+	slog.Info("昼セクションを終了します", "id", g.ID, "day", g.currentDay)
 }
 
 func (g *Game) progressNight() {
-	slog.Info("夜を開始します", "id", g.ID, "day", g.currentDay)
+	slog.Info("夜セクションを開始します", "id", g.ID, "day", g.currentDay)
 	g.isDaytime = false
 	g.requestToEveryone(model.R_DAILY_FINISH)
 	if g.setting.TalkOnFirstDay && g.currentDay == 0 {
@@ -179,5 +179,5 @@ func (g *Game) progressNight() {
 		g.doGuard()
 		g.doAttack()
 	}
-	slog.Info("夜を終了します", "id", g.ID, "day", g.currentDay)
+	slog.Info("夜セクションを終了します", "id", g.ID, "day", g.currentDay)
 }

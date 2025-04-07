@@ -114,30 +114,45 @@ func (g *Game) conductCommunication(request model.Request) {
 					}
 
 					if mentionIdx != -1 {
-						remainLength := baseLength + remainLengthMap[*agent]
+						remainLength := baseLength
+						if value, exists := remainLengthMap[*agent]; exists {
+							remainLength += value
+						}
 						mentionBefore := text[:mentionIdx]
 						mentionAfter := text[mentionIdx+utf8.RuneCountInString(mention):]
 
 						text = util.TrimLength(mentionBefore, remainLength, *talkSetting.MaxLength.CountInWord)
 						cost := util.CountLength(mentionBefore, *talkSetting.MaxLength.CountInWord) - baseLength
 						if cost > 0 {
-							remainLengthMap[*agent] -= cost
+							if _, exists := remainLengthMap[*agent]; exists {
+								remainLengthMap[*agent] -= cost
+							}
 						}
 
 						text += mention
 
-						remainLength = *talkSetting.MaxLength.MentionLength + remainLengthMap[*agent]
+						remainLength = *talkSetting.MaxLength.MentionLength
+						if value, exists := remainLengthMap[*agent]; exists {
+							remainLength += value
+						}
 						mentionText := util.TrimLength(mentionAfter, remainLength, *talkSetting.MaxLength.CountInWord)
 						mentionCost := util.CountLength(mentionText, *talkSetting.MaxLength.CountInWord) - *talkSetting.MaxLength.MentionLength
 						if mentionCost > 0 {
-							remainLengthMap[*agent] -= mentionCost
+							if _, exists := remainLengthMap[*agent]; exists {
+								remainLengthMap[*agent] -= mentionCost
+							}
 						}
 					} else {
-						remainLength := baseLength + remainLengthMap[*agent]
+						remainLength := baseLength
+						if value, exists := remainLengthMap[*agent]; exists {
+							remainLength += value
+						}
 						text = util.TrimLength(text, remainLength, *talkSetting.MaxLength.CountInWord)
 						cost := util.CountLength(text, *talkSetting.MaxLength.CountInWord) - baseLength
 						if cost > 0 {
-							remainLengthMap[*agent] -= cost
+							if _, exists := remainLengthMap[*agent]; exists {
+								remainLengthMap[*agent] -= cost
+							}
 						}
 					}
 				}

@@ -87,18 +87,18 @@ func Roles(num int) map[Role]int {
 			R_WEREWOLF:  1,
 			R_POSSESSED: 1,
 			R_SEER:      1,
-			R_MEDIUM:    0,
 			R_BODYGUARD: 0,
 			R_VILLAGER:  2,
+			R_MEDIUM:    0,
 		}
 	case 13:
 		return map[Role]int{
 			R_WEREWOLF:  3,
 			R_POSSESSED: 1,
 			R_SEER:      1,
-			R_MEDIUM:    1,
 			R_BODYGUARD: 1,
 			R_VILLAGER:  6,
+			R_MEDIUM:    1,
 		}
 	}
 	return nil
