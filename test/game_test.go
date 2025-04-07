@@ -16,9 +16,11 @@ import (
 const WebSocketExternalHost = "0.0.0.0"
 
 func TestGame(t *testing.T) {
-	err := godotenv.Load("../config/.env")
-	if err != nil {
-		t.Fatalf("Failed to load .env file: %v", err)
+	if _, exists := os.LookupEnv("GITHUB_ACTIONS"); !exists {
+		err := godotenv.Load("../config/.env")
+		if err != nil {
+			t.Fatalf("Failed to load .env file: %v", err)
+		}
 	}
 
 	config, err := model.LoadFromPath("../config/debug.yml")
@@ -71,9 +73,11 @@ func TestGame(t *testing.T) {
 }
 
 func TestManualGame(t *testing.T) {
-	err := godotenv.Load("../config/.env")
-	if err != nil {
-		t.Fatalf("Failed to load .env file: %v", err)
+	if _, exists := os.LookupEnv("GITHUB_ACTIONS"); !exists {
+		err := godotenv.Load("../config/.env")
+		if err != nil {
+			t.Fatalf("Failed to load .env file: %v", err)
+		}
 	}
 
 	config, err := model.LoadFromPath("../config/debug.yml")
