@@ -73,6 +73,7 @@ type Config struct {
 		SegmentDir        string        `yaml:"segment_dir"`
 		TempDir           string        `yaml:"temp_dir"`
 		Host              string        `yaml:"host"`
+		Timeout           time.Duration `yaml:"timeout"`
 		FfmpegPath        string        `yaml:"ffmpeg_path"`
 		FfprobePath       string        `yaml:"ffprobe_path"`
 		SilenceArgs       []string      `yaml:"silence_args"`

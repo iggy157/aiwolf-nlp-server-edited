@@ -57,7 +57,7 @@ func NewTTSBroadcaster(config model.Config) *TTSBroadcaster {
 		config:  config,
 		baseURL: baseURL,
 		client: &http.Client{
-			Timeout: 5 * time.Second,
+			Timeout: config.TTSBroadcaster.Timeout,
 		},
 		streams: make(map[string]*Stream),
 	}
@@ -70,7 +70,6 @@ func (t *TTSBroadcaster) Start() {
 	t.cleanupSegments()
 
 	if err := t.buildSilenceTemplate(); err != nil {
-		slog.Error("無音テンプレートの作成に失敗しました", "error", err)
 		return
 	}
 
@@ -148,9 +147,21 @@ func (t *TTSBroadcaster) buildSilenceTemplate() error {
 		silenceTemplatePath,
 	)
 	cmd := exec.Command(t.config.TTSBroadcaster.FfmpegPath, args...)
-	if _, err := cmd.CombinedOutput(); err != nil {
+
+	slog.Debug("無音セグメントを作成します",
+		"command", t.config.TTSBroadcaster.FfmpegPath,
+		"args", strings.Join(args, " "))
+
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		slog.Error("無音セグメントの作成に失敗しました",
+			"error", err,
+			"output", string(output))
 		return err
 	}
+
+	slog.Info("無音セグメントの作成が完了しました",
+		"output", string(output))
 	return nil
 }
 
@@ -242,12 +253,30 @@ func (t *TTSBroadcaster) convertWavToSegment(data []byte, id string, baseName st
 		args := []string{"-i", tempWavPath}
 		args = append(args, t.config.TTSBroadcaster.ConvertArgs...)
 		args = append(args, outputPath)
+
+		slog.Debug("生成した音声をセグメントに変換します",
+			"command", t.config.TTSBroadcaster.FfmpegPath,
+			"args", strings.Join(args, " "),
+			"id", id,
+			"input", tempWavPath,
+			"output", outputPath)
+
 		cmd := exec.Command(t.config.TTSBroadcaster.FfmpegPath, args...)
-		if _, err := cmd.CombinedOutput(); err != nil {
+		output, err := cmd.CombinedOutput()
+		if err != nil {
+			slog.Error("生成した音声の変換に失敗しました",
+				"error", err,
+				"output", string(output),
+				"id", id)
 			return nil, err
 		}
+
+		slog.Info("生成した音声の変換が完了しました",
+			"id", id,
+			"output", string(output))
 		return []string{baseName}, nil
 	}
+
 	return t.splitWavIntoSegments(tempWavPath, id, baseName, duration)
 }
 
@@ -256,16 +285,31 @@ func (t *TTSBroadcaster) getDuration(path string) (float64, error) {
 		return 0, err
 	}
 	args := append(t.config.TTSBroadcaster.DurationArgs, path)
+
+	slog.Debug("音声の長さを取得します",
+		"command", t.config.TTSBroadcaster.FfprobePath,
+		"args", strings.Join(args, " "),
+		"path", path)
+
 	cmd := exec.Command(
 		t.config.TTSBroadcaster.FfprobePath,
 		args...,
 	)
 	output, err := cmd.Output()
 	if err != nil {
+		slog.Error("音声の長さの取得に失敗しました",
+			"error", err,
+			"path", path)
 		return 0, err
 	}
+
 	var duration float64
 	fmt.Sscanf(string(output), "%f", &duration)
+
+	slog.Info("音声の長さを取得しました",
+		"path", path,
+		"duration", duration,
+		"output", string(output))
 	return duration, nil
 }
 
@@ -273,7 +317,6 @@ func (t *TTSBroadcaster) splitWavIntoSegments(wavPath string, id string, baseNam
 	streamDir := t.getSegmentDir(id)
 	baseNameWithoutExt := strings.TrimSuffix(baseName, filepath.Ext(baseName))
 	segmentNames := []string{}
-
 	tempDir, err := os.MkdirTemp(t.config.TTSBroadcaster.TempDir, "split-")
 	if err != nil {
 		return nil, err
@@ -284,10 +327,27 @@ func (t *TTSBroadcaster) splitWavIntoSegments(wavPath string, id string, baseNam
 	convertArgs := []string{"-i", wavPath}
 	convertArgs = append(convertArgs, t.config.TTSBroadcaster.PreConvertArgs...)
 	convertArgs = append(convertArgs, aacPath)
+
+	slog.Debug("生成した音声の事前変換を開始します",
+		"command", t.config.TTSBroadcaster.FfmpegPath,
+		"args", strings.Join(convertArgs, " "),
+		"id", id,
+		"input", wavPath,
+		"output", aacPath)
+
 	convertCmd := exec.Command(t.config.TTSBroadcaster.FfmpegPath, convertArgs...)
-	if _, err := convertCmd.CombinedOutput(); err != nil {
+	output, err := convertCmd.CombinedOutput()
+	if err != nil {
+		slog.Error("生成した音声の事前変換に失敗しました",
+			"error", err,
+			"output", string(output),
+			"id", id)
 		return nil, err
 	}
+
+	slog.Info("生成した音声の事前変換が完了しました",
+		"id", id,
+		"output", string(output))
 
 	segmentCount := int(math.Ceil(totalDuration / t.config.TTSBroadcaster.TargetDuration.Seconds()))
 	segmentDuration := t.config.TTSBroadcaster.TargetDuration.Seconds()
@@ -296,23 +356,48 @@ func (t *TTSBroadcaster) splitWavIntoSegments(wavPath string, id string, baseNam
 		segmentName := fmt.Sprintf("%s_part%03d.ts", baseNameWithoutExt, i)
 		segmentPath := filepath.Join(streamDir, segmentName)
 		startTime := float64(i) * segmentDuration
-
 		duration := segmentDuration
 		if i == segmentCount-1 {
 			duration = totalDuration - startTime
 		}
-
 		segmentArgs := []string{"-i", aacPath, "-ss", fmt.Sprintf("%f", startTime), "-t", fmt.Sprintf("%f", duration)}
 		segmentArgs = append(segmentArgs, t.config.TTSBroadcaster.SplitArgs...)
 		segmentArgs = append(segmentArgs, segmentPath)
+
+		slog.Debug("生成した音声のセグメント分割を開始します",
+			"command", t.config.TTSBroadcaster.FfmpegPath,
+			"args", strings.Join(segmentArgs, " "),
+			"id", id,
+			"segment", i,
+			"startTime", startTime,
+			"duration", duration,
+			"output", segmentPath)
+
 		segmentCmd := exec.Command(t.config.TTSBroadcaster.FfmpegPath, segmentArgs...)
-		if _, err := segmentCmd.CombinedOutput(); err != nil {
+		output, err := segmentCmd.CombinedOutput()
+		if err != nil {
+			slog.Error("生成した音声のセグメント分割に失敗しました",
+				"error", err,
+				"output", string(output),
+				"id", id,
+				"segment", i)
 			return nil, err
 		}
+
+		slog.Info("生成した音声のセグメント分割が完了しました",
+			"id", id,
+			"segment", i,
+			"output", string(output))
+
 		segmentNames = append(segmentNames, segmentName)
 	}
+
+	slog.Info("すべてのセグメントの分割が完了しました",
+		"id", id,
+		"count", len(segmentNames))
 	return segmentNames, nil
 }
+
 func (t *TTSBroadcaster) streamManager() {
 	ticker := time.NewTicker(500 * time.Millisecond)
 	defer ticker.Stop()
@@ -341,11 +426,8 @@ func (t *TTSBroadcaster) streamManager() {
 
 			if !isStreaming {
 				elapsed := time.Since(lastTime).Seconds()
-				stream.playlistMu.Lock()
-				segmentCount := stream.playlist.Count()
-				stream.playlistMu.Unlock()
 
-				if elapsed >= t.config.TTSBroadcaster.TargetDuration.Seconds()*0.8 || segmentCount < uint(t.config.TTSBroadcaster.MinBufferSegments) {
+				if elapsed >= t.config.TTSBroadcaster.TargetDuration.Seconds() {
 					t.addSilenceSegment(id, stream)
 					stream.streamingMu.Lock()
 					stream.lastSegmentTime = time.Now()
@@ -427,7 +509,6 @@ func (t *TTSBroadcaster) HandleSegment(c *gin.Context) {
 	segmentPath := filepath.Join(streamDir, segmentName)
 
 	if _, err := os.Stat(segmentPath); os.IsNotExist(err) {
-		slog.Error("セグメントファイルが見つかりません", "path", segmentPath, "id", id)
 		c.Status(http.StatusNotFound)
 		return
 	}
@@ -461,7 +542,7 @@ func (t *TTSBroadcaster) BroadCastText(id string, text string, speaker int) {
 	stream.streamingMu.Unlock()
 
 	go func() {
-		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), t.config.TTSBroadcaster.Timeout)
 		defer cancel()
 
 		audioQueryCh := t.fetchAudioQueryAsync(ctx, text, speaker)
@@ -474,7 +555,7 @@ func (t *TTSBroadcaster) BroadCastText(id string, text string, speaker int) {
 		stream.lastSegmentTime = time.Now()
 		stream.streamingMu.Unlock()
 
-		t.ensureMinimumBuffer(id, stream)
+		// t.ensureMinimumBuffer(id, stream)
 	}()
 }
 
@@ -569,7 +650,7 @@ func (t *TTSBroadcaster) processTextToSpeech(ctx context.Context, audioQueryCh <
 
 	segmentNames, err := t.convertWavToSegment(wavData, id, baseSegmentName)
 	if err != nil {
-		return fmt.Errorf("音声ファイルの変換に失敗しました: %w", err)
+		return err
 	}
 
 	t.addSegmentsToPlaylist(id, stream, segmentNames)

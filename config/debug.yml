@@ -219,6 +219,7 @@ tts_broadcaster:
   segment_dir: "./../cache/segment" # セグメントの出力ディレクトリ
   temp_dir: # 一時ファイルの出力ディレクトリ
   host: "http://localhost:50021" # 音声合成サーバのホスト
+  timeout: 30s # 音声合成サーバのタイムアウト時間
   ffmpeg_path: "ffmpeg" # ffmpegのパス
   ffprobe_path: "ffprobe" # ffprobeのパス
   silence_args: # 無音セグメントを生成するための引数
