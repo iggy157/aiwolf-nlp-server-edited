@@ -141,19 +141,13 @@ func (t *TTSBroadcaster) getSegmentDir(id string) string {
 
 func (t *TTSBroadcaster) buildSilenceTemplate() error {
 	silenceTemplatePath := filepath.Join(t.config.TTSBroadcaster.SegmentDir, SILENCE_TEMPLATE_FILE)
-	cmd := exec.Command(
-		"ffmpeg",
-		"-f", "lavfi",
-		"-i", fmt.Sprintf("anullsrc=r=44100:cl=stereo:d=%f", t.config.TTSBroadcaster.TargetDuration.Seconds()),
-		"-c:a", "aac",
-		"-b:a", "64k",
-		"-ar", "44100",
-		"-ac", "2",
-		"-mpegts_flags", "initial_discontinuity",
-		"-mpegts_copyts", "1",
-		"-f", "mpegts",
+	args := append(
+		t.config.TTSBroadcaster.SilenceArgs,
+		"-t",
+		fmt.Sprintf("%f", t.config.TTSBroadcaster.TargetDuration.Seconds()),
 		silenceTemplatePath,
 	)
+	cmd := exec.Command(t.config.TTSBroadcaster.FfmpegPath, args...)
 	if _, err := cmd.CombinedOutput(); err != nil {
 		return err
 	}
@@ -238,25 +232,17 @@ func (t *TTSBroadcaster) convertWavToSegment(data []byte, id string, baseName st
 	}
 	tempWavFile.Close()
 
-	duration, err := t.getWavDuration(tempWavPath)
+	duration, err := t.getDuration(tempWavPath)
 	if err != nil {
 		return nil, err
 	}
 
 	if duration <= t.config.TTSBroadcaster.TargetDuration.Seconds() {
 		outputPath := filepath.Join(streamDir, baseName)
-		cmd := exec.Command(
-			"ffmpeg",
-			"-i", tempWavPath,
-			"-c:a", "aac",
-			"-b:a", "64k",
-			"-ar", "44100",
-			"-ac", "2",
-			"-mpegts_flags", "initial_discontinuity",
-			"-mpegts_copyts", "1",
-			"-f", "mpegts",
-			outputPath,
-		)
+		args := []string{"-i", tempWavPath}
+		args = append(args, t.config.TTSBroadcaster.ConvertArgs...)
+		args = append(args, outputPath)
+		cmd := exec.Command(t.config.TTSBroadcaster.FfmpegPath, args...)
 		if _, err := cmd.CombinedOutput(); err != nil {
 			return nil, err
 		}
@@ -265,13 +251,14 @@ func (t *TTSBroadcaster) convertWavToSegment(data []byte, id string, baseName st
 	return t.splitWavIntoSegments(tempWavPath, id, baseName, duration)
 }
 
-func (t *TTSBroadcaster) getWavDuration(wavPath string) (float64, error) {
+func (t *TTSBroadcaster) getDuration(path string) (float64, error) {
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		return 0, err
+	}
+	args := append(t.config.TTSBroadcaster.DurationArgs, path)
 	cmd := exec.Command(
-		"ffprobe",
-		"-v", "error",
-		"-show_entries", "format=duration",
-		"-of", "default=noprint_wrappers=1:nokey=1",
-		wavPath,
+		t.config.TTSBroadcaster.FfprobePath,
+		args...,
 	)
 	output, err := cmd.Output()
 	if err != nil {
@@ -294,15 +281,10 @@ func (t *TTSBroadcaster) splitWavIntoSegments(wavPath string, id string, baseNam
 	defer os.RemoveAll(tempDir)
 
 	aacPath := filepath.Join(tempDir, "input.aac")
-	convertCmd := exec.Command(
-		"ffmpeg",
-		"-i", wavPath,
-		"-c:a", "aac",
-		"-b:a", "64k",
-		"-ar", "44100",
-		"-ac", "2",
-		aacPath,
-	)
+	convertArgs := []string{"-i", wavPath}
+	convertArgs = append(convertArgs, t.config.TTSBroadcaster.PreConvertArgs...)
+	convertArgs = append(convertArgs, aacPath)
+	convertCmd := exec.Command(t.config.TTSBroadcaster.FfmpegPath, convertArgs...)
 	if _, err := convertCmd.CombinedOutput(); err != nil {
 		return nil, err
 	}
@@ -320,17 +302,10 @@ func (t *TTSBroadcaster) splitWavIntoSegments(wavPath string, id string, baseNam
 			duration = totalDuration - startTime
 		}
 
-		segmentCmd := exec.Command(
-			"ffmpeg",
-			"-i", aacPath,
-			"-ss", fmt.Sprintf("%f", startTime),
-			"-t", fmt.Sprintf("%f", duration),
-			"-c:a", "copy",
-			"-mpegts_flags", "initial_discontinuity",
-			"-mpegts_copyts", "1",
-			"-f", "mpegts",
-			segmentPath,
-		)
+		segmentArgs := []string{"-i", aacPath, "-ss", fmt.Sprintf("%f", startTime), "-t", fmt.Sprintf("%f", duration)}
+		segmentArgs = append(segmentArgs, t.config.TTSBroadcaster.SplitArgs...)
+		segmentArgs = append(segmentArgs, segmentPath)
+		segmentCmd := exec.Command(t.config.TTSBroadcaster.FfmpegPath, segmentArgs...)
 		if _, err := segmentCmd.CombinedOutput(); err != nil {
 			return nil, err
 		}
@@ -393,32 +368,6 @@ func (t *TTSBroadcaster) ensureMinimumBuffer(id string, stream *Stream) {
 			t.addSilenceSegment(id, stream)
 		}
 	}
-}
-
-func (t *TTSBroadcaster) getDuration(segmentPath string) float64 {
-	if _, err := os.Stat(segmentPath); os.IsNotExist(err) {
-		return t.config.TTSBroadcaster.TargetDuration.Seconds()
-	}
-
-	cmd := exec.Command(
-		"ffprobe",
-		"-v", "error",
-		"-show_entries", "format=duration",
-		"-of", "default=noprint_wrappers=1:nokey=1",
-		segmentPath,
-	)
-	output, err := cmd.Output()
-	if err != nil {
-		slog.Error("セグメントの長さの取得に失敗しました", "error", err)
-		return t.config.TTSBroadcaster.TargetDuration.Seconds()
-	}
-
-	var duration float64
-	fmt.Sscanf(string(output), "%f", &duration)
-	if duration <= 0 {
-		return t.config.TTSBroadcaster.TargetDuration.Seconds()
-	}
-	return duration
 }
 
 func (t *TTSBroadcaster) HandlePlaylist(c *gin.Context) {
@@ -637,7 +586,11 @@ func (t *TTSBroadcaster) addSegmentsToPlaylist(id string, stream *Stream, segmen
 	defer stream.playlistMu.Unlock()
 
 	for _, segmentName := range segmentNames {
-		duration := t.getDuration(filepath.Join(streamDir, segmentName))
+		duration, err := t.getDuration(filepath.Join(streamDir, segmentName))
+		if err != nil {
+			slog.Error("プレイリストへのセグメント追加に失敗しました", "error", err, "id", id)
+			continue
+		}
 
 		if err := stream.playlist.AppendSegment(&m3u8.MediaSegment{
 			URI:      segmentName,

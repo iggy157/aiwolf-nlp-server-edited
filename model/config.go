@@ -67,6 +67,13 @@ type Config struct {
 		SegmentDir        string        `yaml:"segment_dir"`
 		TempDir           string        `yaml:"temp_dir"`
 		Host              string        `yaml:"host"`
+		FfmpegPath        string        `yaml:"ffmpeg_path"`
+		FfprobePath       string        `yaml:"ffprobe_path"`
+		SilenceArgs       []string      `yaml:"silence_args"`
+		ConvertArgs       []string      `yaml:"convert_args"`
+		DurationArgs      []string      `yaml:"duration_args"`
+		PreConvertArgs    []string      `yaml:"pre_convert_args"`
+		SplitArgs         []string      `yaml:"split_args"`
 	} `yaml:"tts_broadcaster"`
 	Matching struct {
 		SelfMatch    bool   `yaml:"self_match"`

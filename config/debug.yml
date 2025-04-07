@@ -184,12 +184,73 @@ realtime_broadcaster:
   enable: true # リアルタイムログの出力を有効にするか
 
 tts_broadcaster:
-  enable: false # TTSのHLS配信を有効にするか (非推奨)
+  enable: true # TTSのHLS配信を有効にするか (非推奨)
   target_duration: 2s # 1セグメントの長さ
   min_buffer_segments: 3 # バッファのセグメント数
-  segment_dir: "./cache/segment" # セグメントの出力ディレクトリ
+  segment_dir: "./../cache/segment" # セグメントの出力ディレクトリ
   temp_dir: # 一時ファイルの出力ディレクトリ
   host: "http://localhost:50021" # 音声合成サーバのホスト
+  ffmpeg_path: "ffmpeg" # ffmpegのパス
+  ffprobe_path: "ffprobe" # ffprobeのパス
+  silence_args: # 無音セグメントを生成するための引数
+    - "-f"
+    - "lavfi"
+    - "-i"
+    - "anullsrc=r=44100:cl=stereo"
+    - "-c:a"
+    - "aac"
+    - "-b:a"
+    - "64k"
+    - "-ar"
+    - "44100"
+    - "-ac"
+    - "2"
+    - "-mpegts_flags"
+    - "initial_discontinuity"
+    - "-mpegts_copyts"
+    - "1"
+    - "-f"
+    - "mpegts"
+  convert_args: # 生成した音声がセグメント長を満たさない場合にセグメントを生成するための引数
+    - "-c:a"
+    - "aac"
+    - "-b:a"
+    - "64k"
+    - "-ar"
+    - "44100"
+    - "-ac"
+    - "2"
+    - "-mpegts_flags"
+    - "initial_discontinuity"
+    - "-mpegts_copyts"
+    - "1"
+    - "-f"
+    - "mpegts"
+  duration_args: # 生成した音声の長さを取得するための引数
+    - "-v"
+    - "error"
+    - "-show_entries"
+    - "format=duration"
+    - "-of"
+    - "default=noprint_wrappers=1:nokey=1"
+  pre_convert_args: # 生成した音声がセグメント長を超える場合に事前変換を行うための引数
+    - "-c:a"
+    - "aac"
+    - "-b:a"
+    - "64k"
+    - "-ar"
+    - "44100"
+    - "-ac"
+    - "2"
+  split_args: # 事前変換した音声をセグメントに分割するための引数
+    - "-c:a"
+    - "copy"
+    - "-mpeg_ts_flags"
+    - "initial_discontinuity"
+    - "-mpegts_copyts"
+    - "1"
+    - "-f"
+    - "mpegts"
 
 matching:
   self_match: false # 同じチーム名のエージェント同士のみをマッチングさせるか
