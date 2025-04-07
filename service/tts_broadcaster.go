@@ -384,7 +384,7 @@ func (t *TTSBroadcaster) splitWavIntoSegments(wavPath string, id string, baseNam
 		segmentNames = append(segmentNames, segmentName)
 	}
 
-	slog.Info("すべてのセグメントの分割が完了しました", "id", id, "count", len(segmentNames))
+	slog.Info("すべてのセグメントの分割が完了しました", "id", id, "size", len(segmentNames))
 	return segmentNames, nil
 }
 
@@ -417,7 +417,7 @@ func (t *TTSBroadcaster) streamManager() {
 			if !isStreaming {
 				elapsed := time.Since(lastTime).Seconds()
 
-				if elapsed >= t.config.TTSBroadcaster.TargetDuration.Seconds() {
+				if elapsed >= t.config.TTSBroadcaster.TargetDuration.Seconds()*0.8 {
 					t.addSilenceSegment(id, stream)
 					stream.streamingMu.Lock()
 					stream.lastSegmentTime = time.Now()
@@ -508,7 +508,7 @@ func isValidSegmentName(name string) bool {
 	return match
 }
 
-func (t *TTSBroadcaster) BroadCastText(id string, text string, speaker int) {
+func (t *TTSBroadcaster) BroadcastText(id string, text string, speaker int) {
 	stream := t.getStream(id)
 	if stream == nil {
 		return
