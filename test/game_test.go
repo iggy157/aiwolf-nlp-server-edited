@@ -9,12 +9,18 @@ import (
 
 	"github.com/aiwolfdial/aiwolf-nlp-server/core"
 	"github.com/aiwolfdial/aiwolf-nlp-server/model"
+	"github.com/joho/godotenv"
 	"golang.org/x/exp/rand"
 )
 
 const WebSocketExternalHost = "0.0.0.0"
 
 func TestGame(t *testing.T) {
+	err := godotenv.Load("../config/.env")
+	if err != nil {
+		t.Fatalf("Failed to load .env file: %v", err)
+	}
+
 	config, err := model.LoadFromPath("../config/debug.yml")
 	if err != nil {
 		t.Fatalf("Failed to load config: %v", err)
@@ -55,7 +61,7 @@ func TestGame(t *testing.T) {
 		select {
 		case <-client.done:
 			t.Log("Connection closed")
-		case <-time.After(30 * time.Second):
+		case <-time.After(5 * time.Minute):
 			t.Fatalf("Timeout")
 		}
 	}
@@ -65,6 +71,11 @@ func TestGame(t *testing.T) {
 }
 
 func TestManualGame(t *testing.T) {
+	err := godotenv.Load("../config/.env")
+	if err != nil {
+		t.Fatalf("Failed to load .env file: %v", err)
+	}
+
 	config, err := model.LoadFromPath("../config/debug.yml")
 	if err != nil {
 		t.Fatalf("Failed to load config: %v", err)

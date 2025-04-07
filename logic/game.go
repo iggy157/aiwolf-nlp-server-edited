@@ -32,7 +32,17 @@ func NewGame(config *model.Config, settings *model.Setting, conns []model.Connec
 	id := ulid.Make().String()
 	var agents []*model.Agent
 	if config.Game.CustomProfile.Enable {
-		agents = util.CreateAgentsWithProfile(conns, settings.RoleNumMap, config.Game.CustomProfile.Profile)
+		if config.Game.CustomProfile.DynamicProfile.Enable {
+			profiles, err := util.GenerateProfiles(config.Game.CustomProfile.DynamicProfile.Prompt, config.Game.CustomProfile.DynamicProfile.Avatars, config.Game.AgentCount, config.Game.CustomProfile.DynamicProfile.Attempts)
+			if err != nil {
+				slog.Error("プロファイルの生成に失敗しました", "error", err)
+				agents = util.CreateAgentsWithProfiles(conns, settings.RoleNumMap, config.Game.CustomProfile.Profiles)
+			} else {
+				agents = util.CreateAgentsWithProfiles(conns, settings.RoleNumMap, profiles)
+			}
+		} else {
+			agents = util.CreateAgentsWithProfiles(conns, settings.RoleNumMap, config.Game.CustomProfile.Profiles)
+		}
 	} else {
 		agents = util.CreateAgents(conns, settings.RoleNumMap)
 	}
@@ -57,7 +67,17 @@ func NewGameWithRole(config *model.Config, settings *model.Setting, roleMapConns
 	id := ulid.Make().String()
 	var agents []*model.Agent
 	if config.Game.CustomProfile.Enable {
-		agents = util.CreateAgentsWithRoleAndProfile(roleMapConns, config.Game.CustomProfile.Profile)
+		if config.Game.CustomProfile.DynamicProfile.Enable {
+			profiles, err := util.GenerateProfiles(config.Game.CustomProfile.DynamicProfile.Prompt, config.Game.CustomProfile.DynamicProfile.Avatars, config.Game.AgentCount, config.Game.CustomProfile.DynamicProfile.Attempts)
+			if err != nil {
+				slog.Error("プロファイルの生成に失敗しました", "error", err)
+				agents = util.CreateAgentsWithRoleAndProfile(roleMapConns, config.Game.CustomProfile.Profiles)
+			} else {
+				agents = util.CreateAgentsWithRoleAndProfile(roleMapConns, profiles)
+			}
+		} else {
+			agents = util.CreateAgentsWithRoleAndProfile(roleMapConns, config.Game.CustomProfile.Profiles)
+		}
 	} else {
 		agents = util.CreateAgentsWithRole(roleMapConns)
 	}

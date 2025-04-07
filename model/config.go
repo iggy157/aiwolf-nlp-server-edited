@@ -22,8 +22,14 @@ type Config struct {
 	Game struct {
 		AgentCount    int `yaml:"agent_count"`
 		CustomProfile struct {
-			Enable  bool                         `yaml:"enable"`
-			Profile map[string]map[string]string `yaml:"profile"`
+			Enable         bool      `yaml:"enable"`
+			Profiles       []Profile `yaml:"profiles"`
+			DynamicProfile struct {
+				Enable   bool     `yaml:"enable"`
+				Prompt   string   `yaml:"prompt"`
+				Attempts int      `yaml:"attempts"`
+				Avatars  []string `yaml:"avatars"`
+			} `yaml:"dynamic_profile"`
 		} `yaml:"custom_profile"`
 		VoteVisibility        bool    `yaml:"vote_visibility"`
 		TalkOnFirstDay        bool    `yaml:"talk_on_first_day"`
@@ -91,6 +97,14 @@ type TalkConfig struct {
 		BaseLength    int  `yaml:"base_length"`
 	} `yaml:"max_length"`
 	MaxSkip int `yaml:"max_skip"`
+}
+
+type Profile struct {
+	Name        string `yaml:"name"`
+	AvatarURL   string `yaml:"avatar_url"`
+	Age         int    `yaml:"age"`
+	Sex         string `yaml:"sex"`
+	Personality string `yaml:"personality"`
 }
 
 func LoadFromPath(path string) (*Config, error) {
