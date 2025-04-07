@@ -5,11 +5,11 @@
 サンプルエージェントについては、[aiwolfdial/aiwolf-nlp-agent](https://github.com/aiwolfdial/aiwolf-nlp-agent) を参考にしてください。
 
 > [!IMPORTANT]
-> 次回大会では以下の修正が予定されています。
+> 次回大会では以下の変更があります。詳細については、[aiwolfdial.github.io/aiwolf-nlp](https://aiwolfdial.github.io/aiwolf-nlp)を参照してください。
 >
-> - トークリクエストならびに囁きリクエストにおける発言の文字数制限の追加
-> - 13人ゲームの追加
-> - カスタムプレイヤー名とカスタムプロフィールの追加
+> - [発言の文字数制限](./doc/logic.md#発言の文字数制限について)
+> - [13人ゲーム](./doc/logic.md#13人ゲーム)
+> - [プレイヤー名とプロフィール](./doc/protocol.md#info)
 
 ## ドキュメント
 
