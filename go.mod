@@ -5,17 +5,9 @@ go 1.24.0
 require (
 	github.com/gin-gonic/gin v1.10.0
 	github.com/gorilla/websocket v1.5.3
+	github.com/joho/godotenv v1.5.1
 	github.com/oklog/ulid/v2 v2.1.0
 	golang.org/x/exp v0.0.0-20241217172543-b2144cdd0a67
-)
-
-require (
-	github.com/joho/godotenv v1.5.1 // indirect
-	github.com/openai/openai-go v0.1.0-beta.6 // indirect
-	github.com/tidwall/gjson v1.18.0 // indirect
-	github.com/tidwall/match v1.1.1 // indirect
-	github.com/tidwall/pretty v1.2.1 // indirect
-	github.com/tidwall/sjson v1.2.5 // indirect
 )
 
 require (
