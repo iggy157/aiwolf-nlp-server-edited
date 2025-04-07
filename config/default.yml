@@ -1,19 +1,18 @@
-# 大会向け
-# マッチオプティマイザの設定を必要に応じて変更してください
+# https://github.com/aiwolfdial/aiwolf-nlp-server/blob/main/doc/config.md
 
 server:
   web_socket:
-    host: "127.0.0.1" # ホスト名
-    port: 8080 # ポート番号
+    host: 127.0.0.1
+    port: 8080
   authentication:
-    enable: False # トークンによる接続認証を有効にするか
-    secret: your-256-bit-secret # 秘密鍵
+    enable: false
+    secret: your-256-bit-secret
 
 game:
-  agent_count: 13 # 1ゲームあたりのエージェント数
+  agent_count: 13
   custom_profile:
-    enable: true # カスタムプロフィールを有効にするか
-    profiles: # カスタムプロフィール
+    enable: true
+    profiles:
       - name: ミナト
         avatar_url: https://aiwolfdial.github.io/aiwolf-nlp-viewer/images/male/01.png
         age: 10
@@ -135,10 +134,10 @@ game:
         sex: 女性
         personality: シズエは非常に穏やかで優しい性格を持っています。年齢を重ねてもなお、周囲に対して温かい微笑みを絶やさず、思いやり深い人物です。いつも周りの人々を気遣い、親しみやすく、少しお茶目な一面も見せることがあります。時折、元気がない人に優しく声をかけたり、助けが必要なときには手を差し伸べることを惜しまないため、村や地域で多くの人々に愛されています。しずえは、長年の人生経験を通して、人々と穏やかに過ごすことの大切さを知っています。
     dynamic_profile:
-      enable: false # 動的プロフィールを有効にするか
+      enable: false
       prompt: このキャラクターのプロフィールを生成してください。ただし、人狼ゲームに関わることは出力しないでください。名前についてはファーストネームのみをフリガナなしで出力してください。
-      attempts: 3 # 生成に失敗した場合に再試行する回数
-      avatars: # 動的プロフィールのアバター画像
+      attempts: 3
+      avatars:
         - https://aiwolfdial.github.io/aiwolf-nlp-viewer/images/male/01.png
         - https://aiwolfdial.github.io/aiwolf-nlp-viewer/images/male/02.png
         - https://aiwolfdial.github.io/aiwolf-nlp-viewer/images/male/03.png
@@ -163,128 +162,128 @@ game:
         - https://aiwolfdial.github.io/aiwolf-nlp-viewer/images/female/10.png
         - https://aiwolfdial.github.io/aiwolf-nlp-viewer/images/female/11.png
         - https://aiwolfdial.github.io/aiwolf-nlp-viewer/images/female/12.png
-  vote_visibility: false # 投票の結果を公開するか
-  talk_on_first_day: true # 1日目の発言を許可するか
-  max_continue_error_ratio: 0.2 # ゲームを継続するエラーエージェントの最大割合
+  vote_visibility: false
+  talk_on_first_day: true
+  max_continue_error_ratio: 0.2
   talk:
     max_count:
-      per_agent: 4 # 1日あたりの1エージェントの最大発言回数
-      per_day: 28 # 1日あたりの全体の発言回数
+      per_agent: 4
+      per_day: 28
     max_length:
-      count_in_word: false # 単語数でカウントするか
-      per_talk: -1 # 1回のトークあたりの最大文字数 制限無しの場合は-1
-      mention_length: 50 # 1回のトークあたりのメンションを含む場合の追加文字数
-      per_agent: -1 # 1日あたりの1エージェントの最大文字数 制限無しの場合は-1
-      base_length: 50 # 1日あたりの1エージェントの最大文字数に含まない最低文字数 制限無しの場合は-1
-    max_skip: 0 # 1日あたりの1エージェントの最大スキップ回数
+      count_in_word: false
+      per_talk: -1
+      mention_length: 50
+      per_agent: -1
+      base_length: 50
+    max_skip: 0
   whisper:
     max_count:
-      per_agent: 4 # 1日あたりの1エージェントの最大囁き回数
-      per_day: 12 # 1日あたりの全体の囁き回数
+      per_agent: 4
+      per_day: 12
     max_length:
-      count_in_word: false # 単語数でカウントするか
-      per_talk: -1 # 1回のトークあたりの最大文字数 制限無しの場合は-1
-      mention_length: 50 # 1回のトークあたりのメンションを含む場合の追加文字数
-      per_agent: -1 # 1日あたりの1エージェントの最大文字数 制限無しの場合は-1
-      base_length: 50 # 1日あたりの1エージェントの最大文字数に含まない最低文字数 制限無しの場合は-1
-    max_skip: 0 # 1日あたりの1エージェントの最大スキップ回数
+      count_in_word: false
+      per_talk: -1
+      mention_length: 50
+      per_agent: -1
+      base_length: 50
+    max_skip: 0
   vote:
-    max_count: 1 # 1位タイの場合の最大再投票回数
+    max_count: 1
   attack_vote:
-    max_count: 1 # 1位タイの場合の最大襲撃再投票回数
-    allow_no_target: false # 襲撃なしの日を許可するか
+    max_count: 1
+    allow_no_target: false
   timeout:
-    action: 60s # エージェントのアクションのタイムアウト時間
-    response: 120s # エージェントの生存確認のタイムアウト時間
-    acceptable: 5s # サーバ側での猶予時間
+    action: 60s
+    response: 120s
+    acceptable: 5s
 
 json_logger:
-  enable: true # JSONログの出力を有効にするか
-  output_dir: "./log" # JSONログの出力ディレクトリ
-  filename: "{timestamp}_{teams}" # JSONログのファイル名
+  enable: true
+  output_dir: ./log
+  filename: "{timestamp}_{teams}"
 
 game_logger:
-  enable: true # ゲームログの出力を有効にするか
-  output_dir: "./log" # ゲームログの出力ディレクトリ
-  filename: "{timestamp}_{teams}" # ゲームログのファイル名
+  enable: true
+  output_dir: ./log
+  filename: "{timestamp}_{teams}"
 
 realtime_broadcaster:
-  enable: true # リアルタイムログの出力を有効にするか
+  enable: true
 
 tts_broadcaster:
   enable: false # TTSのHLS配信を有効にするか (非推奨)
   target_duration: 2s # 1セグメントの長さ
   min_buffer_segments: 3 # バッファのセグメント数
-  segment_dir: "./cache/segment" # セグメントの出力ディレクトリ
+  segment_dir: ./cache/segment # セグメントの出力ディレクトリ
   temp_dir: # 一時ファイルの出力ディレクトリ
-  host: "http://localhost:50021" # 音声合成サーバのホスト
+  host: http://localhost:50021 # 音声合成サーバのホスト
   timeout: 30s # 音声合成サーバのタイムアウト時間
-  ffmpeg_path: "ffmpeg" # ffmpegのパス
-  ffprobe_path: "ffprobe" # ffprobeのパス
+  ffmpeg_path: ffmpeg # ffmpegのパス
+  ffprobe_path: ffprobe # ffprobeのパス
   silence_args: # 無音セグメントを生成するための引数
-    - "-f"
-    - "lavfi"
-    - "-i"
-    - "anullsrc=r=44100:cl=stereo"
-    - "-c:a"
-    - "aac"
-    - "-b:a"
-    - "64k"
-    - "-ar"
+    - -f
+    - lavfi
+    - -i
+    - anullsrc=r=44100:cl=stereo
+    - -c:a
+    - aac
+    - -b:a
+    - 64k
+    - -ar
     - "44100"
-    - "-ac"
+    - -ac
     - "2"
-    - "-mpegts_flags"
-    - "initial_discontinuity"
-    - "-mpegts_copyts"
+    - -mpegts_flags
+    - initial_discontinuity
+    - -mpegts_copyts
     - "1"
-    - "-f"
-    - "mpegts"
+    - -f
+    - mpegts
   convert_args: # 生成した音声がセグメント長を満たさない場合にセグメントを生成するための引数
-    - "-c:a"
-    - "aac"
-    - "-b:a"
-    - "64k"
-    - "-ar"
+    - -c:a
+    - aac
+    - -b:a
+    - 64k
+    - -ar
     - "44100"
-    - "-ac"
+    - -ac
     - "2"
-    - "-mpegts_flags"
-    - "initial_discontinuity"
-    - "-mpegts_copyts"
+    - -mpegts_flags
+    - initial_discontinuity
+    - -mpegts_copyts
     - "1"
-    - "-f"
-    - "mpegts"
+    - -f
+    - mpegts
   duration_args: # 生成した音声の長さを取得するための引数
-    - "-v"
-    - "error"
-    - "-show_entries"
-    - "format=duration"
-    - "-of"
-    - "default=noprint_wrappers=1:nokey=1"
+    - -v
+    - error
+    - -show_entries
+    - format=duration
+    - -of
+    - default=noprint_wrappers=1:nokey=1
   pre_convert_args: # 生成した音声がセグメント長を超える場合に事前変換を行うための引数
-    - "-c:a"
-    - "aac"
-    - "-b:a"
-    - "64k"
-    - "-ar"
+    - -c:a
+    - aac
+    - -b:a
+    - 64k
+    - -ar
     - "44100"
-    - "-ac"
+    - -ac
     - "2"
   split_args: # 事前変換した音声をセグメントに分割するための引数
-    - "-c:a"
-    - "copy"
-    - "-mpegts_flags"
-    - "initial_discontinuity"
-    - "-mpegts_copyts"
+    - -c:a
+    - copy
+    - -mpegts_flags
+    - initial_discontinuity
+    - -mpegts_copyts
     - "1"
-    - "-f"
-    - "mpegts"
+    - -f
+    - mpegts
 
 matching:
-  self_match: true # 同じチーム名のエージェント同士のみをマッチングさせるか
-  is_optimize: false # 最適化した組み合わせマッチングを有効にするか (self_match が false の場合に限る)
-  team_count: 5 # 参加するチーム数
-  game_count: 30 # 全体のゲーム数
-  output_path: "./log/match_optimizer.json" # マッチ履歴の出力ファイル
-  infinite_loop: false # 組み合わせマッチングがすべて終了した場合に全体のゲーム数分のゲームを追加するか
+  self_match: true
+  is_optimize: false
+  team_count: 5
+  game_count: 30
+  output_path: ./log/match_optimizer.json
+  infinite_loop: false
