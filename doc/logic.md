@@ -137,41 +137,52 @@
 トークフェーズの場合は、`setting.talk.max_count` の制限を使用します。
 
 `setting.whisper.max_length.base_length` の制限がある場合はその値を、ない場合は0を `base_length` とします。\
-`setting.whisper.max_length.per_agent` で初期化された残り文字数を `remain_length` とします。\
+`setting.whisper.max_length.per_agent` で初期化された残り文字数を `remain_length` とします。
 
-生存している人狼エージェント(トークフェーズの場合は生存しているエージェント)をランダムに並び替えた順列を作成します。\
-`setting.whisper.max_count.per_day` の回数まで以下の処理を繰り返します。\
-&emsp;&emsp;順列の先頭から順にエージェントに対して、以下の処理を繰り返します。\
-&emsp;&emsp;&emsp;&emsp;エージェントの `setting.whisper.max_count.per_agent` の残り回数が0の場合は、スキップします。\
-&emsp;&emsp;&emsp;&emsp;エージェントの `remain_length` が0以下の場合は、スキップします。 (`remaining_length` が設定されていない場合は除きます。)\
-&emsp;&emsp;&emsp;&emsp;エージェントに `WHISPER` リクエストを送信します。\
-&emsp;&emsp;&emsp;&emsp;エージェントからの `WHISPER` リクエストを受信します。\
-&emsp;&emsp;&emsp;&emsp;エラーが発生した場合は、スキップ発言に置換します。 (スキップカウントの増加は行いません。)\
-&emsp;&emsp;&emsp;&emsp;スキップカウントが `game.skip.max_count` を超えた場合は、オーバー発言に置換します。\
-&emsp;&emsp;&emsp;&emsp;発言がオーバーもしくはスキップではない場合は、スキップカウントをリセットします。\
-&emsp;&emsp;&emsp;&emsp;[発言の文字数制限について](#発言の文字数制限について)の処理を行います。\
-&emsp;&emsp;&emsp;&emsp;発言がオーバーである場合は、残り回数を0に設定します。\
-&emsp;&emsp;全エージェントの発言がオーバーである場合は、トークフェーズを終了します。
+生存している人狼エージェント(トークフェーズの場合は生存しているエージェント)をランダムに並び替えた順列を作成します。
+
+#### `setting.whisper.max_count.per_day` の回数まで以下の処理を繰り返します
+
+順列の先頭から順にエージェントに対して、以下の処理を繰り返します。
+
+エージェントの `setting.whisper.max_count.per_agent` の残り回数が0の場合は、スキップします。\
+エージェントの `remain_length` が0以下の場合は、スキップします。 (`remaining_length` が設定されていない場合は除きます。)\
+エージェントに `WHISPER` リクエストを送信します。\
+エージェントからの `WHISPER` リクエストを受信します。\
+エラーが発生した場合は、スキップ発言に置換します。 (スキップカウントの増加は行いません。)\
+スキップカウントが `game.skip.max_count` を超えた場合は、オーバー発言に置換します。\
+発言がオーバーもしくはスキップではない場合は、スキップカウントをリセットします。\
+[発言の文字数制限について](#発言の文字数制限について)の処理を行います。\
+発言がオーバーである場合は、残り回数を0に設定します。
+
+全エージェントの発言がオーバーである場合は、トークフェーズを終了します。
 
 ### 発言の文字数制限について
 
 囁きフェーズの場合は、`setting.whisper.max_length` の制限を使用します。\
 トークフェーズの場合は、`setting.talk.max_length` の制限を使用します。
 
-発言がオーバー、スキップ、強制スキップでない場合、以下の処理をします。
-`setting.whisper.max_length.per_agent` もしくは `setting.whisper.max_length.base_length` の制限がある場合は、以下の処理をします。\
-&emsp;&emsp;メンション(`@エージェントの名前`)が含まれる場合\
-&emsp;&emsp;&emsp;&emsp;最初に出現したメンションの `@` より手前の文字列を `mention_before` とします、\
-&emsp;&emsp;&emsp;&emsp;メンション(`@エージェントの名前`)が含まれる場合は、最初に出現したメンションの以降(エージェント名より後ろ)の文字列を `mention_after` とします。\
-&emsp;&emsp;&emsp;&emsp;`mention_before` を `base_length` + `remain_length` の文字数で制限します。\
-&emsp;&emsp;&emsp;&emsp;`mention_before` の文字数 - `base_length` の値が正の値である場合、`remain_length` をその値で減算します。\
-&emsp;&emsp;&emsp;&emsp;`mention_after` を `setting.whisper.max_length.mention_length` + `remain_length` の文字数で制限します。\
-&emsp;&emsp;&emsp;&emsp;`mention_after` の文字数 - `setting.whisper.max_length.mention_length` の値が正の値である場合、`remain_length` をその値で減算します。\
-&emsp;&emsp;&emsp;&emsp;`mention_before` とメンションと `mention_after` を結合したものを文字列とします。\
-&emsp;&emsp;メンションが含まれない場合は、文字列を `base_length` + `remain_length` の文字数で制限します。\
-&emsp;&emsp;文字列の文字数 - `base_length` の値が正の値である場合、`remain_length` をその値で減算します。\
+発言がオーバー、スキップ、強制スキップでない場合に以下の処理を上から順に行います。
 
-`setting.whisper.max_length.per_talk` の制限がある場合は、以下の処理をします。
+#### 1. `setting.whisper.max_length.per_agent` もしくは `setting.whisper.max_length.base_length` の制限がある場合
+
+**a. メンション(`@エージェントの名前`)が含まれる場合**
+
+最初に出現したメンションの `@` より手前の文字列を `mention_before` とします。\
+メンション(`@エージェントの名前`)が含まれる場合は、最初に出現したメンションの以降(エージェント名より後ろ)の文字列を `mention_after` とします。\
+`mention_before` を `base_length` + `remain_length` の文字数で制限します。\
+`mention_before` の文字数 - `base_length` の値が正の値である場合、`remain_length` をその値で減算します。\
+`mention_after` を `setting.whisper.max_length.mention_length` + `remain_length` の文字数で制限します。\
+`mention_after` の文字数 - `setting.whisper.max_length.mention_length` の値が正の値である場合、`remain_length` をその値で減算します。\
+`mention_before` とメンションと `mention_after` を結合したものを文字列とします。
+
+**b. メンション(`@エージェントの名前`)が含まれない場合**
+
+文字列を `base_length` + `remain_length` の文字数で制限します。\
+文字列の文字数 - `base_length` の値が正の値である場合、`remain_length` をその値で減算します。
+
+#### 2. `setting.whisper.max_length.per_talk` の制限がある場合
+
 文字列を `setting.whisper.max_length.per_talk` の文字数で制限します。\
 
-文字列の文字数が0の場合は、オーバー発言に置換します。
+#### 3. 文字列の文字数が0の場合は、オーバー発言に置換します
