@@ -39,7 +39,7 @@ chmod u+x ./aiwolf-nlp-server-linux-amd64
 curl -LJO https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/aiwolf-nlp-server-windows-amd64.exe
 curl -LJO https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/default.yml
 # ダイナミックプロフィールを使用する場合は、以下のコマンドを実行してください。
-# curl .env -LJO https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/example.env
+# curl -LJO https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/example.env
 # mv example.env .env
 .\aiwolf-nlp-server-windows-amd64.exe
 ```
@@ -55,7 +55,7 @@ curl -LJO https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/downlo
 curl -LJO https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/aiwolf-nlp-server-darwin-amd64
 curl -LJO https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/default.yml
 # ダイナミックプロフィールを使用する場合は、以下のコマンドを実行してください。
-# curl .env -LJO https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/example.env
+# curl -LJO https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/example.env
 # mv example.env .env
 chmod u+x ./aiwolf-nlp-server-darwin-amd64
 ./aiwolf-nlp-server-darwin-amd64
@@ -72,7 +72,7 @@ chmod u+x ./aiwolf-nlp-server-darwin-amd64
 curl -LJO https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/aiwolf-nlp-server-darwin-arm64
 curl -LJO https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/default.yml
 # ダイナミックプロフィールを使用する場合は、以下のコマンドを実行してください。
-# curl .env -LJO https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/example.env
+# curl -LJO https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/example.env
 # mv example.env .env
 chmod u+x ./aiwolf-nlp-server-darwin-arm64
 ./aiwolf-nlp-server-darwin-arm64
