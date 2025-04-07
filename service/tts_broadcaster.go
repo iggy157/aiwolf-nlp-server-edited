@@ -160,8 +160,7 @@ func (t *TTSBroadcaster) buildSilenceTemplate() error {
 		return err
 	}
 
-	slog.Info("無音セグメントの作成が完了しました",
-		"output", string(output))
+	slog.Info("無音セグメントの作成が完了しました")
 	return nil
 }
 
@@ -271,9 +270,7 @@ func (t *TTSBroadcaster) convertWavToSegment(data []byte, id string, baseName st
 			return nil, err
 		}
 
-		slog.Info("生成した音声の変換が完了しました",
-			"id", id,
-			"output", string(output))
+		slog.Info("生成した音声の変換が完了しました", "id", id)
 		return []string{baseName}, nil
 	}
 
@@ -345,9 +342,7 @@ func (t *TTSBroadcaster) splitWavIntoSegments(wavPath string, id string, baseNam
 		return nil, err
 	}
 
-	slog.Info("生成した音声の事前変換が完了しました",
-		"id", id,
-		"output", string(output))
+	slog.Info("生成した音声の事前変換が完了しました", "id", id)
 
 	segmentCount := int(math.Ceil(totalDuration / t.config.TTSBroadcaster.TargetDuration.Seconds()))
 	segmentDuration := t.config.TTSBroadcaster.TargetDuration.Seconds()
@@ -384,17 +379,12 @@ func (t *TTSBroadcaster) splitWavIntoSegments(wavPath string, id string, baseNam
 			return nil, err
 		}
 
-		slog.Info("生成した音声のセグメント分割が完了しました",
-			"id", id,
-			"segment", i,
-			"output", string(output))
+		slog.Info("生成した音声のセグメント分割が完了しました", "id", id, "segment", i)
 
 		segmentNames = append(segmentNames, segmentName)
 	}
 
-	slog.Info("すべてのセグメントの分割が完了しました",
-		"id", id,
-		"count", len(segmentNames))
+	slog.Info("すべてのセグメントの分割が完了しました", "id", id, "count", len(segmentNames))
 	return segmentNames, nil
 }
 
@@ -436,19 +426,6 @@ func (t *TTSBroadcaster) streamManager() {
 			}
 		}
 		// t.cleanupOldStreams()
-	}
-}
-
-func (t *TTSBroadcaster) ensureMinimumBuffer(id string, stream *Stream) {
-	stream.playlistMu.Lock()
-	currentCount := stream.playlist.Count()
-	stream.playlistMu.Unlock()
-
-	neededSegments := t.config.TTSBroadcaster.MinBufferSegments - int(currentCount)
-	if neededSegments > 0 {
-		for range neededSegments {
-			t.addSilenceSegment(id, stream)
-		}
 	}
 }
 
@@ -554,8 +531,6 @@ func (t *TTSBroadcaster) BroadCastText(id string, text string, speaker int) {
 		stream.isStreaming = false
 		stream.lastSegmentTime = time.Now()
 		stream.streamingMu.Unlock()
-
-		// t.ensureMinimumBuffer(id, stream)
 	}()
 }
 
