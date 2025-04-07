@@ -126,6 +126,7 @@ func generateProfile(prompt string, avatarURL string) (*model.Profile, error) {
 	}
 
 	req, err := http.NewRequest("POST", "https://api.openai.com/v1/chat/completions", bytes.NewBuffer(requestBody))
+	slog.Info("ダイナミックプロフィールの生成をリクエストしました", "avatar", avatarURL)
 	if err != nil {
 		return nil, err
 	}
@@ -176,7 +177,7 @@ func generateProfileWithIgnoreNames(prompt string, avatarURL string, ignoreNames
 			return nil, err
 		}
 		if !slices.Contains(ignoreNames, profile.Name) {
-			slog.Info("ダイナミックプロフィールを生成しました", "name", profile.Name)
+			slog.Info("ダイナミックプロフィールを生成しました", "avatar", profile.AvatarURL, "name", profile.Name)
 			return profile, nil
 		}
 	}
