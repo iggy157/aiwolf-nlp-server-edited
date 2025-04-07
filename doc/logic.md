@@ -168,21 +168,21 @@
 
 **a. メンション(`@エージェントの名前`)が含まれる場合**
 
-最初に出現したメンションの `@` より手前の文字列を `mention_before` とします。\
-メンション(`@エージェントの名前`)が含まれる場合は、最初に出現したメンションの以降(エージェント名より後ろ)の文字列を `mention_after` とします。\
+最初に出現したメンションの `@` より手前の発言を `mention_before` とします。\
+メンション(`@エージェントの名前`)が含まれる場合は、最初に出現したメンションの以降(エージェント名より後ろ)の発言を `mention_after` とします。\
 `mention_before` を `base_length` + `remain_length` の文字数で制限します。\
 `mention_before` の文字数 - `base_length` の値が正の値である場合、`remain_length` をその値で減算します。\
 `mention_after` を `setting.whisper.max_length.mention_length` + `remain_length` の文字数で制限します。\
 `mention_after` の文字数 - `setting.whisper.max_length.mention_length` の値が正の値である場合、`remain_length` をその値で減算します。\
-`mention_before` とメンションと `mention_after` を結合したものを文字列とします。
+`mention_before` とメンションと `mention_after` を結合したものを発言とします。
 
 **b. メンション(`@エージェントの名前`)が含まれない場合**
 
-文字列を `base_length` + `remain_length` の文字数で制限します。\
-文字列の文字数 - `base_length` の値が正の値である場合、`remain_length` をその値で減算します。
+発言を `base_length` + `remain_length` の文字数で制限します。\
+発言の文字数 - `base_length` の値が正の値である場合、`remain_length` をその値で減算します。
 
 #### 2. `setting.whisper.max_length.per_talk` の制限がある場合
 
-文字列を `setting.whisper.max_length.per_talk` の文字数で制限します。\
+発言を `setting.whisper.max_length.per_talk` の文字数で制限します。
 
-#### 3. 文字列の文字数が0の場合は、オーバー発言に置換します
+#### 3. 発言の文字数が0の場合は、オーバー発言に置換します
