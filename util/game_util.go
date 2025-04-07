@@ -3,7 +3,6 @@ package util
 import (
 	"maps"
 	"math/rand/v2"
-	"slices"
 	"strings"
 	"unicode/utf8"
 
@@ -66,15 +65,18 @@ func CreateAgents(conns []model.Connection, roles map[model.Role]int) []*model.A
 	return agents
 }
 
-func CreateAgentsWithProfile(conns []model.Connection, roles map[model.Role]int, profiles map[string]map[string]string) []*model.Agent {
+func CreateAgentsWithProfiles(conns []model.Connection, roles map[model.Role]int, profiles []model.Profile) []*model.Agent {
 	rolesCopy := make(map[model.Role]int)
 	maps.Copy(rolesCopy, roles)
 	agents := make([]*model.Agent, 0)
-	names := slices.Collect(maps.Keys(profiles))
-	rand.Shuffle(len(names), func(i, j int) { names[i], names[j] = names[j], names[i] })
+
+	rand.Shuffle(len(profiles), func(i, j int) {
+		profiles[i], profiles[j] = profiles[j], profiles[i]
+	})
+
 	for i, conn := range conns {
 		role := assignRole(rolesCopy)
-		agent := model.NewAgentWithProfile(i+1, role, conn, names[i], profiles[names[i]])
+		agent := model.NewAgentWithProfile(i+1, role, conn, profiles[i])
 		agents = append(agents, agent)
 	}
 	return agents
@@ -93,14 +95,14 @@ func CreateAgentsWithRole(roleMapConns map[model.Role][]model.Connection) []*mod
 	return agents
 }
 
-func CreateAgentsWithRoleAndProfile(roleMapConns map[model.Role][]model.Connection, profiles map[string]map[string]string) []*model.Agent {
+func CreateAgentsWithRoleAndProfile(roleMapConns map[model.Role][]model.Connection, profiles []model.Profile) []*model.Agent {
 	agents := make([]*model.Agent, 0)
-	names := slices.Collect(maps.Keys(profiles))
-	rand.Shuffle(len(names), func(i, j int) { names[i], names[j] = names[j], names[i] })
+	rand.Shuffle(len(profiles), func(i, j int) { profiles[i], profiles[j] = profiles[j], profiles[i] })
+
 	i := 0
 	for role, conns := range roleMapConns {
 		for _, conn := range conns {
-			agent := model.NewAgentWithProfile(i+1, role, conn, names[i], profiles[names[i]])
+			agent := model.NewAgentWithProfile(i+1, role, conn, profiles[i])
 			i++
 			agents = append(agents, agent)
 		}
