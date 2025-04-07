@@ -49,8 +49,8 @@ func NewSetting(config Config) (*Setting, error) {
 	if roleNumMap == nil {
 		return nil, errors.New("対応する役職の人数がありません")
 	}
-	if config.Game.CustomProfile.Enable {
-		if len(config.Game.CustomProfile.Profile) < config.Game.AgentCount {
+	if config.Game.CustomProfile.Enable && !config.Game.CustomProfile.DynamicProfile.Enable {
+		if len(config.Game.CustomProfile.Profiles) < config.Game.AgentCount {
 			return nil, errors.New("カスタムプロフィールの人数がエージェント数より少ないです")
 		}
 	}

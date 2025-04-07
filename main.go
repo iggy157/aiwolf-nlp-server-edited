@@ -2,10 +2,12 @@ package main
 
 import (
 	"flag"
+	"log/slog"
 	"os"
 
 	"github.com/aiwolfdial/aiwolf-nlp-server/core"
 	"github.com/aiwolfdial/aiwolf-nlp-server/model"
+	"github.com/joho/godotenv"
 )
 
 var (
@@ -15,6 +17,11 @@ var (
 )
 
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		slog.Error("環境変数の読み込みに失敗しました", "error", err)
+	}
+
 	core.SetVersion(version, revision, build)
 
 	var (
