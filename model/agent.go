@@ -12,28 +12,30 @@ import (
 )
 
 type Agent struct {
-	Idx          int
-	TeamName     string
-	OriginalName string
-	GameName     string
-	Profile      *string
-	Avatar       *string
-	Role         Role
-	Connection   *websocket.Conn
-	HasError     bool
+	Idx                int
+	TeamName           string
+	OriginalName       string
+	GameName           string
+	Profile            *Profile
+	ProfileDescription *string
+	Avatar             *string
+	Role               Role
+	Connection         *websocket.Conn
+	HasError           bool
 }
 
 func NewAgent(idx int, role Role, conn Connection) *Agent {
 	agent := &Agent{
-		Idx:          idx,
-		TeamName:     conn.TeamName,
-		OriginalName: conn.OriginalName,
-		GameName:     "Agent[" + fmt.Sprintf("%02d", idx) + "]",
-		Profile:      nil,
-		Avatar:       nil,
-		Role:         role,
-		Connection:   conn.Conn,
-		HasError:     false,
+		Idx:                idx,
+		TeamName:           conn.TeamName,
+		OriginalName:       conn.OriginalName,
+		GameName:           "Agent[" + fmt.Sprintf("%02d", idx) + "]",
+		Profile:            nil,
+		ProfileDescription: nil,
+		Avatar:             nil,
+		Role:               role,
+		Connection:         conn.Conn,
+		HasError:           false,
 	}
 	slog.Info("エージェントを作成しました", "idx", agent.Idx, "agent", agent.String(), "role", agent.Role, "connection", agent.Connection.RemoteAddr())
 	return agent
@@ -42,17 +44,17 @@ func NewAgent(idx int, role Role, conn Connection) *Agent {
 func NewAgentWithProfile(idx int, role Role, conn Connection, profile Profile) *Agent {
 	description := "年齢: " + fmt.Sprintf("%d", profile.Age) + "歳\n" + "性別: " + profile.Sex + "\n" + profile.Personality
 	agent := &Agent{
-		Idx:          idx,
-		TeamName:     conn.TeamName,
-		OriginalName: conn.OriginalName,
-		GameName:     profile.Name,
-		Profile:      &description,
-		Avatar:       &profile.AvatarURL,
-		Role:         role,
-		Connection:   conn.Conn,
-		HasError:     false,
+		Idx:                idx,
+		TeamName:           conn.TeamName,
+		OriginalName:       conn.OriginalName,
+		GameName:           profile.Name,
+		Profile:            &profile,
+		ProfileDescription: &description,
+		Role:               role,
+		Connection:         conn.Conn,
+		HasError:           false,
 	}
-	slog.Info("エージェントを作成しました", "idx", agent.Idx, "agent", agent.String(), "profile", agent.Profile, "role", agent.Role, "connection", agent.Connection.RemoteAddr())
+	slog.Info("エージェントを作成しました", "idx", agent.Idx, "agent", agent.String(), "profile", agent.ProfileDescription, "role", agent.Role, "connection", agent.Connection.RemoteAddr())
 	return agent
 }
 
