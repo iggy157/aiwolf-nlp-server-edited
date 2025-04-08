@@ -101,7 +101,7 @@ func (g *Game) requestToAgent(agent *model.Agent, request model.Request) (string
 		g.resetLastIdxMaps()
 		packet = model.Packet{Request: &request, Info: &info, Setting: g.setting}
 		if request == model.R_INITIALIZE {
-			packet.Info.Profile = agent.Profile
+			packet.Info.Profile = agent.ProfileDescription
 		}
 	case model.R_VOTE, model.R_DIVINE, model.R_GUARD:
 		packet = model.Packet{Request: &request, Info: &info}
@@ -189,8 +189,8 @@ func (g *Game) getRealtimeBroadcastPacket() model.BroadcastPacket {
 			Idx:     a.Idx,
 			Team:    a.TeamName,
 			Name:    a.GameName,
-			Profile: a.Profile,
-			Avatar:  a.Avatar,
+			Profile: a.ProfileDescription,
+			Avatar:  &a.Profile.AvatarURL,
 			Role:    a.Role.Name,
 			IsAlive: g.isAlive(a),
 		}

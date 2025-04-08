@@ -110,6 +110,7 @@ type TalkConfig struct {
 type Profile struct {
 	Name        string `yaml:"name"`
 	AvatarURL   string `yaml:"avatar_url"`
+	VoiceID     int    `yaml:"voice_id"`
 	Age         int    `yaml:"age"`
 	Sex         string `yaml:"sex"`
 	Personality string `yaml:"personality"`

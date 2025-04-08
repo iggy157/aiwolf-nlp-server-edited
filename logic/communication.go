@@ -207,7 +207,7 @@ func (g *Game) conductCommunication(request model.Request) {
 				}
 			}
 			if g.TTSBroadcaster != nil {
-				g.TTSBroadcaster.BroadcastText(g.ID, talk.Text, 1)
+				g.TTSBroadcaster.BroadcastText(g.ID, talk.Text, agent.Profile.VoiceID)
 			}
 			slog.Info("発言を受信しました", "id", g.ID, "agent", agent.String(), "text", text, "count", remainCountMap[*agent], "length", remainLengthMap[*agent], "skip", remainSkipMap[*agent])
 		}

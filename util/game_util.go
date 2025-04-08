@@ -70,9 +70,7 @@ func CreateAgentsWithProfiles(conns []model.Connection, roles map[model.Role]int
 	maps.Copy(rolesCopy, roles)
 	agents := make([]*model.Agent, 0)
 
-	rand.Shuffle(len(profiles), func(i, j int) {
-		profiles[i], profiles[j] = profiles[j], profiles[i]
-	})
+	rand.Shuffle(len(profiles), func(i, j int) { profiles[i], profiles[j] = profiles[j], profiles[i] })
 
 	for i, conn := range conns {
 		role := assignRole(rolesCopy)
