@@ -190,7 +190,7 @@ func (g *Game) getRealtimeBroadcastPacket() model.BroadcastPacket {
 			Team:    a.TeamName,
 			Name:    a.GameName,
 			Profile: a.ProfileDescription,
-			Avatar:  a.Avatar,
+			Avatar:  &a.Profile.AvatarURL,
 			Role:    a.Role.Name,
 			IsAlive: g.isAlive(a),
 		}

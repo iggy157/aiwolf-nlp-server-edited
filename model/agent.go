@@ -18,7 +18,6 @@ type Agent struct {
 	GameName           string
 	Profile            *Profile
 	ProfileDescription *string
-	Avatar             *string
 	Role               Role
 	Connection         *websocket.Conn
 	HasError           bool
@@ -32,7 +31,6 @@ func NewAgent(idx int, role Role, conn Connection) *Agent {
 		GameName:           "Agent[" + fmt.Sprintf("%02d", idx) + "]",
 		Profile:            nil,
 		ProfileDescription: nil,
-		Avatar:             nil,
 		Role:               role,
 		Connection:         conn.Conn,
 		HasError:           false,
