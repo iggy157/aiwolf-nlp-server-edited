@@ -235,7 +235,7 @@ realtime_broadcaster:
   enable: true
 
 tts_broadcaster:
-  enable: true # TTSのHLS配信を有効にするか (非推奨)
+  enable: false # TTSのHLS配信を有効にするか (非推奨)
   target_duration: 2s # 1セグメントの長さ
   min_buffer_segments: 3 # バッファのセグメント数
   segment_dir: ./cache/segment # セグメントの出力ディレクトリ
