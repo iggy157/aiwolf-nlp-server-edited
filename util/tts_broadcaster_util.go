@@ -127,14 +127,14 @@ func ConvertWavToSegment(params ConvertWavToSegmentParams) ([]string, error) {
 	segmentNames := make([]string, segmentCount)
 	for i := range segmentCount {
 		segmentName := fmt.Sprintf("%s_%d.ts", params.BaseName, i)
-		segmentNames = append(segmentNames, segmentName)
+		segmentNames[i] = segmentName
 		segmentPath := filepath.Join(params.BaseDir, segmentName)
 		startTime := float64(i) * params.SegmentDuration
-		duration := params.SegmentDuration
+		segmentDuration := params.SegmentDuration
 		if i == segmentCount-1 {
-			duration = duration - startTime
+			segmentDuration = duration - startTime
 		}
-		splitArgs := []string{"-i", aacPath, "-ss", fmt.Sprintf("%f", startTime), "-t", fmt.Sprintf("%f", duration)}
+		splitArgs := []string{"-i", aacPath, "-ss", fmt.Sprintf("%f", startTime), "-t", fmt.Sprintf("%f", segmentDuration)}
 		splitArgs = append(splitArgs, params.SplitArgs...)
 		splitArgs = append(splitArgs, segmentPath)
 		if _, err := executeCommand(params.FfmpegPath, splitArgs...); err != nil {
