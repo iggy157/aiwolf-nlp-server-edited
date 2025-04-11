@@ -2,27 +2,26 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Launch aiwolf-nlp-server (default)",
+            "name": "Launch default 5 players",
             "type": "go",
             "request": "launch",
             "mode": "debug",
             "program": "${workspaceFolder}/main.go",
             "args": [
                 "-c",
-                "${workspaceFolder}/config/default.yml"
+                "${workspaceFolder}/config/default_5.yml"
             ],
         },
         {
-            "name": "Launch aiwolf-nlp-server analyzer (default)",
+            "name": "Launch default 13 players",
             "type": "go",
             "request": "launch",
             "mode": "debug",
             "program": "${workspaceFolder}/main.go",
             "args": [
-                "-a",
                 "-c",
-                "${workspaceFolder}/config/default.yml"
+                "${workspaceFolder}/config/default_13.yml"
             ],
-        }
+        },
     ]
 }

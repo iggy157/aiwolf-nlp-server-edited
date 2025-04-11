@@ -9,7 +9,7 @@ server:
     secret: your-256-bit-secret
 
 game:
-  agent_count: 5
+  agent_count: 13
   custom_profile:
     enable: true
     profiles:
@@ -192,7 +192,7 @@ game:
   talk:
     max_count:
       per_agent: 4
-      per_day: 28
+      per_day: 52
     max_length:
       count_in_word: false
       per_talk: -1
@@ -235,7 +235,7 @@ realtime_broadcaster:
   enable: true
 
 tts_broadcaster:
-  enable: true # TTSのHLS配信を有効にするか (非推奨)
+  enable: false # TTSのHLS配信を有効にするか (非推奨)
   target_duration: 2s # 1セグメントの長さ
   min_buffer_segments: 3 # バッファのセグメント数
   segment_dir: ./cache/segment # セグメントの出力ディレクトリ
@@ -307,7 +307,7 @@ tts_broadcaster:
 matching:
   self_match: true
   is_optimize: false
-  team_count: 5
-  game_count: 30
+  team_count: 13
+  game_count: 13
   output_path: ./log/match_optimizer.json
   infinite_loop: false

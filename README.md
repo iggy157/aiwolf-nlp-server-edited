@@ -26,24 +26,26 @@
 ### Linux
 
 ```bash
-curl -LJO https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/aiwolf-nlp-server-linux-amd64
-curl -LJO https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/default.yml
+curl -O https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/aiwolf-nlp-server-darwin-amd64
+curl -O https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/default_5.yml
+curl -O https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/default_13.yml
 # ダイナミックプロフィールを使用する場合は、以下のコマンドを実行してください。
-# curl -LJO https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/example.env
-# mv example.env .env
+# curl -o .env https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/example.env
 chmod u+x ./aiwolf-nlp-server-linux-amd64
-./aiwolf-nlp-server-linux-amd64
+./aiwolf-nlp-server-linux-amd64 -c ./default_5.yml # 5人ゲームの場合
+# ./aiwolf-nlp-server-linux-amd64 -c ./default_13.yml # 13人ゲームの場合
 ```
 
 ### Windows
 
 ```bash
-curl -LJO https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/aiwolf-nlp-server-windows-amd64.exe
-curl -LJO https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/default.yml
+curl -O https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/aiwolf-nlp-server-darwin-amd64
+curl -O https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/default_5.yml
+curl -O https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/default_13.yml
 # ダイナミックプロフィールを使用する場合は、以下のコマンドを実行してください。
-# curl -LJO https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/example.env
-# mv example.env .env
-.\aiwolf-nlp-server-windows-amd64.exe
+# curl -o .env https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/example.env
+.\aiwolf-nlp-server-windows-amd64.exe -c ./default_5.yml # 5人ゲームの場合
+# .\aiwolf-nlp-server-windows-amd64.exe -c ./default_13.yml # 13人ゲームの場合
 ```
 
 ### macOS (Intel)
@@ -54,13 +56,14 @@ curl -LJO https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/downlo
 > <https://support.apple.com/ja-jp/guide/mac-help/mh40616/mac>
 
 ```bash
-curl -LJO https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/aiwolf-nlp-server-darwin-amd64
-curl -LJO https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/default.yml
+curl -O https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/aiwolf-nlp-server-darwin-amd64
+curl -O https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/default_5.yml
+curl -O https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/default_13.yml
 # ダイナミックプロフィールを使用する場合は、以下のコマンドを実行してください。
-# curl -LJO https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/example.env
-# mv example.env .env
+# curl -o .env https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/example.env
 chmod u+x ./aiwolf-nlp-server-darwin-amd64
-./aiwolf-nlp-server-darwin-amd64
+./aiwolf-nlp-server-darwin-amd64 -c ./default_5.yml # 5人ゲームの場合
+# ./aiwolf-nlp-server-darwin-amd64 -c ./default_13.yml # 13人ゲームの場合
 ```
 
 ### macOS (Apple Silicon)
@@ -71,11 +74,12 @@ chmod u+x ./aiwolf-nlp-server-darwin-amd64
 > <https://support.apple.com/ja-jp/guide/mac-help/mh40616/mac>
 
 ```bash
-curl -LJO https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/aiwolf-nlp-server-darwin-arm64
-curl -LJO https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/default.yml
+curl -O https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/aiwolf-nlp-server-darwin-amd64
+curl -O https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/default_5.yml
+curl -O https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/default_13.yml
 # ダイナミックプロフィールを使用する場合は、以下のコマンドを実行してください。
-# curl -LJO https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/example.env
-# mv example.env .env
+# curl -o .env https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/example.env
 chmod u+x ./aiwolf-nlp-server-darwin-arm64
-./aiwolf-nlp-server-darwin-arm64
+./aiwolf-nlp-server-darwin-arm64 -c ./default_5.yml # 5人ゲームの場合
+# ./aiwolf-nlp-server-darwin-arm64 -c ./default_13.yml # 13人ゲームの場合
 ```
