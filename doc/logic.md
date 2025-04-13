@@ -136,16 +136,16 @@
 囁きフェーズの場合は、`setting.whisper.max_count` の制限を使用します。\
 トークフェーズの場合は、`setting.talk.max_count` の制限を使用します。
 
-`setting.whisper.max_length.base_length` の制限がある場合はその値を、ない場合は0を `base_length` とします。\
-`setting.whisper.max_length.per_agent` で初期化された残り文字数を `remain_length` とします。
+`max_length.base_length` の制限がある場合はその値を、ない場合は0を `base_length` とします。\
+`max_length.per_agent` で初期化された残り文字数を `remain_length` とします。
 
 生存している人狼エージェント(トークフェーズの場合は生存しているエージェント)をランダムに並び替えた順列を作成します。
 
-#### `setting.whisper.max_count.per_day` の回数まで以下の処理を繰り返します
+#### `max_count.per_day` の回数まで以下の処理を繰り返します
 
 順列の先頭から順にエージェントに対して、以下の処理を繰り返します。
 
-エージェントの `setting.whisper.max_count.per_agent` の残り回数が0の場合は、スキップします。\
+エージェントの `max_count.per_agent` の残り回数が0の場合は、スキップします。\
 エージェントの `remain_length` が0以下の場合は、スキップします。 (`remaining_length` が設定されていない場合は除きます。)\
 エージェントに `WHISPER` リクエストを送信します。\
 エージェントからの `WHISPER` リクエストを受信します。\
@@ -164,25 +164,25 @@
 
 発言がオーバー、スキップ、強制スキップでない場合に以下の処理を上から順に行います。
 
-#### 1. `setting.whisper.max_length.per_agent` もしくは `setting.whisper.max_length.base_length` の制限がある場合
+#### 1. `max_length.per_agent` もしくは `max_length.base_length` の制限がある場合
 
-**a. メンション(`@エージェントの名前`)が含まれる場合**
+**1.a. メンション(`@エージェントの名前`)が含まれる場合**
 
 最初に出現したメンションの `@` より手前の発言を `mention_before` とします。\
 メンション(`@エージェントの名前`)が含まれる場合は、最初に出現したメンションの以降(エージェント名より後ろ)の発言を `mention_after` とします。\
 `mention_before` を `base_length` + `remain_length` の文字数で制限します。\
 `mention_before` の文字数 - `base_length` の値が正の値である場合、`remain_length` をその値で減算します。\
-`mention_after` を `setting.whisper.max_length.mention_length` + `remain_length` の文字数で制限します。\
-`mention_after` の文字数 - `setting.whisper.max_length.mention_length` の値が正の値である場合、`remain_length` をその値で減算します。\
+`mention_after` を `max_length.mention_length` + `remain_length` の文字数で制限します。\
+`mention_after` の文字数 - `max_length.mention_length` の値が正の値である場合、`remain_length` をその値で減算します。\
 `mention_before` とメンションと `mention_after` を結合したものを発言とします。
 
-**b. メンション(`@エージェントの名前`)が含まれない場合**
+**1.b. メンション(`@エージェントの名前`)が含まれない場合**
 
 発言を `base_length` + `remain_length` の文字数で制限します。\
 発言の文字数 - `base_length` の値が正の値である場合、`remain_length` をその値で減算します。
 
-#### 2. `setting.whisper.max_length.per_talk` の制限がある場合
+#### 2. `max_length.per_talk` の制限がある場合
 
-発言を `setting.whisper.max_length.per_talk` の文字数で制限します。
+発言を `max_length.per_talk` の文字数で制限します。
 
 #### 3. 発言の文字数が0の場合は、オーバー発言に置換します
