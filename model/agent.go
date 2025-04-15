@@ -40,7 +40,7 @@ func NewAgent(idx int, role Role, conn Connection) *Agent {
 }
 
 func NewAgentWithProfile(idx int, role Role, conn Connection, profile Profile) *Agent {
-	description := "年齢: " + fmt.Sprintf("%d", profile.Age) + "歳\n" + "性別: " + profile.Sex + "\n" + profile.Personality
+	description := "年齢: " + fmt.Sprintf("%d", profile.Age) + "歳\n" + "性別: " + profile.Gender + "\n" + profile.Personality
 	agent := &Agent{
 		Idx:                idx,
 		TeamName:           conn.TeamName,

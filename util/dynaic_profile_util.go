@@ -50,7 +50,7 @@ type ChatCompletionRequest struct {
 type ProfileData struct {
 	Name        string `json:"name"`
 	Age         int    `json:"age"`
-	Sex         string `json:"sex"`
+	Gender      string `json:"gender"`
 	Personality string `json:"personality"`
 }
 
@@ -74,7 +74,7 @@ func generateProfile(prompt string, avatarURL string) (*model.Profile, error) {
 			"age": {
 				"type": "number"
 			},
-			"sex": {
+			"gender": {
 				"type": "string"
 			},
 			"personality": {
@@ -84,7 +84,7 @@ func generateProfile(prompt string, avatarURL string) (*model.Profile, error) {
 		"required": [
 			"name",
 			"age",
-			"sex",
+			"gender",
 			"personality"
 		],
 		"additionalProperties": false
@@ -164,7 +164,7 @@ func generateProfile(prompt string, avatarURL string) (*model.Profile, error) {
 		Name:        profileData.Name,
 		AvatarURL:   avatarURL,
 		Age:         profileData.Age,
-		Sex:         profileData.Sex,
+		Gender:      profileData.Gender,
 		Personality: profileData.Personality,
 	}
 	return profile, nil

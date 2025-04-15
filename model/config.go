@@ -112,7 +112,7 @@ type Profile struct {
 	AvatarURL   string `yaml:"avatar_url"`
 	VoiceID     int    `yaml:"voice_id"`
 	Age         int    `yaml:"age"`
-	Sex         string `yaml:"sex"`
+	Gender      string `yaml:"gender"`
 	Personality string `yaml:"personality"`
 }
 

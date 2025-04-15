@@ -34,7 +34,7 @@
 - `name`: エージェントの名前
 - `avatar_url`: エージェントのアバター画像のURL
 - `age`: エージェントの年齢
-- `sex`: エージェントの性別
+- `gender`: エージェントの性別
 - `personality`: エージェントの性格
 
 #### dynamic_profile (動的プロフィールの設定)
