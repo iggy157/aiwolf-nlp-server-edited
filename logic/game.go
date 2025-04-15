@@ -13,6 +13,7 @@ import (
 type Game struct {
 	ID                           string
 	Agents                       []*model.Agent
+	WinSide                      model.Team
 	IsFinished                   bool
 	config                       *model.Config
 	setting                      *model.Setting
@@ -53,6 +54,7 @@ func NewGame(config *model.Config, settings *model.Setting, conns []model.Connec
 	return &Game{
 		ID:                id,
 		Agents:            agents,
+		WinSide:           model.T_NONE,
 		IsFinished:        false,
 		config:            config,
 		setting:           settings,
@@ -86,15 +88,16 @@ func NewGameWithRole(config *model.Config, settings *model.Setting, roleMapConns
 	gameStatuses[0] = &gameStatus
 	slog.Info("ゲームを作成しました", "id", id)
 	return &Game{
-		config:            config,
 		ID:                id,
-		setting:           settings,
 		Agents:            agents,
+		WinSide:           model.T_NONE,
+		IsFinished:        false,
+		config:            config,
+		setting:           settings,
 		currentDay:        0,
 		gameStatuses:      gameStatuses,
 		lastTalkIdxMap:    make(map[*model.Agent]int),
 		lastWhisperIdxMap: make(map[*model.Agent]int),
-		IsFinished:        false,
 	}
 }
 
@@ -107,18 +110,16 @@ func (g *Game) Start() model.Team {
 		g.GameLogger.TrackStartGame(g.ID, g.Agents)
 	}
 	g.requestToEveryone(model.R_INITIALIZE)
-	var winSide model.Team = model.T_NONE
-	for winSide == model.T_NONE && util.CalcHasErrorAgents(g.Agents) < int(float64(len(g.Agents))*g.config.Game.MaxContinueErrorRatio) {
+	for {
 		g.progressDay()
 		g.progressNight()
 		gameStatus := g.getCurrentGameStatus().NextDay()
 		g.gameStatuses[g.currentDay+1] = &gameStatus
 		g.currentDay++
 		slog.Info("日付が進みました", "id", g.ID, "day", g.currentDay)
-		winSide = util.CalcWinSideTeam(gameStatus.StatusMap)
-	}
-	if winSide == model.T_NONE {
-		slog.Warn("エラーが多発したため、ゲームを終了します", "id", g.ID)
+		if g.ShouldFinish() {
+			break
+		}
 	}
 	g.requestToEveryone(model.R_FINISH)
 	if g.GameLogger != nil {
@@ -126,25 +127,38 @@ func (g *Game) Start() model.Team {
 			g.GameLogger.AppendLog(g.ID, fmt.Sprintf("%d,status,%d,%s,%s,%s", g.currentDay, agent.Idx, agent.Role.Name, g.getCurrentGameStatus().StatusMap[*agent].String(), agent.OriginalName))
 		}
 		villagers, werewolves := util.CountAliveTeams(g.getCurrentGameStatus().StatusMap)
-		g.GameLogger.AppendLog(g.ID, fmt.Sprintf("%d,result,%d,%d,%s", g.currentDay, villagers, werewolves, winSide))
+		g.GameLogger.AppendLog(g.ID, fmt.Sprintf("%d,result,%d,%d,%s", g.currentDay, villagers, werewolves, g.WinSide))
 	}
 	if g.RealtimeBroadcaster != nil {
 		packet := g.getRealtimeBroadcastPacket()
 		packet.Event = "終了"
-		message := string(winSide)
+		message := string(g.WinSide)
 		packet.Message = &message
 		g.RealtimeBroadcaster.Broadcast(packet)
 	}
 	g.closeAllAgents()
 	if g.JsonLogger != nil {
-		g.JsonLogger.TrackEndGame(g.ID, winSide)
+		g.JsonLogger.TrackEndGame(g.ID, g.WinSide)
 	}
 	if g.GameLogger != nil {
 		g.GameLogger.TrackEndGame(g.ID)
 	}
-	slog.Info("ゲームが終了しました", "id", g.ID, "winSide", winSide)
+	slog.Info("ゲームが終了しました", "id", g.ID, "winSide", g.WinSide)
 	g.IsFinished = true
-	return winSide
+	return g.WinSide
+}
+
+func (g *Game) ShouldFinish() bool {
+	if util.CalcHasErrorAgents(g.Agents) >= int(float64(len(g.Agents))*g.config.Game.MaxContinueErrorRatio) {
+		slog.Warn("エラーが多発したため、ゲームを終了します", "id", g.ID)
+		return true
+	}
+	g.WinSide = util.CalcWinSideTeam(g.getCurrentGameStatus().StatusMap)
+	if g.WinSide != model.T_NONE {
+		slog.Info("勝利チームが決定したため、ゲームを終了します", "id", g.ID)
+		return true
+	}
+	return false
 }
 
 func (g *Game) progressDay() {
@@ -172,12 +186,18 @@ func (g *Game) progressNight() {
 	}
 	if g.currentDay != 0 {
 		g.doExecution()
+		if g.ShouldFinish() {
+			return
+		}
 	}
 	g.doDivine()
 	if g.currentDay != 0 {
 		g.doWhisper()
 		g.doGuard()
 		g.doAttack()
+		if g.ShouldFinish() {
+			return
+		}
 	}
 	slog.Info("夜セクションを終了します", "id", g.ID, "day", g.currentDay)
 }
