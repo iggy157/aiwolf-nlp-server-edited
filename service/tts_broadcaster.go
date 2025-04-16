@@ -42,6 +42,7 @@ type Stream struct {
 
 const (
 	SILENCE_TEMPLATE_FILE = "silence.ts"
+	PLAYLIST_FILE         = "playlist.m3u8"
 )
 
 func NewTTSBroadcaster(config model.Config) *TTSBroadcaster {
@@ -170,7 +171,7 @@ func (t *TTSBroadcaster) addSilenceSegment(id string, stream *Stream) {
 
 func (t *TTSBroadcaster) writePlaylist(id string, stream *Stream) {
 	streamDir := t.getSegmentDir(id)
-	playlistPath := filepath.Join(streamDir, "playlist.m3u8")
+	playlistPath := filepath.Join(streamDir, PLAYLIST_FILE)
 
 	if err := os.MkdirAll(streamDir, 0755); err != nil {
 		slog.Error("プレイリストディレクトリの作成に失敗しました", "error", err, "id", id)
@@ -235,7 +236,7 @@ func (t *TTSBroadcaster) HandlePlaylist(c *gin.Context) {
 	}
 
 	streamDir := t.getSegmentDir(id)
-	playlistPath := filepath.Join(streamDir, "playlist.m3u8")
+	playlistPath := filepath.Join(streamDir, PLAYLIST_FILE)
 
 	if _, err := os.Stat(playlistPath); os.IsNotExist(err) {
 		c.Status(http.StatusNotFound)
