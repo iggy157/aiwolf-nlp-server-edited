@@ -12,9 +12,9 @@ import (
 
 type Game struct {
 	ID                           string
-	Agents                       []*model.Agent
-	WinSide                      model.Team
-	IsFinished                   bool
+	agents                       []*model.Agent
+	winSide                      model.Team
+	isFinished                   bool
 	config                       *model.Config
 	setting                      *model.Setting
 	currentDay                   int
@@ -53,9 +53,9 @@ func NewGame(config *model.Config, settings *model.Setting, conns []model.Connec
 	slog.Info("ゲームを作成しました", "id", id)
 	return &Game{
 		ID:                id,
-		Agents:            agents,
-		WinSide:           model.T_NONE,
-		IsFinished:        false,
+		agents:            agents,
+		winSide:           model.T_NONE,
+		isFinished:        false,
 		config:            config,
 		setting:           settings,
 		currentDay:        0,
@@ -89,9 +89,9 @@ func NewGameWithRole(config *model.Config, settings *model.Setting, roleMapConns
 	slog.Info("ゲームを作成しました", "id", id)
 	return &Game{
 		ID:                id,
-		Agents:            agents,
-		WinSide:           model.T_NONE,
-		IsFinished:        false,
+		agents:            agents,
+		winSide:           model.T_NONE,
+		isFinished:        false,
 		config:            config,
 		setting:           settings,
 		currentDay:        0,
@@ -104,10 +104,10 @@ func NewGameWithRole(config *model.Config, settings *model.Setting, roleMapConns
 func (g *Game) Start() model.Team {
 	slog.Info("ゲームを開始します", "id", g.ID)
 	if g.JsonLogger != nil {
-		g.JsonLogger.TrackStartGame(g.ID, g.Agents)
+		g.JsonLogger.TrackStartGame(g.ID, g.agents)
 	}
 	if g.GameLogger != nil {
-		g.GameLogger.TrackStartGame(g.ID, g.Agents)
+		g.GameLogger.TrackStartGame(g.ID, g.agents)
 	}
 	g.requestToEveryone(model.R_INITIALIZE)
 	for {
@@ -117,44 +117,44 @@ func (g *Game) Start() model.Team {
 		g.gameStatuses[g.currentDay+1] = &gameStatus
 		g.currentDay++
 		slog.Info("日付が進みました", "id", g.ID, "day", g.currentDay)
-		if g.ShouldFinish() {
+		if g.shouldFinish() {
 			break
 		}
 	}
 	g.requestToEveryone(model.R_FINISH)
 	if g.GameLogger != nil {
-		for _, agent := range g.Agents {
+		for _, agent := range g.agents {
 			g.GameLogger.AppendLog(g.ID, fmt.Sprintf("%d,status,%d,%s,%s,%s", g.currentDay, agent.Idx, agent.Role.Name, g.getCurrentGameStatus().StatusMap[*agent].String(), agent.OriginalName))
 		}
 		villagers, werewolves := util.CountAliveTeams(g.getCurrentGameStatus().StatusMap)
-		g.GameLogger.AppendLog(g.ID, fmt.Sprintf("%d,result,%d,%d,%s", g.currentDay, villagers, werewolves, g.WinSide))
+		g.GameLogger.AppendLog(g.ID, fmt.Sprintf("%d,result,%d,%d,%s", g.currentDay, villagers, werewolves, g.winSide))
 	}
 	if g.RealtimeBroadcaster != nil {
 		packet := g.getRealtimeBroadcastPacket()
 		packet.Event = "終了"
-		message := string(g.WinSide)
+		message := string(g.winSide)
 		packet.Message = &message
 		g.RealtimeBroadcaster.Broadcast(packet)
 	}
 	g.closeAllAgents()
 	if g.JsonLogger != nil {
-		g.JsonLogger.TrackEndGame(g.ID, g.WinSide)
+		g.JsonLogger.TrackEndGame(g.ID, g.winSide)
 	}
 	if g.GameLogger != nil {
 		g.GameLogger.TrackEndGame(g.ID)
 	}
-	slog.Info("ゲームが終了しました", "id", g.ID, "winSide", g.WinSide)
-	g.IsFinished = true
-	return g.WinSide
+	slog.Info("ゲームが終了しました", "id", g.ID, "winSide", g.winSide)
+	g.isFinished = true
+	return g.winSide
 }
 
-func (g *Game) ShouldFinish() bool {
-	if util.CalcHasErrorAgents(g.Agents) >= int(float64(len(g.Agents))*g.config.Game.MaxContinueErrorRatio) {
+func (g *Game) shouldFinish() bool {
+	if util.CalcHasErrorAgents(g.agents) >= int(float64(len(g.agents))*g.config.Game.MaxContinueErrorRatio) {
 		slog.Warn("エラーが多発したため、ゲームを終了します", "id", g.ID)
 		return true
 	}
-	g.WinSide = util.CalcWinSideTeam(g.getCurrentGameStatus().StatusMap)
-	if g.WinSide != model.T_NONE {
+	g.winSide = util.CalcWinSideTeam(g.getCurrentGameStatus().StatusMap)
+	if g.winSide != model.T_NONE {
 		slog.Info("勝利チームが決定したため、ゲームを終了します", "id", g.ID)
 		return true
 	}
@@ -166,7 +166,7 @@ func (g *Game) progressDay() {
 	g.isDaytime = true
 	g.requestToEveryone(model.R_DAILY_INITIALIZE)
 	if g.GameLogger != nil {
-		for _, agent := range g.Agents {
+		for _, agent := range g.agents {
 			g.GameLogger.AppendLog(g.ID, fmt.Sprintf("%d,status,%d,%s,%s,%s", g.currentDay, agent.Idx, agent.Role.Name, g.getCurrentGameStatus().StatusMap[*agent].String(), agent.OriginalName))
 		}
 	}
@@ -186,7 +186,7 @@ func (g *Game) progressNight() {
 	}
 	if g.currentDay != 0 {
 		g.doExecution()
-		if g.ShouldFinish() {
+		if g.shouldFinish() {
 			return
 		}
 	}
@@ -195,7 +195,7 @@ func (g *Game) progressNight() {
 		g.doWhisper()
 		g.doGuard()
 		g.doAttack()
-		if g.ShouldFinish() {
+		if g.shouldFinish() {
 			return
 		}
 	}

@@ -128,7 +128,7 @@ func (s *Server) gracefullyShutdown() {
 		isFinished := true
 		s.mu.RLock()
 		for _, game := range s.games {
-			if !game.IsFinished {
+			if !game.IsFinished() {
 				isFinished = false
 				break
 			}
@@ -223,9 +223,9 @@ func (s *Server) handleConnections(w http.ResponseWriter, r *http.Request) {
 			s.mu.Lock()
 			defer s.mu.Unlock()
 			if winSide != model.T_NONE {
-				s.matchOptimizer.setMatchEnd(util.GetRoleTeamNamesMap(game.Agents))
+				s.matchOptimizer.setMatchEnd(game.GetRoleTeamNamesMap())
 			} else {
-				s.matchOptimizer.setMatchWeight(util.GetRoleTeamNamesMap(game.Agents), 0)
+				s.matchOptimizer.setMatchWeight(game.GetRoleTeamNamesMap(), 0)
 			}
 		}
 	}()

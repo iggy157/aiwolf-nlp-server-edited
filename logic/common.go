@@ -13,7 +13,7 @@ func (g *Game) findTargetByRequest(agent *model.Agent, request model.Request) (*
 	if err != nil {
 		return nil, err
 	}
-	target := util.FindAgentByName(g.Agents, name)
+	target := util.FindAgentByName(g.agents, name)
 	if target == nil {
 		return nil, errors.New("対象エージェントが見つかりません")
 	}
@@ -21,13 +21,13 @@ func (g *Game) findTargetByRequest(agent *model.Agent, request model.Request) (*
 	return target, nil
 }
 func (g *Game) closeAllAgents() {
-	for _, agent := range g.Agents {
+	for _, agent := range g.agents {
 		agent.Close()
 	}
 }
 
 func (g *Game) requestToEveryone(request model.Request) {
-	for _, agent := range g.Agents {
+	for _, agent := range g.agents {
 		g.requestToAgent(agent, request)
 	}
 }
@@ -115,7 +115,7 @@ func (g *Game) requestToAgent(agent *model.Agent, request model.Request) (string
 			packet.WhisperHistory = &whispers
 		}
 	case model.R_FINISH:
-		info.RoleMap = util.GetRoleMap(g.Agents)
+		info.RoleMap = util.GetRoleMap(g.agents)
 		packet = model.Packet{Request: &request, Info: &info}
 	default:
 		return "", errors.New("一致するリクエストがありません")
@@ -148,13 +148,13 @@ func (g *Game) getCurrentGameStatus() *model.GameStatus {
 }
 
 func (g *Game) getAliveAgents() []*model.Agent {
-	return util.FilterAgents(g.Agents, func(agent *model.Agent) bool {
+	return util.FilterAgents(g.agents, func(agent *model.Agent) bool {
 		return g.isAlive(agent)
 	})
 }
 
 func (g *Game) getAliveWerewolves() []*model.Agent {
-	return util.FilterAgents(g.Agents, func(agent *model.Agent) bool {
+	return util.FilterAgents(g.agents, func(agent *model.Agent) bool {
 		return g.isAlive(agent) && agent.Role.Species == model.S_WEREWOLF
 	})
 }
@@ -176,7 +176,7 @@ func (g *Game) getRealtimeBroadcastPacket() model.BroadcastPacket {
 		ToIdx:     nil,
 		BubbleIdx: nil,
 	}
-	for _, a := range g.Agents {
+	for _, a := range g.agents {
 		agent := struct {
 			Idx     int     `json:"idx"`
 			Team    string  `json:"team"`
@@ -197,4 +197,12 @@ func (g *Game) getRealtimeBroadcastPacket() model.BroadcastPacket {
 		packet.Agents = append(packet.Agents, agent)
 	}
 	return packet
+}
+
+func (g *Game) GetRoleTeamNamesMap() map[model.Role][]string {
+	return util.GetRoleTeamNamesMap(g.agents)
+}
+
+func (g *Game) IsFinished() bool {
+	return g.isFinished
 }
