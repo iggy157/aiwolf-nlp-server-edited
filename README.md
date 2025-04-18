@@ -44,8 +44,8 @@ curl -LO https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/downloa
 curl -LO https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/default_13.yml
 # ダイナミックプロフィールを使用する場合は、以下のコマンドを実行してください。
 # curl -Lo .env https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/example.env
-.\aiwolf-nlp-server-windows-amd64.exe -c ./default_5.yml # 5人ゲームの場合
-# .\aiwolf-nlp-server-windows-amd64.exe -c ./default_13.yml # 13人ゲームの場合
+.\aiwolf-nlp-server-windows-amd64.exe -c .\default_5.yml # 5人ゲームの場合
+# .\aiwolf-nlp-server-windows-amd64.exe -c .\default_13.yml # 13人ゲームの場合
 ```
 
 ### macOS (Intel)
