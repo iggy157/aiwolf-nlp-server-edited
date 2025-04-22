@@ -106,8 +106,12 @@ func (g *Game) conductCommunication(request model.Request) {
 							if a != agent {
 								mention = "@" + a.String()
 								if strings.Contains(text, mention) {
-									mentionIdx = strings.Index(text, mention)
-									break
+									if mentionIdx == -1 {
+										mentionIdx = strings.Index(text, mention)
+									}
+									if strings.Index(text, mention) < mentionIdx {
+										mentionIdx = strings.Index(text, mention)
+									}
 								}
 							}
 						}
