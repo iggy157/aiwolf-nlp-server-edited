@@ -119,7 +119,7 @@ func (g *Game) conductCommunication(request model.Request) {
 							remainLength += value
 						}
 						mentionBefore := text[:mentionIdx]
-						mentionAfter := text[mentionIdx+utf8.RuneCountInString(mention):]
+						mentionAfter := text[mentionIdx+len(mention):]
 
 						text = util.TrimLength(mentionBefore, remainLength, *talkSetting.MaxLength.CountInWord)
 						cost := util.CountLength(mentionBefore, *talkSetting.MaxLength.CountInWord) - baseLength
@@ -142,6 +142,8 @@ func (g *Game) conductCommunication(request model.Request) {
 								remainLengthMap[*agent] -= mentionCost
 							}
 						}
+
+						text += mentionText
 					} else {
 						remainLength := baseLength
 						if value, exists := remainLengthMap[*agent]; exists {
