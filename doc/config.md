@@ -101,9 +101,8 @@
   拡張子は不要です。`{game_id}` でゲームIDが置換されます。`{timestamp}` でタイムスタンプが置換されます。`{teams}` でチーム名が置換されます。
 
 > [!NOTE]
-> `json_logger` はサーバと各エージェントの通信をJSON形式で記録します。\
-> `game_logger` はゲームの進行を記録します。\
-> `game_logger` は従来のゲームサーバ([aiwolfdial/AIWolfNLPServer](https://github.com/aiwolfdial/AIWolfNLPServer))と互換性があります。
+> json_loggerはサーバと各エージェントの通信をJSON形式で記録するのに対して、game_loggerはゲームの進行を記録します。\
+> game_loggerは従来のゲームサーバ([aiwolfdial/AIWolfNLPServer](https://github.com/aiwolfdial/AIWolfNLPServer))と互換性があります。予選時に提出する必要があるログはgame_loggerのログです。
 
 ## realtime_broadcaster (リアルタイムブロードキャスターの設定)
 
