@@ -124,7 +124,7 @@ func (g *Game) Start() model.Team {
 	g.requestToEveryone(model.R_FINISH)
 	if g.GameLogger != nil {
 		for _, agent := range g.agents {
-			g.GameLogger.AppendLog(g.ID, fmt.Sprintf("%d,status,%d,%s,%s,%s", g.currentDay, agent.Idx, agent.Role.Name, g.getCurrentGameStatus().StatusMap[*agent].String(), agent.OriginalName))
+			g.GameLogger.AppendLog(g.ID, fmt.Sprintf("%d,status,%d,%s,%s,%s,%s", g.currentDay, agent.Idx, agent.Role.Name, g.getCurrentGameStatus().StatusMap[*agent].String(), agent.OriginalName, agent.GameName))
 		}
 		villagers, werewolves := util.CountAliveTeams(g.getCurrentGameStatus().StatusMap)
 		g.GameLogger.AppendLog(g.ID, fmt.Sprintf("%d,result,%d,%d,%s", g.currentDay, villagers, werewolves, g.winSide))
@@ -167,7 +167,7 @@ func (g *Game) progressDay() {
 	g.requestToEveryone(model.R_DAILY_INITIALIZE)
 	if g.GameLogger != nil {
 		for _, agent := range g.agents {
-			g.GameLogger.AppendLog(g.ID, fmt.Sprintf("%d,status,%d,%s,%s,%s", g.currentDay, agent.Idx, agent.Role.Name, g.getCurrentGameStatus().StatusMap[*agent].String(), agent.OriginalName))
+			g.GameLogger.AppendLog(g.ID, fmt.Sprintf("%d,status,%d,%s,%s,%s,%s", g.currentDay, agent.Idx, agent.Role.Name, g.getCurrentGameStatus().StatusMap[*agent].String(), agent.OriginalName, agent.GameName))
 		}
 	}
 	if g.setting.TalkOnFirstDay && g.currentDay == 0 {

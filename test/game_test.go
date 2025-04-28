@@ -1,6 +1,7 @@
 package test
 
 import (
+	"math/rand"
 	"net/url"
 	"os"
 	"strconv"
@@ -10,7 +11,6 @@ import (
 	"github.com/aiwolfdial/aiwolf-nlp-server/core"
 	"github.com/aiwolfdial/aiwolf-nlp-server/model"
 	"github.com/joho/godotenv"
-	"golang.org/x/exp/rand"
 )
 
 const WebSocketExternalHost = "0.0.0.0"
