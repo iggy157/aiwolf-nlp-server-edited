@@ -122,7 +122,7 @@
 - profile (str | None): 自分のエージェントのプロフィール. (リクエストの種類が INITIALIZE の場合のみ). 設定されない場合は None.
 - medium_result ([Judge](#judge) | None): 霊能者の結果 (エージェントの役職が霊媒師であるかつ霊能結果が設定されている場合のみ).
 - divine_result ([Judge](#judge) | None): 占い師の結果 (エージェントの役職が占い師であるかつ占い結果が設定されている場合のみ).
-- executed_agent (str | None): 昨日の追放結果 (エージェントが追放された場合のみ).
+- executed_agent (str | None): 昨夜の追放結果 (エージェントが追放された場合のみ).
 - attacked_agent (str | None): 昨夜の襲撃結果 (エージェントが襲撃された場合のみ).
 - vote_list (list[[Vote](#vote)] | None): 投票の結果 (投票結果が公開されている場合のみ).
 - attack_vote_list (list[[Vote](#vote)] | None): 襲撃の投票結果 (エージェントの役職が人狼かつ襲撃投票結果が公開されている場合のみ).
