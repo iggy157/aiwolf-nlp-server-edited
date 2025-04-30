@@ -1,7 +1,6 @@
 package test
 
 import (
-	"math/rand"
 	"net/url"
 	"os"
 	"strconv"
@@ -41,12 +40,7 @@ func TestGame(t *testing.T) {
 
 	names := make([]string, config.Game.AgentCount)
 	for i := range config.Game.AgentCount {
-		const letterBytes = "abcdefghijklmnopqrstuvwxyz"
-		b := make([]byte, 8)
-		for i := range b {
-			b[i] = letterBytes[rand.Intn(len(letterBytes))]
-		}
-		names[i] = string(b)
+		names[i] = "aiwolf-nlp-viewer"
 	}
 
 	clients := make([]*DummyClient, config.Game.AgentCount)
@@ -99,12 +93,7 @@ func TestManualGame(t *testing.T) {
 
 	names := make([]string, config.Game.AgentCount-1)
 	for i := range config.Game.AgentCount - 1 {
-		const letterBytes = "abcdefghijklmnopqrstuvwxyz"
-		b := make([]byte, 8)
-		for i := range b {
-			b[i] = letterBytes[rand.Intn(len(letterBytes))]
-		}
-		names[i] = string(b)
+		names[i] = "aiwolf-nlp-viewer"
 	}
 
 	clients := make([]*DummyClient, config.Game.AgentCount-1)
