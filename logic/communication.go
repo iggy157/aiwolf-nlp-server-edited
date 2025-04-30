@@ -104,7 +104,7 @@ func (g *Game) conductCommunication(request model.Request) {
 					if talkSetting.MaxLength.MentionLength != nil {
 						for _, a := range g.agents {
 							if a != agent {
-								if strings.Contains(text, mention) {
+								if strings.Contains(text, "@"+a.String()) {
 									if mentionIdx == -1 {
 										mention = "@" + a.String()
 										mentionIdx = strings.Index(text, mention)

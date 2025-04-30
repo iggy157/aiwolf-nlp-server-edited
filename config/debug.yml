@@ -9,7 +9,7 @@ server:
     secret: your-256-bit-secret
 
 game:
-  agent_count: 13
+  agent_count: 5
   custom_profile:
     enable: true
     profiles:
@@ -305,7 +305,7 @@ tts_broadcaster:
     - mpegts
 
 matching:
-  self_match: false
+  self_match: true
   is_optimize: false
   team_count: 5
   game_count: 30
