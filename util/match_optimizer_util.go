@@ -105,7 +105,7 @@ func GenerateMatches(gameCount int, teamCount int, roles []model.Role, theoretic
 				break
 			}
 			match[role] = append(match[role], bestIdx)
-			idxs[bestIdx] = true
+			idxs[bestIdx] = false
 			idxRoleCounts[bestIdx][role]++
 		}
 		if failed {
