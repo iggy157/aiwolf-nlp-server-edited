@@ -86,7 +86,7 @@ func Analyzer(config model.Config) {
 			for scanner.Scan() {
 				line := scanner.Text()
 				values := strings.Split(line, ",")
-				if len(values) == 6 && values[1] == "status" {
+				if (len(values) == 6 || len(values) == 7) && values[1] == "status" {
 					if values[0] == "0" {
 						team := strings.TrimRight(values[5], "1234567890")
 						role := model.RoleFromString(values[3])
