@@ -109,6 +109,9 @@ func (g *Game) Start() model.Team {
 	if g.GameLogger != nil {
 		g.GameLogger.TrackStartGame(g.ID, g.agents)
 	}
+	if g.TTSBroadcaster != nil {
+		g.TTSBroadcaster.CreateStream(g.ID)
+	}
 	g.requestToEveryone(model.R_INITIALIZE)
 	for {
 		g.progressDay()

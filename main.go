@@ -17,7 +17,7 @@ var (
 )
 
 func main() {
-	if _, err := os.Stat("main.go"); err == nil {
+	if version == "" {
 		if godotenv.Load("./config/.env") != nil {
 			slog.Error("環境変数の読み込みに失敗しました")
 		}

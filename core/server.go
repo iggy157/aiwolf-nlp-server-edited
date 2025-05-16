@@ -96,12 +96,7 @@ func (s *Server) Run() {
 	}
 
 	if s.config.TTSBroadcaster.Enable {
-		router.GET("/tts/:id/playlist.m3u8", func(c *gin.Context) {
-			s.ttsBroadcaster.HandlePlaylist(c)
-		})
-		router.GET("/tts/:id/:segment", func(c *gin.Context) {
-			s.ttsBroadcaster.HandleSegment(c)
-		})
+		router.Static("/tts", s.config.TTSBroadcaster.SegmentDir)
 		go s.ttsBroadcaster.Start()
 	}
 
