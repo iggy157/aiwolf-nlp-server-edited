@@ -87,8 +87,9 @@ func (a *Agent) SendPacket(packet Packet, actionTimeout, responseTimeout, accept
 		}()
 		select {
 		case res := <-responseChan:
-			slog.Info("レスポンスを受信しました", "agent", a.String(), "response", string(res))
-			return strings.TrimRight(string(res), "\n"), nil
+			response := strings.ReplaceAll(string(res), "\n", "")
+			slog.Info("レスポンスを受信しました", "agent", a.String(), "response", response)
+			return response, nil
 		case err := <-errChan:
 			if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway) {
 				slog.Error("接続が閉じられました", "error", err)

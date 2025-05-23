@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -51,19 +52,13 @@ func (g *GameLogger) TrackStartGame(id string, agents []*model.Agent) {
 	}
 	filename := strings.ReplaceAll(g.templateFilename, "{game_id}", data.id)
 	filename = strings.ReplaceAll(filename, "{timestamp}", fmt.Sprintf("%d", time.Now().Unix()))
-	teams := make(map[string]struct{})
+	teams := make([]string, 0)
 	for _, agent := range data.agents {
 		team := agent.(map[string]any)["team"].(string)
-		teams[team] = struct{}{}
+		teams = append(teams, team)
 	}
-	teamStr := ""
-	for team := range teams {
-		if teamStr != "" {
-			teamStr += "_"
-		}
-		teamStr += team
-	}
-	filename = strings.ReplaceAll(filename, "{teams}", teamStr)
+	sort.Strings(teams)
+	filename = strings.ReplaceAll(filename, "{teams}", strings.Join(teams, "_"))
 	data.filename = filename
 
 	g.mu.Lock()
