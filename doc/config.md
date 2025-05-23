@@ -83,7 +83,7 @@
 ### timeout (タイムアウトの設定)
 
 - `action`: エージェントのアクションのタイムアウト時間
-- `response`: エージェントのヘルスチェックのタイムアウト時間`
+- `response`: エージェントのヘルスチェックのタイムアウト時間
 - `acceptable`: サーバ側での猶予時間
 
 ## json_logger (JSONロガーの設定)
@@ -114,12 +114,31 @@
 
 ## tts_broadcaster (TTSブロードキャスターの設定)
 
-- `enable`: TTSブロードキャスターを有効にするかどうか
-  開発中の機能のため `false` で問題ありません。
-
 > [!NOTE]
 > TTSブロードキャスターは、ゲーム内の発言を音声で再生するための機能です。\
 > [VOICEVOX/voicevox_engine](https://github.com/VOICEVOX/voicevox_engine)を使用することで、音声合成を行います。
+
+VOICEVOXが提供するDocker イメージを使用することを推奨します。\
+`docker run --rm -p '127.0.0.1:50021:50021' voicevox/voicevox_engine:cpu-latest`
+
+ゲームサーバ起動中はVOICEVOX のサーバが常に起動状態である必要があります。
+
+- `enable`: TTSブロードキャスターを有効にするかどうか
+  開発中の機能のため `false` で問題ありません。
+- `target_duration`: 1セグメントの長さ
+- `segment_dir`: セグメントの出力ディレクトリ
+  このディレクトリ内のファイルはすべて公開されるため注意してください。
+- `temp_dir`: 一時ファイルの出力ディレクトリ
+  空白の場合はOS依存の一時ディレクトリを使用します。
+- `host`: VOICEVOXサーバのホスト名
+- `timeout`: VOICEVOXの生成タイムアウト時間
+- `ffmpeg_path`: ffmpegのパス
+- `ffprobe_path`: ffprobeのパス
+- `silence_args`: 無音セグメントを生成するための引数
+- `convert_args`: 生成した音声がセグメント長を満たさない場合にセグメントを生成するための引数
+- `duration_args`: 生成した音声の長さを取得するための引数
+- `pre_convert_args`: 生成した音声がセグメント長を超える場合に事前変換を行うための引数
+- `split_args`: 事前変換した音声をセグメントに分割するための引数
 
 ## matching (マッチングの設定)
 

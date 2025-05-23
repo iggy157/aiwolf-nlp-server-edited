@@ -235,15 +235,15 @@ realtime_broadcaster:
   enable: true
 
 tts_broadcaster:
-  enable: false # TTSのHLS配信を有効にするか (非推奨)
-  target_duration: 1s # 1セグメントの長さ
-  segment_dir: ./../cache/segment # セグメントの出力ディレクトリ
-  temp_dir: # 一時ファイルの出力ディレクトリ
-  host: http://localhost:50021 # 音声合成サーバのホスト
-  timeout: 30s # 音声合成サーバのタイムアウト時間
-  ffmpeg_path: ffmpeg # ffmpegのパス
-  ffprobe_path: ffprobe # ffprobeのパス
-  silence_args: # 無音セグメントを生成するための引数
+  enable: false
+  target_duration: 1s
+  segment_dir: ./../cache/segment
+  temp_dir:
+  host: http://localhost:50021
+  timeout: 30s
+  ffmpeg_path: ffmpeg
+  ffprobe_path: ffprobe
+  silence_args:
     - -f
     - lavfi
     - -i
@@ -262,7 +262,7 @@ tts_broadcaster:
     - "1"
     - -f
     - mpegts
-  convert_args: # 生成した音声がセグメント長を満たさない場合にセグメントを生成するための引数
+  convert_args:
     - -c:a
     - aac
     - -b:a
@@ -277,14 +277,14 @@ tts_broadcaster:
     - "1"
     - -f
     - mpegts
-  duration_args: # 生成した音声の長さを取得するための引数
+  duration_args:
     - -v
     - error
     - -show_entries
     - format=duration
     - -of
     - default=noprint_wrappers=1:nokey=1
-  pre_convert_args: # 生成した音声がセグメント長を超える場合に事前変換を行うための引数
+  pre_convert_args:
     - -c:a
     - aac
     - -b:a
@@ -293,7 +293,7 @@ tts_broadcaster:
     - "44100"
     - -ac
     - "2"
-  split_args: # 事前変換した音声をセグメントに分割するための引数
+  split_args:
     - -c:a
     - copy
     - -mpegts_flags
