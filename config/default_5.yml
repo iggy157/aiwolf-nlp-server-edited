@@ -304,7 +304,7 @@ tts_broadcaster:
     - mpegts
 
 matching:
-  self_match: false
+  self_match: true
   is_optimize: false
   team_count: 5
   game_count: 5
