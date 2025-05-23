@@ -59,6 +59,7 @@ func NewGame(config *model.Config, settings *model.Setting, conns []model.Connec
 		config:            config,
 		setting:           settings,
 		currentDay:        0,
+		isDaytime:         true,
 		gameStatuses:      gameStatuses,
 		lastTalkIdxMap:    make(map[*model.Agent]int),
 		lastWhisperIdxMap: make(map[*model.Agent]int),
@@ -95,6 +96,7 @@ func NewGameWithRole(config *model.Config, settings *model.Setting, roleMapConns
 		config:            config,
 		setting:           settings,
 		currentDay:        0,
+		isDaytime:         true,
 		gameStatuses:      gameStatuses,
 		lastTalkIdxMap:    make(map[*model.Agent]int),
 		lastWhisperIdxMap: make(map[*model.Agent]int),
@@ -111,6 +113,13 @@ func (g *Game) Start() model.Team {
 	}
 	if g.TTSBroadcaster != nil {
 		g.TTSBroadcaster.CreateStream(g.ID)
+	}
+	if g.RealtimeBroadcaster != nil {
+		packet := g.getRealtimeBroadcastPacket()
+		packet.Event = "開始"
+		message := "ゲームが開始されました"
+		packet.Message = &message
+		g.RealtimeBroadcaster.Broadcast(packet)
 	}
 	g.requestToEveryone(model.R_INITIALIZE)
 	for {

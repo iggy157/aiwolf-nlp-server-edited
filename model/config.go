@@ -67,20 +67,19 @@ type Config struct {
 		Enable bool `yaml:"enable"`
 	} `yaml:"realtime_broadcaster"`
 	TTSBroadcaster struct {
-		Enable            bool          `yaml:"enable"`
-		TargetDuration    time.Duration `yaml:"target_duration"`
-		MinBufferSegments int           `yaml:"min_buffer_segments"`
-		SegmentDir        string        `yaml:"segment_dir"`
-		TempDir           string        `yaml:"temp_dir"`
-		Host              string        `yaml:"host"`
-		Timeout           time.Duration `yaml:"timeout"`
-		FfmpegPath        string        `yaml:"ffmpeg_path"`
-		FfprobePath       string        `yaml:"ffprobe_path"`
-		SilenceArgs       []string      `yaml:"silence_args"`
-		ConvertArgs       []string      `yaml:"convert_args"`
-		DurationArgs      []string      `yaml:"duration_args"`
-		PreConvertArgs    []string      `yaml:"pre_convert_args"`
-		SplitArgs         []string      `yaml:"split_args"`
+		Enable         bool          `yaml:"enable"`
+		TargetDuration time.Duration `yaml:"target_duration"`
+		SegmentDir     string        `yaml:"segment_dir"`
+		TempDir        string        `yaml:"temp_dir"`
+		Host           string        `yaml:"host"`
+		Timeout        time.Duration `yaml:"timeout"`
+		FfmpegPath     string        `yaml:"ffmpeg_path"`
+		FfprobePath    string        `yaml:"ffprobe_path"`
+		SilenceArgs    []string      `yaml:"silence_args"`
+		ConvertArgs    []string      `yaml:"convert_args"`
+		DurationArgs   []string      `yaml:"duration_args"`
+		PreConvertArgs []string      `yaml:"pre_convert_args"`
+		SplitArgs      []string      `yaml:"split_args"`
 	} `yaml:"tts_broadcaster"`
 	Matching struct {
 		SelfMatch    bool   `yaml:"self_match"`

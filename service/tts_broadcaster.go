@@ -119,11 +119,9 @@ func (t *TTSBroadcaster) CreateStream(id string) {
 	playlist.Closed = false
 	stream.playlist = playlist
 
-	for range t.config.TTSBroadcaster.MinBufferSegments {
-		t.addSilenceSegment(id, stream)
-	}
-
+	t.writePlaylist(id, stream)
 	t.streams[id] = stream
+	slog.Info("ストリームを作成しました", "id", id)
 }
 
 func (t *TTSBroadcaster) cleanupSegments() {
