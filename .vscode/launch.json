@@ -34,5 +34,16 @@
                 "${workspaceFolder}/config/debug.yml"
             ],
         },
+        {
+            "name": "Launch JSAI2025 config",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "program": "${workspaceFolder}/main.go",
+            "args": [
+                "-c",
+                "${workspaceFolder}/config/jsai2025.yml"
+            ],
+        },
     ]
 }
