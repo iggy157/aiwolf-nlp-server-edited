@@ -1,7 +1,9 @@
 # 設定ファイルについて
 
-> [!IMPORTANT]
-> 準備中のため、説明が不十分である可能性があります。
+## 環境変数ファイル (.env)
+
+- `SECRET_KEY`: 設定ファイルの `server.web_socket.authentication.enable` が `true` の場合にトークン検証時の秘密鍵
+- `OPENAI_API_KEY`: 設定ファイルの `game.custom_profile.dynamic_profile.enable` が `true` の場合に使用するChatGPTのAPIキー
 
 ## server (サーバ設定)
 
@@ -17,7 +19,6 @@
 
 - `enable`: トークンによる接続認証を有効にするかどうか
   基本的には `false` で問題ありません。
-- `secret`: トークンの生成に使用する秘密鍵
 
 ## game (ゲーム設定)
 
@@ -41,7 +42,7 @@
 
 - `enable`: 動的プロフィールを有効にするかどうか
   デバッグ目的の場合は `false` で問題ありません。
-  本戦では事前に準備したカスタムプロフィール(`custom_profile`に記述されているもの)ではなく、ChatGPTを使用して動的にプロフィールを生成します。そのため、より本戦に近い環境で動作させるためには、`true` にしてください。`.env` ファイルに `OPENAI_API_KEY` を設定する必要があります。
+  本戦では事前に準備したカスタムプロフィール(`custom_profile`に記述されているもの)ではなく、ChatGPTを使用して動的にプロフィールを生成します。そのため、より本戦に近い環境で動作させるためには、`true` にしてください。
 - `prompt`: プロフィール生成のためのプロンプト
 - `attempts`: プロフィール生成の試行回数
 - `avatars`: プロフィール生成に使用するアバター画像のURL

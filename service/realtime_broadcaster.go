@@ -3,6 +3,7 @@ package service
 import (
 	"log/slog"
 	"net/http"
+	"os"
 	"strings"
 	"sync"
 	"time"
@@ -54,14 +55,14 @@ func (rb *RealtimeBroadcaster) HandleConnections(w http.ResponseWriter, r *http.
 	if rb.config.Server.Authentication.Enable {
 		token := r.URL.Query().Get("token")
 		if token != "" {
-			if !util.IsValidReceiver(rb.config.Server.Authentication.Secret, token) {
+			if !util.IsValidReceiver(os.Getenv("SECRET_KEY"), token) {
 				slog.Warn("トークンが無効です")
 				w.WriteHeader(http.StatusUnauthorized)
 				return
 			}
 		} else {
 			token = strings.ReplaceAll(r.Header.Get("Authorization"), "Bearer ", "")
-			if !util.IsValidReceiver(rb.config.Server.Authentication.Secret, token) {
+			if !util.IsValidReceiver(os.Getenv("SECRET_KEY"), token) {
 				slog.Warn("トークンが無効です")
 				w.WriteHeader(http.StatusUnauthorized)
 				return

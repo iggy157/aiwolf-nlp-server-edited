@@ -6,7 +6,6 @@ server:
     port: 8080
   authentication:
     enable: false
-    secret: your-256-bit-secret
 
 game:
   agent_count: 5

@@ -167,7 +167,7 @@ func (s *Server) handleConnections(w http.ResponseWriter, r *http.Request) {
 	if s.config.Server.Authentication.Enable {
 		token := r.URL.Query().Get("token")
 		if token != "" {
-			if !util.IsValidPlayerToken(s.config.Server.Authentication.Secret, token, conn.TeamName) {
+			if !util.IsValidPlayerToken(os.Getenv("SECRET_KEY"), token, conn.TeamName) {
 				slog.Warn("トークンが無効です", "team_name", conn.TeamName)
 				conn.Conn.Close()
 				slog.Info("クライアントの接続を切断しました", "team_name", conn.TeamName)
@@ -175,7 +175,7 @@ func (s *Server) handleConnections(w http.ResponseWriter, r *http.Request) {
 			}
 		} else {
 			token = strings.ReplaceAll(conn.Header.Get("Authorization"), "Bearer ", "")
-			if !util.IsValidPlayerToken(s.config.Server.Authentication.Secret, token, conn.TeamName) {
+			if !util.IsValidPlayerToken(os.Getenv("SECRET_KEY"), token, conn.TeamName) {
 				slog.Warn("トークンが無効です", "team_name", conn.TeamName)
 				conn.Conn.Close()
 				slog.Info("クライアントの接続を切断しました", "team_name", conn.TeamName)

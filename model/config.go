@@ -15,8 +15,7 @@ type Config struct {
 			Port int    `yaml:"port"`
 		} `yaml:"web_socket"`
 		Authentication struct {
-			Enable bool   `yaml:"enable"`
-			Secret string `yaml:"secret"`
+			Enable bool `yaml:"enable"`
 		} `yaml:"authentication"`
 	} `yaml:"server"`
 	Game struct {
