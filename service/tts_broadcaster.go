@@ -219,6 +219,19 @@ func (t *TTSBroadcaster) streamManager() {
 }
 
 func (t *TTSBroadcaster) BroadcastText(id string, text string, speaker int) {
+	if text == "SKIP" {
+		text = "スキップ"
+	} else if text == "OVER" {
+		text = "オーバー"
+	}
+	if t.config.TTSBroadcaster.Async {
+		t.broadcastTextAsync(id, text, speaker)
+	} else {
+		t.broadcastText(id, text, speaker)
+	}
+}
+
+func (t *TTSBroadcaster) broadcastTextAsync(id string, text string, speaker int) {
 	stream := t.getStream(id)
 	if stream == nil {
 		return
@@ -245,10 +258,44 @@ func (t *TTSBroadcaster) BroadcastText(id string, text string, speaker int) {
 			return
 		}
 
-		if err := t.synthesizeAndProcessAudio(ctx, audioQuery, id, stream, speaker); err != nil {
+		if _, err := t.synthesizeAndProcessAudio(ctx, audioQuery, id, stream, speaker); err != nil {
 			slog.Error("音声合成に失敗しました", "error", err, "id", id)
 		}
 	}()
+}
+
+func (t *TTSBroadcaster) broadcastText(id string, text string, speaker int) {
+	stream := t.getStream(id)
+	if stream == nil {
+		return
+	}
+
+	stream.streamingMu.Lock()
+	stream.isStreaming = true
+	stream.streamingMu.Unlock()
+
+	defer func() {
+		stream.streamingMu.Lock()
+		stream.isStreaming = false
+		stream.lastSegmentTime = time.Now()
+		stream.streamingMu.Unlock()
+	}()
+
+	ctx, cancel := context.WithTimeout(context.Background(), t.config.TTSBroadcaster.Timeout)
+	defer cancel()
+
+	audioQuery, err := t.fetchAudioQuery(ctx, text, speaker)
+	if err != nil {
+		slog.Error("オーディオクエリの取得に失敗しました", "error", err, "id", id)
+		return
+	}
+
+	duration, err := t.synthesizeAndProcessAudio(ctx, audioQuery, id, stream, speaker)
+	if err != nil {
+		slog.Error("音声合成に失敗しました", "error", err, "id", id)
+		return
+	}
+	time.Sleep(time.Duration(duration * float64(time.Second)))
 }
 
 func (t *TTSBroadcaster) fetchAudioQuery(ctx context.Context, text string, speaker int) ([]byte, error) {
@@ -284,7 +331,7 @@ func (t *TTSBroadcaster) fetchAudioQuery(ctx context.Context, text string, speak
 	return queryParams, nil
 }
 
-func (t *TTSBroadcaster) synthesizeAndProcessAudio(ctx context.Context, queryParams []byte, id string, stream *Stream, speaker int) error {
+func (t *TTSBroadcaster) synthesizeAndProcessAudio(ctx context.Context, queryParams []byte, id string, stream *Stream, speaker int) (float64, error) {
 	baseURL := *t.baseURL
 	baseURL.Path = "/synthesis"
 	params := url.Values{}
@@ -294,23 +341,23 @@ func (t *TTSBroadcaster) synthesizeAndProcessAudio(ctx context.Context, queryPar
 
 	req, err := http.NewRequestWithContext(ctx, "POST", queryURL, bytes.NewBuffer(queryParams))
 	if err != nil {
-		return fmt.Errorf("合成リクエスト作成に失敗しました: %w", err)
+		return 0, fmt.Errorf("合成リクエスト作成に失敗しました: %w", err)
 	}
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := t.client.Do(req)
 	if err != nil {
-		return fmt.Errorf("合成リクエスト送信に失敗しました: %w", err)
+		return 0, fmt.Errorf("合成リクエスト送信に失敗しました: %w", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("合成エラー: ステータスコード %d", resp.StatusCode)
+		return 0, fmt.Errorf("合成エラー: ステータスコード %d", resp.StatusCode)
 	}
 
 	wavData, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return fmt.Errorf("合成データ読み取りに失敗しました: %w", err)
+		return 0, fmt.Errorf("合成データ読み取りに失敗しました: %w", err)
 	}
 
 	stream.segmentsMu.Lock()
@@ -334,21 +381,22 @@ func (t *TTSBroadcaster) synthesizeAndProcessAudio(ctx context.Context, queryPar
 
 	segmentNames, err := util.ConvertWavToSegment(segmentParams)
 	if err != nil {
-		return fmt.Errorf("WAVからセグメントへの変換に失敗しました: %w", err)
+		return 0, fmt.Errorf("WAVからセグメントへの変換に失敗しました: %w", err)
 	}
 
-	t.addSegmentsToPlaylist(id, stream, segmentNames)
-	return nil
+	return t.addSegmentsToPlaylist(id, stream, segmentNames), nil
 }
 
-func (t *TTSBroadcaster) addSegmentsToPlaylist(id string, stream *Stream, segmentNames []string) {
+func (t *TTSBroadcaster) addSegmentsToPlaylist(id string, stream *Stream, segmentNames []string) float64 {
 	if len(segmentNames) == 0 {
-		return
+		return 0
 	}
 
 	streamDir := t.getSegmentDir(id)
 	stream.playlistMu.Lock()
 	defer stream.playlistMu.Unlock()
+
+	var totalDuration float64
 
 	for _, segmentName := range segmentNames {
 		segmentPath := filepath.Join(streamDir, segmentName)
@@ -358,6 +406,7 @@ func (t *TTSBroadcaster) addSegmentsToPlaylist(id string, stream *Stream, segmen
 			slog.Error("セグメント再生時間の取得に失敗しました", "error", err, "id", id, "segment", segmentName)
 			duration = t.config.TTSBroadcaster.TargetDuration.Seconds()
 		}
+		totalDuration += duration
 
 		if err := stream.playlist.AppendSegment(&m3u8.MediaSegment{
 			URI:      segmentName,
@@ -368,4 +417,5 @@ func (t *TTSBroadcaster) addSegmentsToPlaylist(id string, stream *Stream, segmen
 	}
 
 	t.writePlaylist(id, stream)
+	return totalDuration
 }

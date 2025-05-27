@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/aiwolfdial/aiwolf-nlp-server/model"
 	"github.com/aiwolfdial/aiwolf-nlp-server/util"
@@ -30,20 +31,23 @@ func NewRealtimeBroadcaster(config model.Config) *RealtimeBroadcaster {
 }
 
 func (rb *RealtimeBroadcaster) Broadcast(packet model.BroadcastPacket) {
-	var disconnectedClients []*websocket.Conn
-	rb.clients.Range(func(key, value any) bool {
-		client := key.(*websocket.Conn)
-		if err := client.WriteJSON(packet); err != nil {
-			slog.Warn("クライアントへのメッセージ送信に失敗しました", "error", err)
-			disconnectedClients = append(disconnectedClients, client)
+	go func() {
+		time.Sleep(5 * time.Second)
+		var disconnectedClients []*websocket.Conn
+		rb.clients.Range(func(key, value any) bool {
+			client := key.(*websocket.Conn)
+			if err := client.WriteJSON(packet); err != nil {
+				slog.Warn("クライアントへのメッセージ送信に失敗しました", "error", err)
+				disconnectedClients = append(disconnectedClients, client)
+			}
+			return true
+		})
+		for _, client := range disconnectedClients {
+			client.Close()
+			rb.clients.Delete(client)
 		}
-		return true
-	})
-	for _, client := range disconnectedClients {
-		client.Close()
-		rb.clients.Delete(client)
-	}
-	slog.Info("リアルタイムブロードキャストを送信しました", "packet", packet)
+		slog.Info("リアルタイムブロードキャストを送信しました", "packet", packet)
+	}()
 }
 
 func (rb *RealtimeBroadcaster) HandleConnections(w http.ResponseWriter, r *http.Request) {

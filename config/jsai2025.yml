@@ -236,6 +236,7 @@ realtime_broadcaster:
 
 tts_broadcaster:
   enable: true
+  async: false
   target_duration: 1s
   segment_dir: ./cache/segment
   temp_dir:

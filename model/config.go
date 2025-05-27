@@ -68,6 +68,7 @@ type Config struct {
 	} `yaml:"realtime_broadcaster"`
 	TTSBroadcaster struct {
 		Enable         bool          `yaml:"enable"`
+		Async          bool          `yaml:"async"`
 		TargetDuration time.Duration `yaml:"target_duration"`
 		SegmentDir     string        `yaml:"segment_dir"`
 		TempDir        string        `yaml:"temp_dir"`
