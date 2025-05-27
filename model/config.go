@@ -64,7 +64,8 @@ type Config struct {
 		Filename  string `yaml:"filename"`
 	} `yaml:"game_logger"`
 	RealtimeBroadcaster struct {
-		Enable bool `yaml:"enable"`
+		Enable bool          `yaml:"enable"`
+		Delay  time.Duration `yaml:"delay"`
 	} `yaml:"realtime_broadcaster"`
 	TTSBroadcaster struct {
 		Enable         bool          `yaml:"enable"`
@@ -76,7 +77,6 @@ type Config struct {
 		Timeout        time.Duration `yaml:"timeout"`
 		FfmpegPath     string        `yaml:"ffmpeg_path"`
 		FfprobePath    string        `yaml:"ffprobe_path"`
-		SilenceArgs    []string      `yaml:"silence_args"`
 		ConvertArgs    []string      `yaml:"convert_args"`
 		DurationArgs   []string      `yaml:"duration_args"`
 		PreConvertArgs []string      `yaml:"pre_convert_args"`

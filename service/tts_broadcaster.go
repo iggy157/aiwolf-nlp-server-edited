@@ -20,8 +20,7 @@ import (
 )
 
 const (
-	silenceTemplateFile = "silence.ts"
-	playlistFile        = "playlist.m3u8"
+	playlistFile = "playlist.m3u8"
 )
 
 type TTSBroadcaster struct {
@@ -67,16 +66,6 @@ func (t *TTSBroadcaster) Start() {
 		return
 	}
 	t.cleanupSegments()
-	outputPath := filepath.Join(t.config.TTSBroadcaster.SegmentDir, silenceTemplateFile)
-	if err := util.BuildSilenceTemplate(
-		t.config.TTSBroadcaster.FfmpegPath,
-		t.config.TTSBroadcaster.SilenceArgs,
-		t.config.TTSBroadcaster.TargetDuration.Seconds(),
-		outputPath,
-	); err != nil {
-		slog.Error("無音テンプレートの構築に失敗しました", "error", err)
-		return
-	}
 }
 
 func (t *TTSBroadcaster) getStream(id string) *Stream {

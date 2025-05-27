@@ -32,7 +32,7 @@ func NewRealtimeBroadcaster(config model.Config) *RealtimeBroadcaster {
 
 func (rb *RealtimeBroadcaster) Broadcast(packet model.BroadcastPacket) {
 	go func() {
-		time.Sleep(5 * time.Second)
+		time.Sleep(rb.config.RealtimeBroadcaster.Delay)
 		var disconnectedClients []*websocket.Conn
 		rb.clients.Range(func(key, value any) bool {
 			client := key.(*websocket.Conn)

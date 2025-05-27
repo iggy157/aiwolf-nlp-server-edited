@@ -22,21 +22,6 @@ func executeCommand(name string, arg ...string) ([]byte, error) {
 	return out, nil
 }
 
-func BuildSilenceTemplate(ffmpegPath string, args []string, duration float64, outputPath string) error {
-	args = append(
-		args,
-		"-t",
-		fmt.Sprintf("%f", duration),
-		outputPath,
-	)
-	if _, err := executeCommand(ffmpegPath, args...); err != nil {
-		slog.Error("無音セグメントの作成に失敗しました", "error", err)
-		return err
-	}
-	slog.Info("無音セグメントの作成が完了しました")
-	return nil
-}
-
 func CopyFile(sourcePath string, destinationPath string) error {
 	sourceFile, err := os.Open(sourcePath)
 	if err != nil {

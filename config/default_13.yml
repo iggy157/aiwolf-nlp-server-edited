@@ -233,6 +233,7 @@ game_logger:
 
 realtime_broadcaster:
   enable: true
+  delay: 5s
 
 tts_broadcaster:
   enable: false
@@ -244,25 +245,6 @@ tts_broadcaster:
   timeout: 30s
   ffmpeg_path: ffmpeg
   ffprobe_path: ffprobe
-  silence_args:
-    - -f
-    - lavfi
-    - -i
-    - anullsrc=r=44100:cl=stereo
-    - -c:a
-    - aac
-    - -b:a
-    - 64k
-    - -ar
-    - "44100"
-    - -ac
-    - "2"
-    - -mpegts_flags
-    - initial_discontinuity
-    - -mpegts_copyts
-    - "1"
-    - -f
-    - mpegts
   convert_args:
     - -c:a
     - aac
