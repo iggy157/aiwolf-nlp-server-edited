@@ -1,0 +1,58 @@
+{
+    "infinite_loop": false,
+    "team_count": 13,
+    "game_count": 1,
+    "idx_team_map": {
+        "0": "aiwolf-nlp-viewer",
+        "1": "kanolab-a",
+        "2": "kanolab-b",
+        "3": "kanolab-c",
+        "4": "kanolab-d",
+        "5": "kanolab-e",
+        "6": "kanolab-f",
+        "7": "kanolab-g",
+        "8": "kanolab-h",
+        "9": "kanolab-i",
+        "10": "kanolab-j",
+        "11": "kanolab-k",
+        "12": "kanolab-l"
+    },
+    "role_num_map": {
+        "BODYGUARD": 1,
+        "MEDIUM": 1,
+        "POSSESSED": 1,
+        "SEER": 1,
+        "VILLAGER": 6,
+        "WEREWOLF": 3
+    },
+    "ended_matches": [],
+    "scheduled_matches": [
+        {
+            "BODYGUARD": [
+                1
+            ],
+            "MEDIUM": [
+                2
+            ],
+            "POSSESSED": [
+                3
+            ],
+            "SEER": [
+                4
+            ],
+            "VILLAGER": [
+                5,
+                6,
+                7,
+                8,
+                9,
+                10
+            ],
+            "WEREWOLF": [
+                0,
+                11,
+                12
+            ]
+        }
+    ]
+}

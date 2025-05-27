@@ -287,8 +287,8 @@ tts_broadcaster:
 
 matching:
   self_match: false
-  is_optimize: false
+  is_optimize: true
   team_count: 13
   game_count: 13
-  output_path: ./log/match_optimizer.json
+  output_path: ./config/jsai2025.json
   infinite_loop: false
