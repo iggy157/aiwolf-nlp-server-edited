@@ -77,7 +77,6 @@ func (t *TTSBroadcaster) Start() {
 		slog.Error("無音テンプレートの構築に失敗しました", "error", err)
 		return
 	}
-	go t.streamManager()
 }
 
 func (t *TTSBroadcaster) getStream(id string) *Stream {
@@ -141,32 +140,6 @@ func (t *TTSBroadcaster) getSegmentDir(id string) string {
 	return filepath.Join(t.config.TTSBroadcaster.SegmentDir, cleanID)
 }
 
-func (t *TTSBroadcaster) addSilenceSegment(id string, stream *Stream) {
-	stream.segmentsMu.Lock()
-	silenceSegmentName := fmt.Sprintf("segment_%d.ts", stream.segmentCounter)
-	stream.segmentCounter++
-	stream.segmentsMu.Unlock()
-
-	streamDir := t.getSegmentDir(id)
-	silenceTemplatePath := filepath.Join(t.config.TTSBroadcaster.SegmentDir, silenceTemplateFile)
-	silenceSegmentPath := filepath.Join(streamDir, silenceSegmentName)
-
-	if err := util.CopyFile(silenceTemplatePath, silenceSegmentPath); err != nil {
-		slog.Error("無音セグメントのコピーに失敗しました", "error", err, "id", id)
-		return
-	}
-
-	stream.playlistMu.Lock()
-	defer stream.playlistMu.Unlock()
-	if err := stream.playlist.AppendSegment(&m3u8.MediaSegment{
-		URI:      silenceSegmentName,
-		Duration: t.config.TTSBroadcaster.TargetDuration.Seconds(),
-	}); err != nil {
-		slog.Error("プレイリストへのセグメント追加に失敗しました", "error", err, "id", id)
-	}
-	t.writePlaylist(id, stream)
-}
-
 func (t *TTSBroadcaster) writePlaylist(id string, stream *Stream) {
 	streamDir := t.getSegmentDir(id)
 	playlistPath := filepath.Join(streamDir, playlistFile)
@@ -176,45 +149,6 @@ func (t *TTSBroadcaster) writePlaylist(id string, stream *Stream) {
 	}
 	if err := os.WriteFile(playlistPath, stream.playlist.Encode().Bytes(), 0644); err != nil {
 		slog.Error("プレイリストの書き込みに失敗しました", "error", err, "id", id)
-	}
-}
-
-func (t *TTSBroadcaster) streamManager() {
-	ticker := time.NewTicker(200 * time.Millisecond)
-	defer ticker.Stop()
-	for range ticker.C {
-		t.streamsMu.RLock()
-		streamIDs := make([]string, 0, len(t.streams))
-		for id := range t.streams {
-			streamIDs = append(streamIDs, id)
-		}
-		t.streamsMu.RUnlock()
-
-		for _, id := range streamIDs {
-			t.streamsMu.RLock()
-			stream, exists := t.streams[id]
-			t.streamsMu.RUnlock()
-			if !exists {
-				continue
-			}
-
-			stream.streamingMu.Lock()
-			isStreaming := stream.isStreaming
-			lastTime := stream.lastSegmentTime
-			stream.streamingMu.Unlock()
-
-			if !isStreaming {
-				elapsed := time.Since(lastTime)
-				nextSegmentThreshold := time.Duration(float64(t.config.TTSBroadcaster.TargetDuration) * 0.8)
-
-				if elapsed >= nextSegmentThreshold {
-					t.addSilenceSegment(id, stream)
-					stream.streamingMu.Lock()
-					stream.lastSegmentTime = time.Now()
-					stream.streamingMu.Unlock()
-				}
-			}
-		}
 	}
 }
 

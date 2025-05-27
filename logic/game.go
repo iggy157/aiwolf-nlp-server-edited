@@ -121,6 +121,9 @@ func (g *Game) Start() model.Team {
 		packet.Message = &message
 		g.RealtimeBroadcaster.Broadcast(packet)
 	}
+	if g.TTSBroadcaster != nil {
+		g.TTSBroadcaster.BroadcastText(g.ID, "ゲームが開始されました", 23)
+	}
 	g.requestToEveryone(model.R_INITIALIZE)
 	for {
 		g.progressDay()
@@ -147,6 +150,9 @@ func (g *Game) Start() model.Team {
 		message := string(g.winSide)
 		packet.Message = &message
 		g.RealtimeBroadcaster.Broadcast(packet)
+	}
+	if g.TTSBroadcaster != nil {
+		g.TTSBroadcaster.BroadcastText(g.ID, "ゲームが終了しました", 23)
 	}
 	g.closeAllAgents()
 	if g.JsonLogger != nil {
