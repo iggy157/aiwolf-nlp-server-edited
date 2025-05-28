@@ -3,19 +3,7 @@
     "team_count": 13,
     "game_count": 1,
     "idx_team_map": {
-        "0": "aiwolf-nlp-viewer",
-        "1": "kanolab-a",
-        "2": "kanolab-b",
-        "3": "kanolab-c",
-        "4": "kanolab-d",
-        "5": "kanolab-e",
-        "6": "kanolab-f",
-        "7": "kanolab-g",
-        "8": "kanolab-h",
-        "9": "kanolab-i",
-        "10": "kanolab-j",
-        "11": "kanolab-k",
-        "12": "kanolab-l"
+        "0": "aiwolf-nlp-viewer"
     },
     "role_num_map": {
         "BODYGUARD": 1,
