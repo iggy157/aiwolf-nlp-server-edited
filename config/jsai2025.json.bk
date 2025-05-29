@@ -5,7 +5,9 @@
     "idx_team_map": {
         "0": "aiwolf-nlp-viewer",
         "1": "mille",
-        "2": "CamelliaDragons"
+        "2": "CamelliaDragons",
+        "3": "CanisLupus",
+        "4": "SunameLLi"
     },
     "role_num_map": {
         "BODYGUARD": 1,
