@@ -186,12 +186,12 @@ game:
         - https://aiwolfdial.github.io/aiwolf-nlp-viewer/images/female/11.png
         - https://aiwolfdial.github.io/aiwolf-nlp-viewer/images/female/12.png
   vote_visibility: false
-  talk_on_first_day: true
+  talk_on_first_day: false
   max_continue_error_ratio: 0.2
   talk:
     max_count:
-      per_agent: 4
-      per_day: 52
+      per_agent: 3
+      per_day: 39
     max_length:
       count_in_word: false
       per_talk: -1
@@ -201,8 +201,8 @@ game:
     max_skip: 0
   whisper:
     max_count:
-      per_agent: 4
-      per_day: 12
+      per_agent: 2
+      per_day: 6
     max_length:
       count_in_word: false
       per_talk: -1
