@@ -26,7 +26,7 @@ type Server struct {
 	waitingRoom         *WaitingRoom
 	matchOptimizer      *MatchOptimizer
 	gameSetting         *model.Setting
-	games               []*logic.Game
+	games               sync.Map
 	mu                  sync.RWMutex
 	signaled            bool
 	jsonLogger          *service.JSONLogger
@@ -44,7 +44,7 @@ func NewServer(config model.Config) *Server {
 			},
 		},
 		waitingRoom: NewWaitingRoom(config),
-		games:       make([]*logic.Game, 0),
+		games:       sync.Map{},
 		mu:          sync.RWMutex{},
 		signaled:    false,
 	}
@@ -132,14 +132,14 @@ func (s *Server) Run() {
 func (s *Server) gracefullyShutdown() {
 	for {
 		isFinished := true
-		s.mu.RLock()
-		for _, game := range s.games {
-			if !game.IsFinished() {
+		s.games.Range(func(key, value any) bool {
+			game, ok := value.(*logic.Game)
+			if !ok || !game.IsFinished() {
 				isFinished = false
-				break
+				return false
 			}
-		}
-		s.mu.RUnlock()
+			return true
+		})
 		if isFinished {
 			break
 		}
@@ -185,7 +185,6 @@ func (s *Server) handleConnections(w http.ResponseWriter, r *http.Request) {
 	}
 	s.waitingRoom.AddConnection(conn.TeamName, *conn)
 
-	s.mu.Lock()
 	var game *logic.Game
 	if s.config.Matching.IsOptimize {
 		for team := range s.waitingRoom.connections {
@@ -195,7 +194,6 @@ func (s *Server) handleConnections(w http.ResponseWriter, r *http.Request) {
 		roleMapConns, err := s.waitingRoom.GetConnectionsWithMatchOptimizer(matches)
 		if err != nil {
 			slog.Error("待機部屋からの接続の取得に失敗しました", "error", err)
-			s.mu.Unlock()
 			return
 		}
 		game = logic.NewGameWithRole(&s.config, s.gameSetting, roleMapConns)
@@ -203,7 +201,6 @@ func (s *Server) handleConnections(w http.ResponseWriter, r *http.Request) {
 		connections, err := s.waitingRoom.GetConnections()
 		if err != nil {
 			slog.Error("待機部屋からの接続の取得に失敗しました", "error", err)
-			s.mu.Unlock()
 			return
 		}
 		game = logic.NewGame(&s.config, s.gameSetting, connections)
@@ -220,14 +217,11 @@ func (s *Server) handleConnections(w http.ResponseWriter, r *http.Request) {
 	if s.ttsBroadcaster != nil {
 		game.TTSBroadcaster = s.ttsBroadcaster
 	}
-	s.games = append(s.games, game)
-	s.mu.Unlock()
+	s.games.Store(game.ID, game)
 
 	go func() {
 		winSide := game.Start()
 		if s.config.Matching.IsOptimize {
-			s.mu.Lock()
-			defer s.mu.Unlock()
 			if winSide != model.T_NONE {
 				s.matchOptimizer.setMatchEnd(game.GetRoleTeamNamesMap())
 			} else {
