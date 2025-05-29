@@ -142,10 +142,8 @@ func (t *TTSBroadcaster) writePlaylist(id string, stream *Stream) {
 }
 
 func (t *TTSBroadcaster) BroadcastText(id string, text string, speaker int) {
-	if text == "SKIP" {
-		text = "スキップ"
-	} else if text == "OVER" {
-		text = "オーバー"
+	if text == model.T_SKIP || text == model.T_OVER {
+		return
 	}
 	if t.config.TTSBroadcaster.Async {
 		t.broadcastTextAsync(id, text, speaker)

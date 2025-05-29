@@ -216,9 +216,9 @@ game:
     max_count: 1
     allow_no_target: false
   timeout:
-    action: 120s
-    response: 180s
-    acceptable: 5s
+    action: 5m
+    response: 10m
+    acceptable: 30s
 
 json_logger:
   enable: true
