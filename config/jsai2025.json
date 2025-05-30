@@ -1,14 +1,9 @@
 {
-    "infinite_loop": false,
+    "infinite_loop": true,
     "team_count": 13,
     "game_count": 1,
     "idx_team_map": {
-        "0": "aiwolf-nlp-viewer",
-        "1": "mille",
-        "2": "CamelliaDragons",
-        "3": "CanisLupus",
-        "4": "SunameLLi",
-        "5": "GAIT"
+        "0": "aiwolf-nlp-viewer"
     },
     "role_num_map": {
         "BODYGUARD": 1,
