@@ -12,6 +12,7 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/aiwolfdial/aiwolf-nlp-server/model"
@@ -24,20 +25,17 @@ const (
 )
 
 type TTSBroadcaster struct {
-	config    model.Config
-	baseURL   *url.URL
-	client    *http.Client
-	streamsMu sync.RWMutex
-	streams   map[string]*Stream
+	config  model.Config
+	baseURL *url.URL
+	client  *http.Client
+	streams sync.Map
 }
 
 type Stream struct {
-	isStreaming     bool
-	lastSegmentTime time.Time
-	segmentCounter  int
+	isStreaming     int32
+	lastSegmentTime int64
+	segmentCounter  int64
 	playlist        *m3u8.MediaPlaylist
-	streamingMu     sync.Mutex
-	segmentsMu      sync.RWMutex
 	playlistMu      sync.Mutex
 }
 
@@ -50,13 +48,13 @@ func NewTTSBroadcaster(config model.Config) *TTSBroadcaster {
 			Host:   "localhost:50021",
 		}
 	}
+
 	return &TTSBroadcaster{
 		config:  config,
 		baseURL: baseURL,
 		client: &http.Client{
 			Timeout: config.TTSBroadcaster.Timeout,
 		},
-		streams: make(map[string]*Stream),
 	}
 }
 
@@ -69,25 +67,20 @@ func (t *TTSBroadcaster) Start() {
 }
 
 func (t *TTSBroadcaster) getStream(id string) *Stream {
-	t.streamsMu.RLock()
-	stream, exists := t.streams[id]
-	t.streamsMu.RUnlock()
-	if exists {
-		return stream
+	if streamInterface, exists := t.streams.Load(id); exists {
+		return streamInterface.(*Stream)
 	}
 	return nil
 }
 
 func (t *TTSBroadcaster) CreateStream(id string) {
-	t.streamsMu.Lock()
-	defer t.streamsMu.Unlock()
-	if _, exists := t.streams[id]; exists {
+	if _, exists := t.streams.Load(id); exists {
 		return
 	}
 
 	stream := &Stream{
-		isStreaming:     false,
-		lastSegmentTime: time.Now(),
+		isStreaming:     0,
+		lastSegmentTime: time.Now().UnixNano(),
 		segmentCounter:  0,
 	}
 
@@ -102,13 +95,17 @@ func (t *TTSBroadcaster) CreateStream(id string) {
 		slog.Error("プレイリストの作成に失敗しました", "error", err, "id", id)
 		return
 	}
+
 	playlist.TargetDuration = float64(t.config.TTSBroadcaster.TargetDuration.Seconds())
 	playlist.SetVersion(3)
 	playlist.Closed = false
 	stream.playlist = playlist
 
+	if _, loaded := t.streams.LoadOrStore(id, stream); loaded {
+		return
+	}
+
 	t.writePlaylist(id, stream)
-	t.streams[id] = stream
 	slog.Info("ストリームを作成しました", "id", id)
 }
 
@@ -132,10 +129,12 @@ func (t *TTSBroadcaster) getSegmentDir(id string) string {
 func (t *TTSBroadcaster) writePlaylist(id string, stream *Stream) {
 	streamDir := t.getSegmentDir(id)
 	playlistPath := filepath.Join(streamDir, playlistFile)
+
 	if err := os.MkdirAll(streamDir, 0755); err != nil {
 		slog.Error("プレイリストディレクトリの作成に失敗しました", "error", err, "id", id)
 		return
 	}
+
 	if err := os.WriteFile(playlistPath, stream.playlist.Encode().Bytes(), 0644); err != nil {
 		slog.Error("プレイリストの書き込みに失敗しました", "error", err, "id", id)
 	}
@@ -145,6 +144,7 @@ func (t *TTSBroadcaster) BroadcastText(id string, text string, speaker int) {
 	if text == model.T_SKIP || text == model.T_OVER {
 		return
 	}
+
 	if t.config.TTSBroadcaster.Async {
 		t.broadcastTextAsync(id, text, speaker)
 	} else {
@@ -158,16 +158,13 @@ func (t *TTSBroadcaster) broadcastTextAsync(id string, text string, speaker int)
 		return
 	}
 
-	stream.streamingMu.Lock()
-	stream.isStreaming = true
-	stream.streamingMu.Unlock()
+	// atomic操作でストリーミング状態を設定
+	atomic.StoreInt32(&stream.isStreaming, 1)
 
 	go func() {
 		defer func() {
-			stream.streamingMu.Lock()
-			stream.isStreaming = false
-			stream.lastSegmentTime = time.Now()
-			stream.streamingMu.Unlock()
+			atomic.StoreInt32(&stream.isStreaming, 0)
+			atomic.StoreInt64(&stream.lastSegmentTime, time.Now().UnixNano())
 		}()
 
 		ctx, cancel := context.WithTimeout(context.Background(), t.config.TTSBroadcaster.Timeout)
@@ -191,15 +188,11 @@ func (t *TTSBroadcaster) broadcastText(id string, text string, speaker int) {
 		return
 	}
 
-	stream.streamingMu.Lock()
-	stream.isStreaming = true
-	stream.streamingMu.Unlock()
-
+	// atomic操作でストリーミング状態を設定
+	atomic.StoreInt32(&stream.isStreaming, 1)
 	defer func() {
-		stream.streamingMu.Lock()
-		stream.isStreaming = false
-		stream.lastSegmentTime = time.Now()
-		stream.streamingMu.Unlock()
+		atomic.StoreInt32(&stream.isStreaming, 0)
+		atomic.StoreInt64(&stream.lastSegmentTime, time.Now().UnixNano())
 	}()
 
 	ctx, cancel := context.WithTimeout(context.Background(), t.config.TTSBroadcaster.Timeout)
@@ -216,13 +209,13 @@ func (t *TTSBroadcaster) broadcastText(id string, text string, speaker int) {
 		slog.Error("音声合成に失敗しました", "error", err, "id", id)
 		return
 	}
+
 	time.Sleep(time.Duration(duration * float64(time.Second)))
 }
 
 func (t *TTSBroadcaster) fetchAudioQuery(ctx context.Context, text string, speaker int) ([]byte, error) {
 	baseURL := *t.baseURL
 	baseURL.Path = "/audio_query"
-
 	params := url.Values{}
 	params.Add("speaker", fmt.Sprintf("%d", speaker))
 	params.Add("text", text)
@@ -281,10 +274,9 @@ func (t *TTSBroadcaster) synthesizeAndProcessAudio(ctx context.Context, queryPar
 		return 0, fmt.Errorf("合成データ読み取りに失敗しました: %w", err)
 	}
 
-	stream.segmentsMu.Lock()
-	baseName := fmt.Sprintf("segment_%d", stream.segmentCounter)
-	stream.segmentCounter++
-	stream.segmentsMu.Unlock()
+	// atomic操作でセグメントカウンターを増加
+	counter := atomic.AddInt64(&stream.segmentCounter, 1)
+	baseName := fmt.Sprintf("segment_%d", counter-1)
 
 	segmentParams := util.ConvertWavToSegmentParams{
 		FfmpegPath:      t.config.TTSBroadcaster.FfmpegPath,
@@ -314,19 +306,19 @@ func (t *TTSBroadcaster) addSegmentsToPlaylist(id string, stream *Stream, segmen
 	}
 
 	streamDir := t.getSegmentDir(id)
+
 	stream.playlistMu.Lock()
 	defer stream.playlistMu.Unlock()
 
 	var totalDuration float64
-
 	for _, segmentName := range segmentNames {
 		segmentPath := filepath.Join(streamDir, segmentName)
-
 		duration, err := util.GetDuration(t.config.TTSBroadcaster.FfprobePath, t.config.TTSBroadcaster.DurationArgs, segmentPath)
 		if err != nil {
 			slog.Error("セグメント再生時間の取得に失敗しました", "error", err, "id", id, "segment", segmentName)
 			duration = t.config.TTSBroadcaster.TargetDuration.Seconds()
 		}
+
 		totalDuration += duration
 
 		if err := stream.playlist.AppendSegment(&m3u8.MediaSegment{
