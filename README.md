@@ -4,18 +4,11 @@
 
 サンプルエージェントについては、[aiwolfdial/aiwolf-nlp-agent](https://github.com/aiwolfdial/aiwolf-nlp-agent) を参考にしてください。
 
-> [!IMPORTANT]
-> 次回大会では以下の変更があります。詳細については、[aiwolfdial.github.io/aiwolf-nlp](https://aiwolfdial.github.io/aiwolf-nlp)を参照してください。
->
-> - [発言の文字数制限](./doc/logic.md#発言の文字数制限について)
-> - [13人ゲーム](./doc/logic.md#13人ゲーム)
-> - [プレイヤー名とプロフィール](./doc/protocol.md#info)
-
 ## ドキュメント
 
-- [プロトコルの実装について](./doc/protocol.md)
-- [ゲームロジックの実装について](./doc/logic.md)
 - [設定ファイルについて](./doc/config.md)
+- [ゲームロジックの実装について](./doc/logic.md)
+- [プロトコルの実装について](./doc/protocol.md)
 
 ## 実行方法
 
@@ -29,8 +22,7 @@
 curl -LO https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/aiwolf-nlp-server-linux-amd64
 curl -LO https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/default_5.yml
 curl -LO https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/default_13.yml
-# ダイナミックプロフィールを使用する場合は、以下のコマンドを実行してください。
-# curl -Lo .env https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/example.env
+curl -Lo .env https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/example.env
 chmod u+x ./aiwolf-nlp-server-linux-amd64
 ./aiwolf-nlp-server-linux-amd64 -c ./default_5.yml # 5人ゲームの場合
 # ./aiwolf-nlp-server-linux-amd64 -c ./default_13.yml # 13人ゲームの場合
@@ -42,8 +34,7 @@ chmod u+x ./aiwolf-nlp-server-linux-amd64
 curl -LO https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/aiwolf-nlp-server-windows-amd64.exe
 curl -LO https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/default_5.yml
 curl -LO https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/default_13.yml
-# ダイナミックプロフィールを使用する場合は、以下のコマンドを実行してください。
-# curl -Lo .env https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/example.env
+curl -Lo .env https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/example.env
 .\aiwolf-nlp-server-windows-amd64.exe -c .\default_5.yml # 5人ゲームの場合
 # .\aiwolf-nlp-server-windows-amd64.exe -c .\default_13.yml # 13人ゲームの場合
 ```
@@ -59,8 +50,7 @@ curl -LO https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/downloa
 curl -LO https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/aiwolf-nlp-server-darwin-amd64
 curl -LO https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/default_5.yml
 curl -LO https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/default_13.yml
-# ダイナミックプロフィールを使用する場合は、以下のコマンドを実行してください。
-# curl -Lo .env https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/example.env
+curl -Lo .env https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/example.env
 chmod u+x ./aiwolf-nlp-server-darwin-amd64
 ./aiwolf-nlp-server-darwin-amd64 -c ./default_5.yml # 5人ゲームの場合
 # ./aiwolf-nlp-server-darwin-amd64 -c ./default_13.yml # 13人ゲームの場合
@@ -77,8 +67,7 @@ chmod u+x ./aiwolf-nlp-server-darwin-amd64
 curl -LO https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/aiwolf-nlp-server-darwin-arm64
 curl -LO https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/default_5.yml
 curl -LO https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/default_13.yml
-# ダイナミックプロフィールを使用する場合は、以下のコマンドを実行してください。
-# curl -Lo .env https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/example.env
+curl -Lo .env https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/example.env
 chmod u+x ./aiwolf-nlp-server-darwin-arm64
 ./aiwolf-nlp-server-darwin-arm64 -c ./default_5.yml # 5人ゲームの場合
 # ./aiwolf-nlp-server-darwin-arm64 -c ./default_13.yml # 13人ゲームの場合
