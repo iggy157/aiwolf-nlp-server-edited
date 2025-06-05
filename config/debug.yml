@@ -237,7 +237,7 @@ realtime_broadcaster:
   filename: "{game_id}"
 
 tts_broadcaster:
-  enable: true
+  enable: false
   async: false
   target_duration: 1s
   segment_dir: ./../cache/segment

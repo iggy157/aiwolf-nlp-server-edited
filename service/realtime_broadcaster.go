@@ -45,7 +45,7 @@ func NewRealtimeBroadcaster(config model.Config) *RealtimeBroadcaster {
 }
 
 func (rb *RealtimeBroadcaster) TrackStartGame(id string, agents []*model.Agent) {
-	data := &GameLog{
+	data := &RealtimeBroadcasterLog{
 		id:     id,
 		logs:   make([]string, 0),
 		agents: make([]any, 0),
@@ -147,7 +147,7 @@ func (rb *RealtimeBroadcaster) HandleConnections(w http.ResponseWriter, r *http.
 
 func (rb *RealtimeBroadcaster) appendLog(id string, log string) {
 	if dataInterface, exists := rb.data.Load(id); exists {
-		data := dataInterface.(*GameLog)
+		data := dataInterface.(*RealtimeBroadcasterLog)
 
 		data.logsMu.Lock()
 		data.logs = append(data.logs, log)
@@ -161,7 +161,7 @@ func (rb *RealtimeBroadcaster) appendLog(id string, log string) {
 
 func (rb *RealtimeBroadcaster) saveLog(id string) {
 	if dataInterface, exists := rb.data.Load(id); exists {
-		data := dataInterface.(*GameLog)
+		data := dataInterface.(*RealtimeBroadcasterLog)
 
 		data.logsMu.Lock()
 		logsCopy := make([]string, len(data.logs))
