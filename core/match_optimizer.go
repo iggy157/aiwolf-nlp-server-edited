@@ -257,7 +257,7 @@ func (mo *MatchOptimizer) save() error {
 	}
 	dir := filepath.Dir(mo.outputPath)
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
-		os.Mkdir(dir, 0755)
+		os.MkdirAll(dir, 0755)
 	}
 	file, err := os.Create(mo.outputPath)
 	if err != nil {

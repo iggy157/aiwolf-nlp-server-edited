@@ -13,10 +13,9 @@ import (
 )
 
 type GameLogger struct {
-	data             map[string]*GameLog
+	data             sync.Map
 	outputDir        string
 	templateFilename string
-	mu               sync.RWMutex
 }
 
 type GameLog struct {
@@ -24,12 +23,11 @@ type GameLog struct {
 	filename string
 	agents   []any
 	logs     []string
-	mu       sync.Mutex
+	logsMu   sync.Mutex
 }
 
 func NewGameLogger(config model.Config) *GameLogger {
 	return &GameLogger{
-		data:             make(map[string]*GameLog),
 		outputDir:        config.GameLogger.OutputDir,
 		templateFilename: config.GameLogger.Filename,
 	}
@@ -37,9 +35,11 @@ func NewGameLogger(config model.Config) *GameLogger {
 
 func (g *GameLogger) TrackStartGame(id string, agents []*model.Agent) {
 	data := &GameLog{
-		id:   id,
-		logs: make([]string, 0),
+		id:     id,
+		logs:   make([]string, 0),
+		agents: make([]any, 0),
 	}
+
 	for _, agent := range agents {
 		data.agents = append(data.agents,
 			map[string]any{
@@ -50,8 +50,10 @@ func (g *GameLogger) TrackStartGame(id string, agents []*model.Agent) {
 			},
 		)
 	}
+
 	filename := strings.ReplaceAll(g.templateFilename, "{game_id}", data.id)
 	filename = strings.ReplaceAll(filename, "{timestamp}", fmt.Sprintf("%d", time.Now().Unix()))
+
 	teams := make([]string, 0)
 	for _, agent := range data.agents {
 		team := agent.(map[string]any)["team"].(string)
@@ -59,61 +61,59 @@ func (g *GameLogger) TrackStartGame(id string, agents []*model.Agent) {
 	}
 	sort.Strings(teams)
 	filename = strings.ReplaceAll(filename, "{teams}", strings.Join(teams, "_"))
-	data.filename = filename
 
-	g.mu.Lock()
-	g.data[id] = data
-	g.mu.Unlock()
+	data.filename = filename
+	g.data.Store(id, data)
 }
 
 func (g *GameLogger) TrackEndGame(id string) {
-	g.mu.RLock()
-	_, exists := g.data[id]
-	g.mu.RUnlock()
-
-	if exists {
+	if _, exists := g.data.Load(id); exists {
 		g.saveLog(id)
-
-		g.mu.Lock()
-		delete(g.data, id)
-		g.mu.Unlock()
+		g.data.Delete(id)
 	}
 }
 
 func (g *GameLogger) AppendLog(id string, log string) {
-	g.mu.RLock()
-	data, exists := g.data[id]
-	g.mu.RUnlock()
+	if dataInterface, exists := g.data.Load(id); exists {
+		data := dataInterface.(*GameLog)
 
-	if exists {
-		data.mu.Lock()
+		data.logsMu.Lock()
 		data.logs = append(data.logs, log)
-		data.mu.Unlock()
+		logsCopy := make([]string, len(data.logs))
+		copy(logsCopy, data.logs)
+		data.logsMu.Unlock()
 
-		g.saveLog(id)
+		g.saveLogWithData(data.filename, logsCopy)
 	}
 }
 
 func (g *GameLogger) saveLog(id string) {
-	g.mu.RLock()
-	data, exists := g.data[id]
-	g.mu.RUnlock()
+	if dataInterface, exists := g.data.Load(id); exists {
+		data := dataInterface.(*GameLog)
 
-	if exists {
-		data.mu.Lock()
-		str := strings.Join(data.logs, "\n")
-		data.mu.Unlock()
+		data.logsMu.Lock()
+		logsCopy := make([]string, len(data.logs))
+		copy(logsCopy, data.logs)
+		filename := data.filename
+		data.logsMu.Unlock()
 
-		if _, err := os.Stat(g.outputDir); os.IsNotExist(err) {
-			os.MkdirAll(g.outputDir, 0755)
-		}
-
-		filePath := filepath.Join(g.outputDir, fmt.Sprintf("%s.log", data.filename))
-		file, err := os.Create(filePath)
-		if err != nil {
-			return
-		}
-		defer file.Close()
-		file.WriteString(str)
+		g.saveLogWithData(filename, logsCopy)
 	}
+}
+
+func (g *GameLogger) saveLogWithData(filename string, logs []string) {
+	str := strings.Join(logs, "\n")
+
+	if _, err := os.Stat(g.outputDir); os.IsNotExist(err) {
+		os.MkdirAll(g.outputDir, 0755)
+	}
+
+	filePath := filepath.Join(g.outputDir, fmt.Sprintf("%s.log", filename))
+	file, err := os.Create(filePath)
+	if err != nil {
+		return
+	}
+	defer file.Close()
+
+	file.WriteString(str)
 }
