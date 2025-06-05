@@ -63,8 +63,10 @@ type Config struct {
 		Filename  string `yaml:"filename"`
 	} `yaml:"game_logger"`
 	RealtimeBroadcaster struct {
-		Enable bool          `yaml:"enable"`
-		Delay  time.Duration `yaml:"delay"`
+		Enable    bool          `yaml:"enable"`
+		Delay     time.Duration `yaml:"delay"`
+		OutputDir string        `yaml:"output_dir"`
+		Filename  string        `yaml:"filename"`
 	} `yaml:"realtime_broadcaster"`
 	TTSBroadcaster struct {
 		Enable         bool          `yaml:"enable"`

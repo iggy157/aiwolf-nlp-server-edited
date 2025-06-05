@@ -111,6 +111,9 @@ func (g *Game) Start() model.Team {
 	if g.GameLogger != nil {
 		g.GameLogger.TrackStartGame(g.ID, g.agents)
 	}
+	if g.RealtimeBroadcaster != nil {
+		g.RealtimeBroadcaster.TrackStartGame(g.ID, g.agents)
+	}
 	if g.TTSBroadcaster != nil {
 		g.TTSBroadcaster.CreateStream(g.ID)
 	}
@@ -160,6 +163,9 @@ func (g *Game) Start() model.Team {
 	}
 	if g.GameLogger != nil {
 		g.GameLogger.TrackEndGame(g.ID)
+	}
+	if g.RealtimeBroadcaster != nil {
+		g.RealtimeBroadcaster.TrackEndGame(g.ID)
 	}
 	slog.Info("ゲームが終了しました", "id", g.ID, "winSide", g.winSide)
 	g.isFinished = true

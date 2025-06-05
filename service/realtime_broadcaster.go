@@ -1,9 +1,13 @@
 package service
 
 import (
+	"encoding/json"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
+	"path/filepath"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -17,6 +21,15 @@ type RealtimeBroadcaster struct {
 	config   model.Config
 	upgrader websocket.Upgrader
 	clients  *sync.Map
+	data     sync.Map
+}
+
+type RealtimeBroadcasterLog struct {
+	id       string
+	filename string
+	agents   []any
+	logs     []string
+	logsMu   sync.Mutex
 }
 
 func NewRealtimeBroadcaster(config model.Config) *RealtimeBroadcaster {
@@ -31,7 +44,50 @@ func NewRealtimeBroadcaster(config model.Config) *RealtimeBroadcaster {
 	}
 }
 
+func (rb *RealtimeBroadcaster) TrackStartGame(id string, agents []*model.Agent) {
+	data := &GameLog{
+		id:     id,
+		logs:   make([]string, 0),
+		agents: make([]any, 0),
+	}
+
+	for _, agent := range agents {
+		data.agents = append(data.agents,
+			map[string]any{
+				"idx":  agent.Idx,
+				"team": agent.TeamName,
+				"name": agent.OriginalName,
+				"role": agent.Role,
+			},
+		)
+	}
+
+	filename := strings.ReplaceAll(rb.config.RealtimeBroadcaster.Filename, "{game_id}", data.id)
+	filename = strings.ReplaceAll(filename, "{timestamp}", fmt.Sprintf("%d", time.Now().Unix()))
+
+	teams := make([]string, 0)
+	for _, agent := range data.agents {
+		team := agent.(map[string]any)["team"].(string)
+		teams = append(teams, team)
+	}
+	sort.Strings(teams)
+	filename = strings.ReplaceAll(filename, "{teams}", strings.Join(teams, "_"))
+
+	data.filename = filename
+	rb.data.Store(id, data)
+}
+
+func (rb *RealtimeBroadcaster) TrackEndGame(id string) {
+	if _, exists := rb.data.Load(id); exists {
+		rb.saveLog(id)
+		rb.data.Delete(id)
+	}
+}
+
 func (rb *RealtimeBroadcaster) Broadcast(packet model.BroadcastPacket) {
+	if jsonData, marshalErr := json.Marshal(packet); marshalErr == nil {
+		rb.appendLog(packet.Id, string(jsonData))
+	}
 	go func() {
 		time.Sleep(rb.config.RealtimeBroadcaster.Delay)
 		var disconnectedClients []*websocket.Conn
@@ -87,4 +143,49 @@ func (rb *RealtimeBroadcaster) HandleConnections(w http.ResponseWriter, r *http.
 			break
 		}
 	}
+}
+
+func (rb *RealtimeBroadcaster) appendLog(id string, log string) {
+	if dataInterface, exists := rb.data.Load(id); exists {
+		data := dataInterface.(*GameLog)
+
+		data.logsMu.Lock()
+		data.logs = append(data.logs, log)
+		logsCopy := make([]string, len(data.logs))
+		copy(logsCopy, data.logs)
+		data.logsMu.Unlock()
+
+		rb.saveLogWithData(data.filename, logsCopy)
+	}
+}
+
+func (rb *RealtimeBroadcaster) saveLog(id string) {
+	if dataInterface, exists := rb.data.Load(id); exists {
+		data := dataInterface.(*GameLog)
+
+		data.logsMu.Lock()
+		logsCopy := make([]string, len(data.logs))
+		copy(logsCopy, data.logs)
+		filename := data.filename
+		data.logsMu.Unlock()
+
+		rb.saveLogWithData(filename, logsCopy)
+	}
+}
+
+func (rb *RealtimeBroadcaster) saveLogWithData(filename string, logs []string) {
+	str := strings.Join(logs, "\n")
+
+	if _, err := os.Stat(rb.config.RealtimeBroadcaster.OutputDir); os.IsNotExist(err) {
+		os.MkdirAll(rb.config.RealtimeBroadcaster.OutputDir, 0755)
+	}
+
+	filePath := filepath.Join(rb.config.RealtimeBroadcaster.OutputDir, fmt.Sprintf("%s.jsonl", filename))
+	file, err := os.Create(filePath)
+	if err != nil {
+		return
+	}
+	defer file.Close()
+
+	file.WriteString(str)
 }

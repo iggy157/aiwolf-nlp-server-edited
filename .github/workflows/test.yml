@@ -23,9 +23,14 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: json-logger
-          path: log/*.json
+          path: log/json/*.json
       - name: Upload Game Log
         uses: actions/upload-artifact@v4
         with:
           name: game-logger
-          path: log/*.log
+          path: log/game/*.log
+      - name: Upload Realtime Broadcaster Log
+        uses: actions/upload-artifact@v4
+        with:
+          name: realtime-broadcaster
+          path: log/realtime/*.jsonl
