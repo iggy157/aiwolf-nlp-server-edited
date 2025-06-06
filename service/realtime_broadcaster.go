@@ -32,6 +32,11 @@ type RealtimeBroadcasterLog struct {
 	logsMu   sync.Mutex
 }
 
+type ClientConnection struct {
+	conn *websocket.Conn
+	mu   sync.Mutex
+}
+
 func NewRealtimeBroadcaster(config model.Config) *RealtimeBroadcaster {
 	return &RealtimeBroadcaster{
 		config: config,
@@ -88,21 +93,30 @@ func (rb *RealtimeBroadcaster) Broadcast(packet model.BroadcastPacket) {
 	if jsonData, marshalErr := json.Marshal(packet); marshalErr == nil {
 		rb.appendLog(packet.Id, string(jsonData))
 	}
+
 	go func() {
 		time.Sleep(rb.config.RealtimeBroadcaster.Delay)
-		var disconnectedClients []*websocket.Conn
+		var disconnectedClients []*ClientConnection
+
 		rb.clients.Range(func(key, value any) bool {
-			client := key.(*websocket.Conn)
-			if err := client.WriteJSON(packet); err != nil {
+			clientConn := key.(*ClientConnection)
+
+			clientConn.mu.Lock()
+			err := clientConn.conn.WriteJSON(packet)
+			clientConn.mu.Unlock()
+
+			if err != nil {
 				slog.Warn("クライアントへのメッセージ送信に失敗しました", "error", err)
-				disconnectedClients = append(disconnectedClients, client)
+				disconnectedClients = append(disconnectedClients, clientConn)
 			}
 			return true
 		})
-		for _, client := range disconnectedClients {
-			client.Close()
-			rb.clients.Delete(client)
+
+		for _, clientConn := range disconnectedClients {
+			clientConn.conn.Close()
+			rb.clients.Delete(clientConn)
 		}
+
 		slog.Info("リアルタイムブロードキャストを送信しました", "packet", packet)
 	}()
 }
@@ -133,8 +147,11 @@ func (rb *RealtimeBroadcaster) HandleConnections(w http.ResponseWriter, r *http.
 	}
 	defer ws.Close()
 
-	rb.clients.Store(ws, nil)
-	defer rb.clients.Delete(ws)
+	clientConn := &ClientConnection{
+		conn: ws,
+	}
+	rb.clients.Store(clientConn, nil)
+	defer rb.clients.Delete(clientConn)
 
 	for {
 		_, _, err := ws.ReadMessage()
