@@ -12,39 +12,45 @@ import (
 type WaitingRoom struct {
 	agentCount  int
 	selfMatch   bool
-	connections map[string][]model.Connection
-	mu          sync.RWMutex
+	connections sync.Map
 }
 
 func NewWaitingRoom(config model.Config) *WaitingRoom {
 	return &WaitingRoom{
-		agentCount:  config.Game.AgentCount,
-		selfMatch:   config.Matching.SelfMatch,
-		connections: make(map[string][]model.Connection),
+		agentCount: config.Game.AgentCount,
+		selfMatch:  config.Matching.SelfMatch,
 	}
 }
 
 func (wr *WaitingRoom) AddConnection(team string, connection model.Connection) {
-	wr.mu.Lock()
-	defer wr.mu.Unlock()
-	wr.connections[team] = append(wr.connections[team], connection)
+	value, _ := wr.connections.LoadOrStore(team, []model.Connection{})
+	connections := value.([]model.Connection)
+
+	updatedConnections := append(connections, connection)
+	wr.connections.Store(team, updatedConnections)
+
 	slog.Info("新しいクライアントが待機部屋に追加されました", "team", team, "remote_addr", connection.Conn.RemoteAddr().String())
 }
 
 func (wr *WaitingRoom) GetConnectionsWithMatchOptimizer(matches []map[model.Role][]string) (map[model.Role][]model.Connection, error) {
-	wr.mu.Lock()
-	defer wr.mu.Unlock()
 	var roleMapConns = make(map[model.Role][]model.Connection)
 
 	if len(matches) == 0 {
 		return nil, errors.New("スケジュールされたマッチがありません")
 	}
+
 	readyMatch := map[model.Role][]string{}
 	for _, match := range matches {
 		isMatchReady := true
 		for _, teams := range match {
 			for _, team := range teams {
-				if _, exists := wr.connections[team]; !exists || len(wr.connections[team]) == 0 {
+				value, exists := wr.connections.Load(team)
+				if !exists {
+					isMatchReady = false
+					break
+				}
+				connections := value.([]model.Connection)
+				if len(connections) == 0 {
 					isMatchReady = false
 					break
 				}
@@ -67,10 +73,18 @@ func (wr *WaitingRoom) GetConnectionsWithMatchOptimizer(matches []map[model.Role
 
 	for role, teams := range readyMatch {
 		for _, team := range teams {
-			roleMapConns[role] = append(roleMapConns[role], wr.connections[team][0])
-			wr.connections[team] = wr.connections[team][1:]
-			if len(wr.connections[team]) == 0 {
-				delete(wr.connections, team)
+			value, exists := wr.connections.Load(team)
+			if !exists {
+				continue
+			}
+			connections := value.([]model.Connection)
+
+			roleMapConns[role] = append(roleMapConns[role], connections[0])
+
+			if len(connections) > 1 {
+				wr.connections.Store(team, connections[1:])
+			} else {
+				wr.connections.Delete(team)
 			}
 		}
 	}
@@ -78,38 +92,59 @@ func (wr *WaitingRoom) GetConnectionsWithMatchOptimizer(matches []map[model.Role
 }
 
 func (wr *WaitingRoom) GetConnections() ([]model.Connection, error) {
-	wr.mu.Lock()
-	defer wr.mu.Unlock()
-
 	connections := []model.Connection{}
 	ready := false
+
 	if wr.selfMatch {
-		for team, conns := range wr.connections {
+		wr.connections.Range(func(key, value any) bool {
+			team := key.(string)
+			conns := value.([]model.Connection)
+
 			if len(conns) >= wr.agentCount {
 				connections = append(connections, conns[:wr.agentCount]...)
-				wr.connections[team] = conns[wr.agentCount:]
-				if len(wr.connections[team]) == 0 {
-					delete(wr.connections, team)
+
+				if len(conns) > wr.agentCount {
+					wr.connections.Store(team, conns[wr.agentCount:])
+				} else {
+					wr.connections.Delete(team)
 				}
 				ready = true
-				break
+				return false
 			}
-		}
+			return true
+		})
 	} else {
-		if len(wr.connections) >= wr.agentCount {
-			var teams []string
-			for team := range wr.connections {
+		var teams []string
+		wr.connections.Range(func(key, value any) bool {
+			team := key.(string)
+			conns := value.([]model.Connection)
+			if len(conns) > 0 {
 				teams = append(teams, team)
 			}
+			return true
+		})
+
+		if len(teams) >= wr.agentCount {
 			rand.Shuffle(len(teams), func(i, j int) {
 				teams[i], teams[j] = teams[j], teams[i]
 			})
+
 			for _, team := range teams[:wr.agentCount] {
-				conns := wr.connections[team]
+				value, exists := wr.connections.Load(team)
+				if !exists {
+					continue
+				}
+				conns := value.([]model.Connection)
+				if len(conns) == 0 {
+					continue
+				}
+
 				connections = append(connections, conns[0])
-				wr.connections[team] = conns[1:]
-				if len(wr.connections[team]) == 0 {
-					delete(wr.connections, team)
+
+				if len(conns) > 1 {
+					wr.connections.Store(team, conns[1:])
+				} else {
+					wr.connections.Delete(team)
 				}
 			}
 			ready = true

@@ -6,11 +6,7 @@ type VersionInfo struct {
 	Build    string `json:"build"`
 }
 
-var Version VersionInfo = VersionInfo{
-	Version:  "Undefined",
-	Revision: "Undefined",
-	Build:    "Undefined",
-}
+var Version VersionInfo = VersionInfo{}
 
 func SetVersion(version, revision, build string) {
 	Version = VersionInfo{

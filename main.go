@@ -75,6 +75,9 @@ func main() {
 		return
 	}
 
-	server := core.NewServer(*config)
+	server, err := core.NewServer(*config)
+	if err != nil {
+		panic(err)
+	}
 	server.Run()
 }

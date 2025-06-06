@@ -1,6 +1,7 @@
 package core
 
 import (
+	"errors"
 	"log/slog"
 	"net/http"
 	"os"
@@ -35,7 +36,7 @@ type Server struct {
 	ttsBroadcaster      *service.TTSBroadcaster
 }
 
-func NewServer(config model.Config) *Server {
+func NewServer(config model.Config) (*Server, error) {
 	server := &Server{
 		config: config,
 		upgrader: websocket.Upgrader{
@@ -50,8 +51,7 @@ func NewServer(config model.Config) *Server {
 	}
 	gameSettings, err := model.NewSetting(config)
 	if err != nil {
-		slog.Error("ゲーム設定の作成に失敗しました", "error", err)
-		return nil
+		return nil, errors.New("ゲーム設定の作成に失敗しました")
 	}
 	server.gameSetting = gameSettings
 	if config.JSONLogger.Enable {
@@ -69,12 +69,11 @@ func NewServer(config model.Config) *Server {
 	if config.Matching.IsOptimize {
 		matchOptimizer, err := NewMatchOptimizer(config)
 		if err != nil {
-			slog.Error("マッチオプティマイザの作成に失敗しました", "error", err)
-			return nil
+			return nil, errors.New("マッチオプティマイザの作成に失敗しました")
 		}
 		server.matchOptimizer = matchOptimizer
 	}
-	return server
+	return server, nil
 }
 
 func (s *Server) Run() {
@@ -186,9 +185,11 @@ func (s *Server) handleConnections(w http.ResponseWriter, r *http.Request) {
 
 	var game *logic.Game
 	if s.config.Matching.IsOptimize {
-		for team := range s.waitingRoom.connections {
+		s.waitingRoom.connections.Range(func(key, value any) bool {
+			team := key.(string)
 			s.matchOptimizer.updateTeam(team)
-		}
+			return true
+		})
 		matches := s.matchOptimizer.getMatches()
 		roleMapConns, err := s.waitingRoom.GetConnectionsWithMatchOptimizer(matches)
 		if err != nil {

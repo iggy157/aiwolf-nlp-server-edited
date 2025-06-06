@@ -27,7 +27,10 @@ func TestGame(t *testing.T) {
 		config.Server.WebSocket.Host = WebSocketExternalHost
 	}
 	go func() {
-		server := core.NewServer(*config)
+		server, err := core.NewServer(*config)
+		if err != nil {
+			return
+		}
 		server.Run()
 	}()
 	time.Sleep(5 * time.Second)
@@ -77,7 +80,10 @@ func TestManualGame(t *testing.T) {
 		return
 	}
 	go func() {
-		server := core.NewServer(*config)
+		server, err := core.NewServer(*config)
+		if err != nil {
+			return
+		}
 		server.Run()
 	}()
 	time.Sleep(5 * time.Second)
