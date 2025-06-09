@@ -27,7 +27,6 @@ type Config struct {
 	Game struct {
 		AgentCount     int        `yaml:"agent_count"`
 		VoteVisibility bool       `yaml:"vote_visibility"`
-		TalkOnFirstDay bool       `yaml:"talk_on_first_day"`
 		Talk           TalkConfig `yaml:"talk"`
 		Whisper        TalkConfig `yaml:"whisper"`
 		Vote           struct {
@@ -38,6 +37,7 @@ type Config struct {
 			AllowNoTarget bool `yaml:"allow_no_target"`
 		} `yaml:"attack_vote"`
 	} `yaml:"game"`
+	Logic    LogicConfig `yaml:"logic"`
 	Matching struct {
 		SelfMatch    bool   `yaml:"self_match"`
 		IsOptimize   bool   `yaml:"is_optimize"`
@@ -46,7 +46,7 @@ type Config struct {
 		OutputPath   string `yaml:"output_path"`
 		InfiniteLoop bool   `yaml:"infinite_loop"`
 	} `yaml:"matching"`
-	CustomProfiles struct {
+	CustomProfile struct {
 		Enable         bool      `yaml:"enable"`
 		Profiles       []Profile `yaml:"profiles"`
 		DynamicProfile struct {
@@ -55,36 +55,11 @@ type Config struct {
 			Attempts int      `yaml:"attempts"`
 			Avatars  []string `yaml:"avatars"`
 		} `yaml:"dynamic_profile"`
-	} `yaml:"custom_profiles"`
+	} `yaml:"custom_profile"`
 	JSONLogger          JSONLoggerConfig          `yaml:"json_logger"`
 	GameLogger          GameLoggerConfig          `yaml:"game_logger"`
 	RealtimeBroadcaster RealtimeBroadcasterConfig `yaml:"realtime_broadcaster"`
 	TTSBroadcaster      TTSBroadcasterConfig      `yaml:"tts_broadcaster"`
-}
-
-type Profile struct {
-	Name        string `yaml:"name"`
-	AvatarURL   string `yaml:"avatar_url"`
-	VoiceID     int    `yaml:"voice_id"`
-	Age         int    `yaml:"age"`
-	Gender      string `yaml:"gender"`
-	Personality string `yaml:"personality"`
-}
-
-type TTSBroadcasterConfig struct {
-	Enable         bool          `yaml:"enable"`
-	Async          bool          `yaml:"async"`
-	TargetDuration time.Duration `yaml:"target_duration"`
-	SegmentDir     string        `yaml:"segment_dir"`
-	TempDir        string        `yaml:"temp_dir"`
-	Host           string        `yaml:"host"`
-	Timeout        time.Duration `yaml:"timeout"`
-	FfmpegPath     string        `yaml:"ffmpeg_path"`
-	FfprobePath    string        `yaml:"ffprobe_path"`
-	ConvertArgs    []string      `yaml:"convert_args"`
-	DurationArgs   []string      `yaml:"duration_args"`
-	PreConvertArgs []string      `yaml:"pre_convert_args"`
-	SplitArgs      []string      `yaml:"split_args"`
 }
 
 type TalkConfig struct {
@@ -100,6 +75,27 @@ type TalkConfig struct {
 		BaseLength    int  `yaml:"base_length"`
 	} `yaml:"max_length"`
 	MaxSkip int `yaml:"max_skip"`
+}
+
+type LogicConfig struct {
+	DayPhases   []Phase `yaml:"day_phases"`
+	NightPhases []Phase `yaml:"night_phases"`
+}
+
+type Phase struct {
+	Name      string   `yaml:"name"`
+	Actions   []string `yaml:"actions"`
+	OnlyDay   *int     `yaml:"only_day,omitempty"`
+	ExceptDay *int     `yaml:"except_day,omitempty"`
+}
+
+type Profile struct {
+	Name        string `yaml:"name"`
+	AvatarURL   string `yaml:"avatar_url"`
+	VoiceID     int    `yaml:"voice_id"`
+	Age         int    `yaml:"age"`
+	Gender      string `yaml:"gender"`
+	Personality string `yaml:"personality"`
 }
 
 type JSONLoggerConfig struct {
@@ -119,6 +115,22 @@ type RealtimeBroadcasterConfig struct {
 	Delay     time.Duration `yaml:"delay"`
 	OutputDir string        `yaml:"output_dir"`
 	Filename  string        `yaml:"filename"`
+}
+
+type TTSBroadcasterConfig struct {
+	Enable         bool          `yaml:"enable"`
+	Async          bool          `yaml:"async"`
+	TargetDuration time.Duration `yaml:"target_duration"`
+	SegmentDir     string        `yaml:"segment_dir"`
+	TempDir        string        `yaml:"temp_dir"`
+	Host           string        `yaml:"host"`
+	Timeout        time.Duration `yaml:"timeout"`
+	FfmpegPath     string        `yaml:"ffmpeg_path"`
+	FfprobePath    string        `yaml:"ffprobe_path"`
+	ConvertArgs    []string      `yaml:"convert_args"`
+	DurationArgs   []string      `yaml:"duration_args"`
+	PreConvertArgs []string      `yaml:"pre_convert_args"`
+	SplitArgs      []string      `yaml:"split_args"`
 }
 
 func LoadFromPath(path string) (*Config, error) {

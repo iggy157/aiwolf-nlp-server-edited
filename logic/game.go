@@ -32,17 +32,17 @@ type Game struct {
 func NewGame(config *model.Config, settings *model.Setting, conns []model.Connection) *Game {
 	id := ulid.Make().String()
 	var agents []*model.Agent
-	if config.CustomProfiles.Enable {
-		if config.CustomProfiles.DynamicProfile.Enable {
-			profiles, err := util.GenerateProfiles(config.CustomProfiles.DynamicProfile.Prompt, config.CustomProfiles.DynamicProfile.Avatars, config.Game.AgentCount, config.CustomProfiles.DynamicProfile.Attempts)
+	if config.CustomProfile.Enable {
+		if config.CustomProfile.DynamicProfile.Enable {
+			profiles, err := util.GenerateProfiles(config.CustomProfile.DynamicProfile.Prompt, config.CustomProfile.DynamicProfile.Avatars, config.Game.AgentCount, config.CustomProfile.DynamicProfile.Attempts)
 			if err != nil {
 				slog.Error("プロフィールの生成に失敗したため、カスタムプロフィールを使用します", "error", err)
-				agents = util.CreateAgentsWithProfiles(conns, settings.RoleNumMap, config.CustomProfiles.Profiles)
+				agents = util.CreateAgentsWithProfiles(conns, settings.RoleNumMap, config.CustomProfile.Profiles)
 			} else {
 				agents = util.CreateAgentsWithProfiles(conns, settings.RoleNumMap, profiles)
 			}
 		} else {
-			agents = util.CreateAgentsWithProfiles(conns, settings.RoleNumMap, config.CustomProfiles.Profiles)
+			agents = util.CreateAgentsWithProfiles(conns, settings.RoleNumMap, config.CustomProfile.Profiles)
 		}
 	} else {
 		agents = util.CreateAgents(conns, settings.RoleNumMap)
@@ -69,17 +69,17 @@ func NewGame(config *model.Config, settings *model.Setting, conns []model.Connec
 func NewGameWithRole(config *model.Config, settings *model.Setting, roleMapConns map[model.Role][]model.Connection) *Game {
 	id := ulid.Make().String()
 	var agents []*model.Agent
-	if config.CustomProfiles.Enable {
-		if config.CustomProfiles.DynamicProfile.Enable {
-			profiles, err := util.GenerateProfiles(config.CustomProfiles.DynamicProfile.Prompt, config.CustomProfiles.DynamicProfile.Avatars, config.Game.AgentCount, config.CustomProfiles.DynamicProfile.Attempts)
+	if config.CustomProfile.Enable {
+		if config.CustomProfile.DynamicProfile.Enable {
+			profiles, err := util.GenerateProfiles(config.CustomProfile.DynamicProfile.Prompt, config.CustomProfile.DynamicProfile.Avatars, config.Game.AgentCount, config.CustomProfile.DynamicProfile.Attempts)
 			if err != nil {
 				slog.Error("プロフィールの生成に失敗したため、カスタムプロフィールを使用します", "error", err)
-				agents = util.CreateAgentsWithRoleAndProfile(roleMapConns, config.CustomProfiles.Profiles)
+				agents = util.CreateAgentsWithRoleAndProfile(roleMapConns, config.CustomProfile.Profiles)
 			} else {
 				agents = util.CreateAgentsWithRoleAndProfile(roleMapConns, profiles)
 			}
 		} else {
-			agents = util.CreateAgentsWithRoleAndProfile(roleMapConns, config.CustomProfiles.Profiles)
+			agents = util.CreateAgentsWithRoleAndProfile(roleMapConns, config.CustomProfile.Profiles)
 		}
 	} else {
 		agents = util.CreateAgentsWithRole(roleMapConns)
@@ -194,10 +194,23 @@ func (g *Game) progressDay() {
 			g.GameLogger.AppendLog(g.ID, fmt.Sprintf("%d,status,%d,%s,%s,%s,%s", g.currentDay, agent.Idx, agent.Role.Name, g.getCurrentGameStatus().StatusMap[*agent].String(), agent.OriginalName, agent.GameName))
 		}
 	}
-	if g.setting.TalkOnFirstDay && g.currentDay == 0 {
-		g.doWhisper()
+
+	for _, phase := range g.config.Logic.DayPhases {
+		if phase.OnlyDay != nil && *phase.OnlyDay != g.currentDay {
+			slog.Info("実行対象の日ではないため、フェーズをスキップします", "id", g.ID, "day", g.currentDay, "phase", phase.Name)
+			continue
+		}
+		if phase.ExceptDay != nil && *phase.ExceptDay == g.currentDay {
+			slog.Info("除外対象の日であるため、フェーズをスキップします", "id", g.ID, "day", g.currentDay, "phase", phase.Name)
+			continue
+		}
+		slog.Info("昼セクションのフェーズを開始します", "id", g.ID, "day", g.currentDay, "phase", phase.Name)
+		g.executePhase(phase.Actions)
+		if g.shouldFinish() {
+			return
+		}
 	}
-	g.doTalk()
+
 	slog.Info("昼セクションを終了します", "id", g.ID, "day", g.currentDay)
 }
 
@@ -205,23 +218,43 @@ func (g *Game) progressNight() {
 	slog.Info("夜セクションを開始します", "id", g.ID, "day", g.currentDay)
 	g.isDaytime = false
 	g.requestToEveryone(model.R_DAILY_FINISH)
-	if g.setting.TalkOnFirstDay && g.currentDay == 0 {
-		g.doWhisper()
-	}
-	if g.currentDay != 0 {
-		g.doExecution()
+
+	for _, phase := range g.config.Logic.NightPhases {
+		if phase.OnlyDay != nil && *phase.OnlyDay != g.currentDay {
+			slog.Info("実行対象の日ではないため、フェーズをスキップします", "id", g.ID, "day", g.currentDay, "phase", phase.Name)
+			continue
+		}
+		if phase.ExceptDay != nil && *phase.ExceptDay == g.currentDay {
+			slog.Info("除外対象の日であるため、フェーズをスキップします", "id", g.ID, "day", g.currentDay, "phase", phase.Name)
+			continue
+		}
+		slog.Info("夜セクションのフェーズを実行します", "id", g.ID, "day", g.currentDay, "phase", phase.Name)
+		g.executePhase(phase.Actions)
 		if g.shouldFinish() {
 			return
 		}
 	}
-	g.doDivine()
-	if g.currentDay != 0 {
-		g.doWhisper()
-		g.doGuard()
-		g.doAttack()
-		if g.shouldFinish() {
-			return
-		}
-	}
+
 	slog.Info("夜セクションを終了します", "id", g.ID, "day", g.currentDay)
+}
+
+func (g *Game) executePhase(actions []string) {
+	for _, action := range actions {
+		switch action {
+		case "talk":
+			g.doTalk()
+		case "whisper":
+			g.doWhisper()
+		case "execution":
+			g.doExecution()
+		case "divine":
+			g.doDivine()
+		case "guard":
+			g.doGuard()
+		case "attack":
+			g.doAttack()
+		default:
+			slog.Warn("不明なアクションです", "action", action)
+		}
+	}
 }

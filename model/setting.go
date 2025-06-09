@@ -49,13 +49,13 @@ func NewSetting(config Config) (*Setting, error) {
 	if roleNumMap == nil {
 		return nil, errors.New("対応する役職の人数がありません")
 	}
-	if config.CustomProfiles.Enable {
-		if config.CustomProfiles.DynamicProfile.Enable {
-			if len(config.CustomProfiles.DynamicProfile.Avatars) < config.Game.AgentCount {
+	if config.CustomProfile.Enable {
+		if config.CustomProfile.DynamicProfile.Enable {
+			if len(config.CustomProfile.DynamicProfile.Avatars) < config.Game.AgentCount {
 				return nil, errors.New("カスタムプロフィールのアバターがエージェント数より少ないです")
 			}
 		} else {
-			if len(config.CustomProfiles.Profiles) < config.Game.AgentCount {
+			if len(config.CustomProfile.Profiles) < config.Game.AgentCount {
 				return nil, errors.New("カスタムプロフィールの人数がエージェント数より少ないです")
 			}
 		}
@@ -64,7 +64,7 @@ func NewSetting(config Config) (*Setting, error) {
 		AgentCount:     config.Game.AgentCount,
 		RoleNumMap:     roleNumMap,
 		VoteVisibility: config.Game.VoteVisibility,
-		TalkOnFirstDay: config.Game.TalkOnFirstDay,
+		TalkOnFirstDay: true, // TODO: 削除
 		Talk: struct {
 			TalkSetting `json:",inline"`
 		}{

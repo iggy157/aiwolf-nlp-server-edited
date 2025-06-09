@@ -44,6 +44,32 @@ game:
     max_count: 1
     allow_no_target: false
 
+logic:
+  day_phases:
+    - name: "morning_whisper"
+      actions: ["whisper"]
+      only_day: 0
+    - name: "daily_talk"
+      actions: ["talk"]
+  night_phases:
+    - name: "evening_whisper"
+      actions: ["whisper"]
+      only_day: 0
+    - name: "execution"
+      actions: ["execution"]
+      except_day: 0
+    - name: "divine"
+      actions: ["divine"]
+    - name: "night_whisper"
+      actions: ["whisper"]
+      except_day: 0
+    - name: "guard"
+      actions: ["guard"]
+      except_day: 0
+    - name: "attack"
+      actions: ["attack"]
+      except_day: 0
+
 matching:
   self_match: true
   is_optimize: false
