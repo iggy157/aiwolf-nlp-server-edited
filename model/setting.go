@@ -49,13 +49,13 @@ func NewSetting(config Config) (*Setting, error) {
 	if roleNumMap == nil {
 		return nil, errors.New("対応する役職の人数がありません")
 	}
-	if config.Game.CustomProfile.Enable {
-		if config.Game.CustomProfile.DynamicProfile.Enable {
-			if len(config.Game.CustomProfile.DynamicProfile.Avatars) < config.Game.AgentCount {
+	if config.CustomProfiles.Enable {
+		if config.CustomProfiles.DynamicProfile.Enable {
+			if len(config.CustomProfiles.DynamicProfile.Avatars) < config.Game.AgentCount {
 				return nil, errors.New("カスタムプロフィールのアバターがエージェント数より少ないです")
 			}
 		} else {
-			if len(config.Game.CustomProfile.Profiles) < config.Game.AgentCount {
+			if len(config.CustomProfiles.Profiles) < config.Game.AgentCount {
 				return nil, errors.New("カスタムプロフィールの人数がエージェント数より少ないです")
 			}
 		}
@@ -123,8 +123,8 @@ func NewSetting(config Config) (*Setting, error) {
 			Action   int `json:"action"`
 			Response int `json:"response"`
 		}{
-			Action:   int(config.Game.Timeout.Action.Milliseconds()),
-			Response: int(config.Game.Timeout.Response.Milliseconds()),
+			Action:   int(config.Server.Timeout.Action.Milliseconds()),
+			Response: int(config.Server.Timeout.Response.Milliseconds()),
 		},
 	}
 	if config.Game.Talk.MaxLength.PerTalk != -1 {

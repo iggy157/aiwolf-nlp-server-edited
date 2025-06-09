@@ -17,42 +17,28 @@ type Config struct {
 		Authentication struct {
 			Enable bool `yaml:"enable"`
 		} `yaml:"authentication"`
+		Timeout struct {
+			Action     time.Duration `yaml:"action"`
+			Response   time.Duration `yaml:"response"`
+			Acceptable time.Duration `yaml:"acceptable"`
+		} `yaml:"timeout"`
+		MaxContinueErrorRatio float64 `yaml:"max_continue_error_ratio"`
 	} `yaml:"server"`
 	Game struct {
-		AgentCount    int `yaml:"agent_count"`
-		CustomProfile struct {
-			Enable         bool      `yaml:"enable"`
-			Profiles       []Profile `yaml:"profiles"`
-			DynamicProfile struct {
-				Enable   bool     `yaml:"enable"`
-				Prompt   string   `yaml:"prompt"`
-				Attempts int      `yaml:"attempts"`
-				Avatars  []string `yaml:"avatars"`
-			} `yaml:"dynamic_profile"`
-		} `yaml:"custom_profile"`
-		VoteVisibility        bool       `yaml:"vote_visibility"`
-		TalkOnFirstDay        bool       `yaml:"talk_on_first_day"`
-		MaxContinueErrorRatio float64    `yaml:"max_continue_error_ratio"`
-		Talk                  TalkConfig `yaml:"talk"`
-		Whisper               TalkConfig `yaml:"whisper"`
-		Vote                  struct {
+		AgentCount     int        `yaml:"agent_count"`
+		VoteVisibility bool       `yaml:"vote_visibility"`
+		TalkOnFirstDay bool       `yaml:"talk_on_first_day"`
+		Talk           TalkConfig `yaml:"talk"`
+		Whisper        TalkConfig `yaml:"whisper"`
+		Vote           struct {
 			MaxCount int `yaml:"max_count"`
 		} `yaml:"vote"`
 		AttackVote struct {
 			MaxCount      int  `yaml:"max_count"`
 			AllowNoTarget bool `yaml:"allow_no_target"`
 		} `yaml:"attack_vote"`
-		Timeout struct {
-			Action     time.Duration `yaml:"action"`
-			Response   time.Duration `yaml:"response"`
-			Acceptable time.Duration `yaml:"acceptable"`
-		} `yaml:"timeout"`
 	} `yaml:"game"`
-	JSONLogger          JSONLoggerConfig          `yaml:"json_logger"`
-	GameLogger          GameLoggerConfig          `yaml:"game_logger"`
-	RealtimeBroadcaster RealtimeBroadcasterConfig `yaml:"realtime_broadcaster"`
-	TTSBroadcaster      TTSBroadcasterConfig      `yaml:"tts_broadcaster"`
-	Matching            struct {
+	Matching struct {
 		SelfMatch    bool   `yaml:"self_match"`
 		IsOptimize   bool   `yaml:"is_optimize"`
 		TeamCount    int    `yaml:"team_count"`
@@ -60,6 +46,20 @@ type Config struct {
 		OutputPath   string `yaml:"output_path"`
 		InfiniteLoop bool   `yaml:"infinite_loop"`
 	} `yaml:"matching"`
+	CustomProfiles struct {
+		Enable         bool      `yaml:"enable"`
+		Profiles       []Profile `yaml:"profiles"`
+		DynamicProfile struct {
+			Enable   bool     `yaml:"enable"`
+			Prompt   string   `yaml:"prompt"`
+			Attempts int      `yaml:"attempts"`
+			Avatars  []string `yaml:"avatars"`
+		} `yaml:"dynamic_profile"`
+	} `yaml:"custom_profiles"`
+	JSONLogger          JSONLoggerConfig          `yaml:"json_logger"`
+	GameLogger          GameLoggerConfig          `yaml:"game_logger"`
+	RealtimeBroadcaster RealtimeBroadcasterConfig `yaml:"realtime_broadcaster"`
+	TTSBroadcaster      TTSBroadcasterConfig      `yaml:"tts_broadcaster"`
 }
 
 type Profile struct {
