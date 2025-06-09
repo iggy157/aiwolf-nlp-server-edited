@@ -16,9 +16,8 @@ import (
 )
 
 type JSONLogger struct {
-	data             sync.Map
-	outputDir        string
-	templateFilename string
+	config model.JSONLoggerConfig
+	data   sync.Map
 }
 
 type JSONLog struct {
@@ -29,13 +28,12 @@ type JSONLog struct {
 	entries      []any
 	timestampMap sync.Map
 	requestMap   sync.Map
-	entriesMu    sync.Mutex
+	mu           sync.Mutex
 }
 
 func NewJSONLogger(config model.Config) *JSONLogger {
 	return &JSONLogger{
-		outputDir:        config.JSONLogger.OutputDir,
-		templateFilename: config.JSONLogger.Filename,
+		config: config.JSONLogger,
 	}
 }
 
@@ -58,7 +56,7 @@ func (j *JSONLogger) TrackStartGame(id string, agents []*model.Agent) {
 		)
 	}
 
-	filename := strings.ReplaceAll(j.templateFilename, "{game_id}", data.id)
+	filename := strings.ReplaceAll(j.config.Filename, "{game_id}", data.id)
 	filename = strings.ReplaceAll(filename, "{timestamp}", fmt.Sprintf("%d", time.Now().Unix()))
 
 	teams := make([]string, 0)
@@ -118,9 +116,9 @@ func (j *JSONLogger) TrackEndRequest(id string, agent model.Agent, response stri
 			entry["error"] = err.Error()
 		}
 
-		data.entriesMu.Lock()
+		data.mu.Lock()
 		data.entries = append(data.entries, entry)
-		data.entriesMu.Unlock()
+		data.mu.Unlock()
 
 		j.saveGameData(id)
 	}
@@ -130,25 +128,25 @@ func (j *JSONLogger) saveGameData(id string) {
 	if dataInterface, exists := j.data.Load(id); exists {
 		data := dataInterface.(*JSONLog)
 
-		data.entriesMu.Lock()
+		data.mu.Lock()
 		game := map[string]any{
 			"game_id":  id,
 			"win_side": data.winSide,
 			"agents":   data.agents,
 			"entries":  slices.Clone(data.entries),
 		}
-		data.entriesMu.Unlock()
+		data.mu.Unlock()
 
 		jsonData, err := json.Marshal(game)
 		if err != nil {
 			return
 		}
 
-		if _, err := os.Stat(j.outputDir); os.IsNotExist(err) {
-			os.MkdirAll(j.outputDir, 0755)
+		if _, err := os.Stat(j.config.OutputDir); os.IsNotExist(err) {
+			os.MkdirAll(j.config.OutputDir, 0755)
 		}
 
-		filePath := filepath.Join(j.outputDir, fmt.Sprintf("%s.json", data.filename))
+		filePath := filepath.Join(j.config.OutputDir, fmt.Sprintf("%s.json", data.filename))
 		file, err := os.Create(filePath)
 		if err != nil {
 			return

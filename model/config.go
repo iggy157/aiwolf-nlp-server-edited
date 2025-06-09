@@ -30,16 +30,12 @@ type Config struct {
 				Avatars  []string `yaml:"avatars"`
 			} `yaml:"dynamic_profile"`
 		} `yaml:"custom_profile"`
-		VoteVisibility        bool    `yaml:"vote_visibility"`
-		TalkOnFirstDay        bool    `yaml:"talk_on_first_day"`
-		MaxContinueErrorRatio float64 `yaml:"max_continue_error_ratio"`
-		Talk                  struct {
-			TalkConfig `yaml:",inline"`
-		} `yaml:"talk"`
-		Whisper struct {
-			TalkConfig `yaml:",inline"`
-		} `yaml:"whisper"`
-		Vote struct {
+		VoteVisibility        bool       `yaml:"vote_visibility"`
+		TalkOnFirstDay        bool       `yaml:"talk_on_first_day"`
+		MaxContinueErrorRatio float64    `yaml:"max_continue_error_ratio"`
+		Talk                  TalkConfig `yaml:"talk"`
+		Whisper               TalkConfig `yaml:"whisper"`
+		Vote                  struct {
 			MaxCount int `yaml:"max_count"`
 		} `yaml:"vote"`
 		AttackVote struct {
@@ -52,38 +48,11 @@ type Config struct {
 			Acceptable time.Duration `yaml:"acceptable"`
 		} `yaml:"timeout"`
 	} `yaml:"game"`
-	JSONLogger struct {
-		Enable    bool   `yaml:"enable"`
-		OutputDir string `yaml:"output_dir"`
-		Filename  string `yaml:"filename"`
-	} `yaml:"json_logger"`
-	GameLogger struct {
-		Enable    bool   `yaml:"enable"`
-		OutputDir string `yaml:"output_dir"`
-		Filename  string `yaml:"filename"`
-	} `yaml:"game_logger"`
-	RealtimeBroadcaster struct {
-		Enable    bool          `yaml:"enable"`
-		Delay     time.Duration `yaml:"delay"`
-		OutputDir string        `yaml:"output_dir"`
-		Filename  string        `yaml:"filename"`
-	} `yaml:"realtime_broadcaster"`
-	TTSBroadcaster struct {
-		Enable         bool          `yaml:"enable"`
-		Async          bool          `yaml:"async"`
-		TargetDuration time.Duration `yaml:"target_duration"`
-		SegmentDir     string        `yaml:"segment_dir"`
-		TempDir        string        `yaml:"temp_dir"`
-		Host           string        `yaml:"host"`
-		Timeout        time.Duration `yaml:"timeout"`
-		FfmpegPath     string        `yaml:"ffmpeg_path"`
-		FfprobePath    string        `yaml:"ffprobe_path"`
-		ConvertArgs    []string      `yaml:"convert_args"`
-		DurationArgs   []string      `yaml:"duration_args"`
-		PreConvertArgs []string      `yaml:"pre_convert_args"`
-		SplitArgs      []string      `yaml:"split_args"`
-	} `yaml:"tts_broadcaster"`
-	Matching struct {
+	JSONLogger          JSONLoggerConfig          `yaml:"json_logger"`
+	GameLogger          GameLoggerConfig          `yaml:"game_logger"`
+	RealtimeBroadcaster RealtimeBroadcasterConfig `yaml:"realtime_broadcaster"`
+	TTSBroadcaster      TTSBroadcasterConfig      `yaml:"tts_broadcaster"`
+	Matching            struct {
 		SelfMatch    bool   `yaml:"self_match"`
 		IsOptimize   bool   `yaml:"is_optimize"`
 		TeamCount    int    `yaml:"team_count"`
@@ -91,6 +60,31 @@ type Config struct {
 		OutputPath   string `yaml:"output_path"`
 		InfiniteLoop bool   `yaml:"infinite_loop"`
 	} `yaml:"matching"`
+}
+
+type Profile struct {
+	Name        string `yaml:"name"`
+	AvatarURL   string `yaml:"avatar_url"`
+	VoiceID     int    `yaml:"voice_id"`
+	Age         int    `yaml:"age"`
+	Gender      string `yaml:"gender"`
+	Personality string `yaml:"personality"`
+}
+
+type TTSBroadcasterConfig struct {
+	Enable         bool          `yaml:"enable"`
+	Async          bool          `yaml:"async"`
+	TargetDuration time.Duration `yaml:"target_duration"`
+	SegmentDir     string        `yaml:"segment_dir"`
+	TempDir        string        `yaml:"temp_dir"`
+	Host           string        `yaml:"host"`
+	Timeout        time.Duration `yaml:"timeout"`
+	FfmpegPath     string        `yaml:"ffmpeg_path"`
+	FfprobePath    string        `yaml:"ffprobe_path"`
+	ConvertArgs    []string      `yaml:"convert_args"`
+	DurationArgs   []string      `yaml:"duration_args"`
+	PreConvertArgs []string      `yaml:"pre_convert_args"`
+	SplitArgs      []string      `yaml:"split_args"`
 }
 
 type TalkConfig struct {
@@ -108,13 +102,23 @@ type TalkConfig struct {
 	MaxSkip int `yaml:"max_skip"`
 }
 
-type Profile struct {
-	Name        string `yaml:"name"`
-	AvatarURL   string `yaml:"avatar_url"`
-	VoiceID     int    `yaml:"voice_id"`
-	Age         int    `yaml:"age"`
-	Gender      string `yaml:"gender"`
-	Personality string `yaml:"personality"`
+type JSONLoggerConfig struct {
+	Enable    bool   `yaml:"enable"`
+	OutputDir string `yaml:"output_dir"`
+	Filename  string `yaml:"filename"`
+}
+
+type GameLoggerConfig struct {
+	Enable    bool   `yaml:"enable"`
+	OutputDir string `yaml:"output_dir"`
+	Filename  string `yaml:"filename"`
+}
+
+type RealtimeBroadcasterConfig struct {
+	Enable    bool          `yaml:"enable"`
+	Delay     time.Duration `yaml:"delay"`
+	OutputDir string        `yaml:"output_dir"`
+	Filename  string        `yaml:"filename"`
 }
 
 func LoadFromPath(path string) (*Config, error) {
