@@ -15,7 +15,6 @@ server:
 game:
   agent_count: 5
   vote_visibility: false
-  talk_on_first_day: true
   talk:
     max_count:
       per_agent: 4
