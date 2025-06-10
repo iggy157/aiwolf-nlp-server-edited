@@ -237,25 +237,25 @@ custom_profile:
 
 json_logger:
   enable: true
-  output_dir: ../log/json
+  output_dir: ./log/json
   filename: "{game_id}"
 
 game_logger:
   enable: true
-  output_dir: ../log/game
+  output_dir: ./log/game
   filename: "{game_id}"
 
 realtime_broadcaster:
   enable: true
   delay: 5s
-  output_dir: ../log/realtime
+  output_dir: ./log/realtime
   filename: "{game_id}"
 
 tts_broadcaster:
   enable: false
   async: false
   target_duration: 1s
-  segment_dir: ./../cache/segment
+  segment_dir: ./cache/segment
   temp_dir:
   host: http://localhost:50021
   timeout: 30s

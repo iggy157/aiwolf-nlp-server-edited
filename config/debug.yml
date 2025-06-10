@@ -257,18 +257,18 @@ custom_profile:
 
 json_logger:
   enable: true
-  output_dir: ../log/json
+  output_dir: ./../log/json
   filename: "{game_id}"
 
 game_logger:
   enable: true
-  output_dir: ../log/game
+  output_dir: ./../log/game
   filename: "{game_id}"
 
 realtime_broadcaster:
   enable: true
   delay: 5s
-  output_dir: ../log/realtime
+  output_dir: ./../log/realtime
   filename: "{game_id}"
 
 tts_broadcaster:
