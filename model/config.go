@@ -26,6 +26,7 @@ type Config struct {
 	} `yaml:"server"`
 	Game struct {
 		AgentCount     int        `yaml:"agent_count"`
+		MaxDay         int        `yaml:"max_day"`
 		VoteVisibility bool       `yaml:"vote_visibility"`
 		Talk           TalkConfig `yaml:"talk"`
 		Whisper        TalkConfig `yaml:"whisper"`

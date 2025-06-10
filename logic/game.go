@@ -135,6 +135,10 @@ func (g *Game) Start() model.Team {
 		g.gameStatuses[g.currentDay+1] = &gameStatus
 		g.currentDay++
 		slog.Info("日付が進みました", "id", g.ID, "day", g.currentDay)
+		if g.config.Game.MaxDay > 0 && g.currentDay >= g.config.Game.MaxDay+1 {
+			slog.Info("最大日数に達したため、ゲームを終了します", "id", g.ID, "day", g.currentDay)
+			break
+		}
 		if g.shouldFinish() {
 			break
 		}
