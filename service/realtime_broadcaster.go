@@ -18,10 +18,11 @@ import (
 )
 
 type RealtimeBroadcaster struct {
-	config   model.Config
-	upgrader websocket.Upgrader
-	clients  *sync.Map
-	data     sync.Map
+	authentication bool
+	config         model.RealtimeBroadcasterConfig
+	upgrader       websocket.Upgrader
+	clients        *sync.Map
+	data           sync.Map
 }
 
 type RealtimeBroadcasterLog struct {
@@ -39,7 +40,8 @@ type ClientConnection struct {
 
 func NewRealtimeBroadcaster(config model.Config) *RealtimeBroadcaster {
 	return &RealtimeBroadcaster{
-		config: config,
+		authentication: config.Server.Authentication.Enable,
+		config:         config.RealtimeBroadcaster,
 		upgrader: websocket.Upgrader{
 			CheckOrigin: func(r *http.Request) bool {
 				return true
@@ -67,7 +69,7 @@ func (rb *RealtimeBroadcaster) TrackStartGame(id string, agents []*model.Agent) 
 		)
 	}
 
-	filename := strings.ReplaceAll(rb.config.RealtimeBroadcaster.Filename, "{game_id}", data.id)
+	filename := strings.ReplaceAll(rb.config.Filename, "{game_id}", data.id)
 	filename = strings.ReplaceAll(filename, "{timestamp}", fmt.Sprintf("%d", time.Now().Unix()))
 
 	teams := make([]string, 0)
@@ -95,7 +97,7 @@ func (rb *RealtimeBroadcaster) Broadcast(packet model.BroadcastPacket) {
 	}
 
 	go func() {
-		time.Sleep(rb.config.RealtimeBroadcaster.Delay)
+		time.Sleep(rb.config.Delay)
 		var disconnectedClients []*ClientConnection
 
 		rb.clients.Range(func(key, value any) bool {
@@ -122,7 +124,7 @@ func (rb *RealtimeBroadcaster) Broadcast(packet model.BroadcastPacket) {
 }
 
 func (rb *RealtimeBroadcaster) HandleConnections(w http.ResponseWriter, r *http.Request) {
-	if rb.config.Server.Authentication.Enable {
+	if rb.authentication {
 		token := r.URL.Query().Get("token")
 		if token != "" {
 			if !util.IsValidReceiver(os.Getenv("SECRET_KEY"), token) {
@@ -193,11 +195,11 @@ func (rb *RealtimeBroadcaster) saveLog(id string) {
 func (rb *RealtimeBroadcaster) saveLogWithData(filename string, logs []string) {
 	str := strings.Join(logs, "\n")
 
-	if _, err := os.Stat(rb.config.RealtimeBroadcaster.OutputDir); os.IsNotExist(err) {
-		os.MkdirAll(rb.config.RealtimeBroadcaster.OutputDir, 0755)
+	if _, err := os.Stat(rb.config.OutputDir); os.IsNotExist(err) {
+		os.MkdirAll(rb.config.OutputDir, 0755)
 	}
 
-	filePath := filepath.Join(rb.config.RealtimeBroadcaster.OutputDir, fmt.Sprintf("%s.jsonl", filename))
+	filePath := filepath.Join(rb.config.OutputDir, fmt.Sprintf("%s.jsonl", filename))
 	file, err := os.Create(filePath)
 	if err != nil {
 		return

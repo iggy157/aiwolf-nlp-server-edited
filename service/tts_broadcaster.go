@@ -25,7 +25,7 @@ const (
 )
 
 type TTSBroadcaster struct {
-	config  model.Config
+	config  model.TTSBroadcasterConfig
 	baseURL *url.URL
 	client  *http.Client
 	streams sync.Map
@@ -50,7 +50,7 @@ func NewTTSBroadcaster(config model.Config) *TTSBroadcaster {
 	}
 
 	return &TTSBroadcaster{
-		config:  config,
+		config:  config.TTSBroadcaster,
 		baseURL: baseURL,
 		client: &http.Client{
 			Timeout: config.TTSBroadcaster.Timeout,
@@ -59,7 +59,7 @@ func NewTTSBroadcaster(config model.Config) *TTSBroadcaster {
 }
 
 func (t *TTSBroadcaster) Start() {
-	if err := os.MkdirAll(t.config.TTSBroadcaster.SegmentDir, 0755); err != nil {
+	if err := os.MkdirAll(t.config.SegmentDir, 0755); err != nil {
 		slog.Error("セグメントディレクトリの作成に失敗しました", "error", err)
 		return
 	}
@@ -96,7 +96,7 @@ func (t *TTSBroadcaster) CreateStream(id string) {
 		return
 	}
 
-	playlist.TargetDuration = float64(t.config.TTSBroadcaster.TargetDuration.Seconds())
+	playlist.TargetDuration = float64(t.config.TargetDuration.Seconds())
 	playlist.SetVersion(3)
 	playlist.Closed = false
 	stream.playlist = playlist
@@ -110,12 +110,12 @@ func (t *TTSBroadcaster) CreateStream(id string) {
 }
 
 func (t *TTSBroadcaster) cleanupSegments() {
-	if err := os.RemoveAll(t.config.TTSBroadcaster.SegmentDir); err != nil {
+	if err := os.RemoveAll(t.config.SegmentDir); err != nil {
 		slog.Error("セグメントディレクトリの削除に失敗しました", "error", err)
 		return
 	}
 	slog.Info("セグメントディレクトリのクリーンアップが完了しました")
-	if err := os.MkdirAll(t.config.TTSBroadcaster.SegmentDir, 0755); err != nil {
+	if err := os.MkdirAll(t.config.SegmentDir, 0755); err != nil {
 		slog.Error("セグメントディレクトリの作成に失敗しました", "error", err)
 		return
 	}
@@ -123,7 +123,7 @@ func (t *TTSBroadcaster) cleanupSegments() {
 
 func (t *TTSBroadcaster) getSegmentDir(id string) string {
 	cleanID := filepath.Base(filepath.Clean(id))
-	return filepath.Join(t.config.TTSBroadcaster.SegmentDir, cleanID)
+	return filepath.Join(t.config.SegmentDir, cleanID)
 }
 
 func (t *TTSBroadcaster) writePlaylist(id string, stream *Stream) {
@@ -145,7 +145,7 @@ func (t *TTSBroadcaster) BroadcastText(id string, text string, speaker int) {
 		return
 	}
 
-	if t.config.TTSBroadcaster.Async {
+	if t.config.Async {
 		t.broadcastTextAsync(id, text, speaker)
 	} else {
 		t.broadcastText(id, text, speaker)
@@ -167,7 +167,7 @@ func (t *TTSBroadcaster) broadcastTextAsync(id string, text string, speaker int)
 			atomic.StoreInt64(&stream.lastSegmentTime, time.Now().UnixNano())
 		}()
 
-		ctx, cancel := context.WithTimeout(context.Background(), t.config.TTSBroadcaster.Timeout)
+		ctx, cancel := context.WithTimeout(context.Background(), t.config.Timeout)
 		defer cancel()
 
 		audioQuery, err := t.fetchAudioQuery(ctx, text, speaker)
@@ -195,7 +195,7 @@ func (t *TTSBroadcaster) broadcastText(id string, text string, speaker int) {
 		atomic.StoreInt64(&stream.lastSegmentTime, time.Now().UnixNano())
 	}()
 
-	ctx, cancel := context.WithTimeout(context.Background(), t.config.TTSBroadcaster.Timeout)
+	ctx, cancel := context.WithTimeout(context.Background(), t.config.Timeout)
 	defer cancel()
 
 	audioQuery, err := t.fetchAudioQuery(ctx, text, speaker)
@@ -279,14 +279,14 @@ func (t *TTSBroadcaster) synthesizeAndProcessAudio(ctx context.Context, queryPar
 	baseName := fmt.Sprintf("segment_%d", counter-1)
 
 	segmentParams := util.ConvertWavToSegmentParams{
-		FfmpegPath:      t.config.TTSBroadcaster.FfmpegPath,
-		FfprobePath:     t.config.TTSBroadcaster.FfprobePath,
-		DurationArgs:    t.config.TTSBroadcaster.DurationArgs,
-		ConvertArgs:     t.config.TTSBroadcaster.ConvertArgs,
-		PreConvertArgs:  t.config.TTSBroadcaster.PreConvertArgs,
-		SplitArgs:       t.config.TTSBroadcaster.SplitArgs,
-		TempDir:         t.config.TTSBroadcaster.TempDir,
-		SegmentDuration: t.config.TTSBroadcaster.TargetDuration.Seconds(),
+		FfmpegPath:      t.config.FfmpegPath,
+		FfprobePath:     t.config.FfprobePath,
+		DurationArgs:    t.config.DurationArgs,
+		ConvertArgs:     t.config.ConvertArgs,
+		PreConvertArgs:  t.config.PreConvertArgs,
+		SplitArgs:       t.config.SplitArgs,
+		TempDir:         t.config.TempDir,
+		SegmentDuration: t.config.TargetDuration.Seconds(),
 		Data:            wavData,
 		BaseDir:         t.getSegmentDir(id),
 		BaseName:        baseName,
@@ -313,10 +313,10 @@ func (t *TTSBroadcaster) addSegmentsToPlaylist(id string, stream *Stream, segmen
 	var totalDuration float64
 	for _, segmentName := range segmentNames {
 		segmentPath := filepath.Join(streamDir, segmentName)
-		duration, err := util.GetDuration(t.config.TTSBroadcaster.FfprobePath, t.config.TTSBroadcaster.DurationArgs, segmentPath)
+		duration, err := util.GetDuration(t.config.FfprobePath, t.config.DurationArgs, segmentPath)
 		if err != nil {
 			slog.Error("セグメント再生時間の取得に失敗しました", "error", err, "id", id, "segment", segmentName)
-			duration = t.config.TTSBroadcaster.TargetDuration.Seconds()
+			duration = t.config.TargetDuration.Seconds()
 		}
 
 		totalDuration += duration

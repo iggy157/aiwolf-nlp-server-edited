@@ -123,7 +123,7 @@ func (g *Game) requestToAgent(agent *model.Agent, request model.Request) (string
 	if g.JsonLogger != nil {
 		g.JsonLogger.TrackStartRequest(g.ID, *agent, packet)
 	}
-	resp, err := agent.SendPacket(packet, g.config.Game.Timeout.Action, g.config.Game.Timeout.Response, g.config.Game.Timeout.Acceptable)
+	resp, err := agent.SendPacket(packet, g.config.Server.Timeout.Action, g.config.Server.Timeout.Response, g.config.Server.Timeout.Acceptable)
 	if g.JsonLogger != nil {
 		g.JsonLogger.TrackEndRequest(g.ID, *agent, resp, err)
 	}

@@ -13,9 +13,8 @@ import (
 )
 
 type GameLogger struct {
-	data             sync.Map
-	outputDir        string
-	templateFilename string
+	config model.GameLoggerConfig
+	data   sync.Map
 }
 
 type GameLog struct {
@@ -23,13 +22,12 @@ type GameLog struct {
 	filename string
 	agents   []any
 	logs     []string
-	logsMu   sync.Mutex
+	mu       sync.Mutex
 }
 
 func NewGameLogger(config model.Config) *GameLogger {
 	return &GameLogger{
-		outputDir:        config.GameLogger.OutputDir,
-		templateFilename: config.GameLogger.Filename,
+		config: config.GameLogger,
 	}
 }
 
@@ -51,7 +49,7 @@ func (g *GameLogger) TrackStartGame(id string, agents []*model.Agent) {
 		)
 	}
 
-	filename := strings.ReplaceAll(g.templateFilename, "{game_id}", data.id)
+	filename := strings.ReplaceAll(g.config.Filename, "{game_id}", data.id)
 	filename = strings.ReplaceAll(filename, "{timestamp}", fmt.Sprintf("%d", time.Now().Unix()))
 
 	teams := make([]string, 0)
@@ -77,11 +75,11 @@ func (g *GameLogger) AppendLog(id string, log string) {
 	if dataInterface, exists := g.data.Load(id); exists {
 		data := dataInterface.(*GameLog)
 
-		data.logsMu.Lock()
+		data.mu.Lock()
 		data.logs = append(data.logs, log)
 		logsCopy := make([]string, len(data.logs))
 		copy(logsCopy, data.logs)
-		data.logsMu.Unlock()
+		data.mu.Unlock()
 
 		g.saveLogWithData(data.filename, logsCopy)
 	}
@@ -91,11 +89,11 @@ func (g *GameLogger) saveLog(id string) {
 	if dataInterface, exists := g.data.Load(id); exists {
 		data := dataInterface.(*GameLog)
 
-		data.logsMu.Lock()
+		data.mu.Lock()
 		logsCopy := make([]string, len(data.logs))
 		copy(logsCopy, data.logs)
 		filename := data.filename
-		data.logsMu.Unlock()
+		data.mu.Unlock()
 
 		g.saveLogWithData(filename, logsCopy)
 	}
@@ -104,11 +102,11 @@ func (g *GameLogger) saveLog(id string) {
 func (g *GameLogger) saveLogWithData(filename string, logs []string) {
 	str := strings.Join(logs, "\n")
 
-	if _, err := os.Stat(g.outputDir); os.IsNotExist(err) {
-		os.MkdirAll(g.outputDir, 0755)
+	if _, err := os.Stat(g.config.OutputDir); os.IsNotExist(err) {
+		os.MkdirAll(g.config.OutputDir, 0755)
 	}
 
-	filePath := filepath.Join(g.outputDir, fmt.Sprintf("%s.log", filename))
+	filePath := filepath.Join(g.config.OutputDir, fmt.Sprintf("%s.log", filename))
 	file, err := os.Create(filePath)
 	if err != nil {
 		return
