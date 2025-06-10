@@ -55,7 +55,7 @@ matching:
   is_optimize: false
   team_count: 5
   game_count: 30
-  output_path: ./../log/match_optimizer.json
+  output_path: ./log/match_optimizer.json
   infinite_loop: false
 
 custom_profile:
