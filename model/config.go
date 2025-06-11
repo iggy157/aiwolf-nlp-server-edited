@@ -43,10 +43,12 @@ type GameConfig struct {
 	Talk           TalkConfig `yaml:"talk"`
 	Whisper        TalkConfig `yaml:"whisper"`
 	Vote           struct {
-		MaxCount int `yaml:"max_count"`
+		MaxCount      int  `yaml:"max_count"`
+		AllowSelfVote bool `yaml:"allow_self_vote"`
 	} `yaml:"vote"`
 	AttackVote struct {
 		MaxCount      int  `yaml:"max_count"`
+		AllowSelfVote bool `yaml:"allow_self_vote"`
 		AllowNoTarget bool `yaml:"allow_no_target"`
 	} `yaml:"attack_vote"`
 }
