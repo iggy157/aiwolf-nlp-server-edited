@@ -12,12 +12,12 @@ import (
 )
 
 func (g *Game) doWhisper() {
-	slog.Info("囁きフェーズを開始します", "id", g.ID, "day", g.currentDay)
+	slog.Info("囁きフェーズを開始します", "id", g.id, "day", g.currentDay)
 	g.conductCommunication(model.R_WHISPER)
 }
 
 func (g *Game) doTalk() {
-	slog.Info("トークフェーズを開始します", "id", g.ID, "day", g.currentDay)
+	slog.Info("トークフェーズを開始します", "id", g.id, "day", g.currentDay)
 	g.conductCommunication(model.R_TALK)
 }
 
@@ -39,7 +39,7 @@ func (g *Game) conductCommunication(request model.Request) {
 		return
 	}
 	if len(agents) < 2 {
-		slog.Warn("エージェント数が2未満のため、通信を行いません", "id", g.ID, "agentNum", len(agents))
+		slog.Warn("エージェント数が2未満のため、通信を行いません", "id", g.id, "agentNum", len(agents))
 		return
 	}
 
@@ -78,18 +78,18 @@ func (g *Game) conductCommunication(request model.Request) {
 			if text == model.T_SKIP {
 				if remainSkipMap[*agent] <= 0 {
 					text = model.T_OVER
-					slog.Warn("スキップ回数が上限に達したため、発言をオーバーに置換しました", "id", g.ID, "agent", agent.String())
+					slog.Warn("スキップ回数が上限に達したため、発言をオーバーに置換しました", "id", g.id, "agent", agent.String())
 				} else {
 					remainSkipMap[*agent]--
-					slog.Info("発言をスキップしました", "id", g.ID, "agent", agent.String())
+					slog.Info("発言をスキップしました", "id", g.id, "agent", agent.String())
 				}
 			} else if text == model.T_FORCE_SKIP {
 				text = model.T_SKIP
-				slog.Warn("強制スキップが指定されたため、発言をスキップに置換しました", "id", g.ID, "agent", agent.String())
+				slog.Warn("強制スキップが指定されたため、発言をスキップに置換しました", "id", g.id, "agent", agent.String())
 			}
 			if text != model.T_OVER && text != model.T_SKIP {
 				remainSkipMap[*agent] = talkSetting.MaxSkip
-				slog.Info("発言がオーバーもしくはスキップではないため、スキップ回数をリセットしました", "id", g.ID, "agent", agent.String())
+				slog.Info("発言がオーバーもしくはスキップではないため、スキップ回数をリセットしました", "id", g.id, "agent", agent.String())
 			}
 
 			if text != model.T_OVER && text != model.T_SKIP && text != model.T_FORCE_SKIP {
@@ -167,12 +167,12 @@ func (g *Game) conductCommunication(request model.Request) {
 					length := util.CountLength(text, *talkSetting.MaxLength.CountInWord)
 					if length > *talkSetting.MaxLength.PerTalk {
 						text = util.TrimLength(text, *talkSetting.MaxLength.PerTalk, *talkSetting.MaxLength.CountInWord)
-						slog.Warn("発言が最大文字数を超えたため、切り捨てました", "id", g.ID, "agent", agent.String())
+						slog.Warn("発言が最大文字数を超えたため、切り捨てました", "id", g.id, "agent", agent.String())
 					}
 				}
 				if utf8.RuneCountInString(text) == 0 {
 					text = model.T_OVER
-					slog.Warn("文字数が0のため、発言をオーバーに置換しました", "id", g.ID, "agent", agent.String())
+					slog.Warn("文字数が0のため、発言をオーバーに置換しました", "id", g.id, "agent", agent.String())
 				}
 			}
 
@@ -189,34 +189,34 @@ func (g *Game) conductCommunication(request model.Request) {
 				cnt = true
 			} else {
 				remainCountMap[*agent] = 0
-				slog.Info("発言がオーバーであるため、残り発言回数を0にしました", "id", g.ID, "agent", agent.String())
+				slog.Info("発言がオーバーであるため、残り発言回数を0にしました", "id", g.id, "agent", agent.String())
 			}
-			if g.GameLogger != nil {
+			if g.gameLogger != nil {
 				if request == model.R_TALK {
-					g.GameLogger.AppendLog(g.ID, fmt.Sprintf("%d,talk,%d,%d,%d,%s", g.currentDay, talk.Idx, talk.Turn, talk.Agent.Idx, talk.Text))
+					g.gameLogger.AppendLog(g.id, fmt.Sprintf("%d,talk,%d,%d,%d,%s", g.currentDay, talk.Idx, talk.Turn, talk.Agent.Idx, talk.Text))
 				} else {
-					g.GameLogger.AppendLog(g.ID, fmt.Sprintf("%d,whisper,%d,%d,%d,%s", g.currentDay, talk.Idx, talk.Turn, talk.Agent.Idx, talk.Text))
+					g.gameLogger.AppendLog(g.id, fmt.Sprintf("%d,whisper,%d,%d,%d,%s", g.currentDay, talk.Idx, talk.Turn, talk.Agent.Idx, talk.Text))
 				}
 			}
-			if g.RealtimeBroadcaster != nil {
+			if g.realtimeBroadcaster != nil {
 				if request == model.R_TALK {
 					packet := g.getRealtimeBroadcastPacket()
 					packet.Event = "トーク"
 					packet.Message = &talk.Text
 					packet.BubbleIdx = &agent.Idx
-					g.RealtimeBroadcaster.Broadcast(packet)
+					g.realtimeBroadcaster.Broadcast(packet)
 				} else {
 					packet := g.getRealtimeBroadcastPacket()
 					packet.Event = "囁き"
 					packet.Message = &talk.Text
 					packet.BubbleIdx = &agent.Idx
-					g.RealtimeBroadcaster.Broadcast(packet)
+					g.realtimeBroadcaster.Broadcast(packet)
 				}
 			}
-			if g.TTSBroadcaster != nil {
-				g.TTSBroadcaster.BroadcastText(g.ID, talk.Text, agent.Profile.VoiceID)
+			if g.ttsBroadcaster != nil {
+				g.ttsBroadcaster.BroadcastText(g.id, talk.Text, agent.Profile.VoiceID)
 			}
-			slog.Info("発言を受信しました", "id", g.ID, "agent", agent.String(), "text", text, "count", remainCountMap[*agent], "length", remainLengthMap[*agent], "skip", remainSkipMap[*agent])
+			slog.Info("発言を受信しました", "id", g.id, "agent", agent.String(), "text", text, "count", remainCountMap[*agent], "length", remainLengthMap[*agent], "skip", remainSkipMap[*agent])
 		}
 		if !cnt {
 			break
@@ -232,11 +232,11 @@ func (g *Game) getTalkWhisperText(agent *model.Agent, request model.Request) str
 	text, err := g.requestToAgent(agent, request)
 	if text == model.T_FORCE_SKIP {
 		text = model.T_SKIP
-		slog.Warn("クライアントから強制スキップが指定されたため、発言をスキップに置換しました", "id", g.ID, "agent", agent.String())
+		slog.Warn("クライアントから強制スキップが指定されたため、発言をスキップに置換しました", "id", g.id, "agent", agent.String())
 	}
 	if err != nil {
 		text = model.T_FORCE_SKIP
-		slog.Warn("リクエストの送受信に失敗したため、発言をスキップに置換しました", "id", g.ID, "agent", agent.String())
+		slog.Warn("リクエストの送受信に失敗したため、発言をスキップに置換しました", "id", g.id, "agent", agent.String())
 	}
 	return text
 }

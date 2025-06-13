@@ -17,7 +17,7 @@ func (g *Game) findTargetByRequest(agent *model.Agent, request model.Request) (*
 	if target == nil {
 		return nil, errors.New("対象エージェントが見つかりません")
 	}
-	slog.Info("対象エージェントを受信しました", "id", g.ID, "agent", agent.String(), "target", target.String())
+	slog.Info("対象エージェントを受信しました", "id", g.id, "agent", agent.String(), "target", target.String())
 	return target, nil
 }
 func (g *Game) closeAllAgents() {
@@ -34,7 +34,7 @@ func (g *Game) requestToEveryone(request model.Request) {
 
 func (g *Game) buildInfo(agent *model.Agent) model.Info {
 	info := model.Info{
-		GameID: g.ID,
+		GameID: g.id,
 		Day:    g.currentDay,
 		Agent:  agent,
 	}
@@ -120,12 +120,12 @@ func (g *Game) requestToAgent(agent *model.Agent, request model.Request) (string
 	default:
 		return "", errors.New("一致するリクエストがありません")
 	}
-	if g.JsonLogger != nil {
-		g.JsonLogger.TrackStartRequest(g.ID, *agent, packet)
+	if g.jsonLogger != nil {
+		g.jsonLogger.TrackStartRequest(g.id, *agent, packet)
 	}
 	resp, err := agent.SendPacket(packet, g.config.Server.Timeout.Action, g.config.Server.Timeout.Response, g.config.Server.Timeout.Acceptable)
-	if g.JsonLogger != nil {
-		g.JsonLogger.TrackEndRequest(g.ID, *agent, resp, err)
+	if g.jsonLogger != nil {
+		g.jsonLogger.TrackEndRequest(g.id, *agent, resp, err)
 	}
 	return resp, err
 }
@@ -166,7 +166,7 @@ func (g *Game) isAlive(agent *model.Agent) bool {
 func (g *Game) getRealtimeBroadcastPacket() model.BroadcastPacket {
 	g.realtimeBroadcasterPacketIdx++
 	packet := model.BroadcastPacket{
-		Id:        g.ID,
+		Id:        g.id,
 		Idx:       g.realtimeBroadcasterPacketIdx,
 		Day:       g.currentDay,
 		IsDay:     g.isDaytime,

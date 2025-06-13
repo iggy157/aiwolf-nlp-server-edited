@@ -15,7 +15,7 @@ func (g *Game) getAttackVotedCandidates(votes []model.Vote) []model.Agent {
 }
 
 func (g *Game) doAttack() {
-	slog.Info("襲撃フェーズを開始します", "id", g.ID, "day", g.currentDay)
+	slog.Info("襲撃フェーズを開始します", "id", g.id, "day", g.currentDay)
 	var attacked *model.Agent
 	werewolfs := g.getAliveWerewolves()
 	if len(werewolfs) > 0 {
@@ -36,42 +36,42 @@ func (g *Game) doAttack() {
 		if attacked != nil && !g.isGuarded(attacked) {
 			g.getCurrentGameStatus().StatusMap[*attacked] = model.S_DEAD
 			g.getCurrentGameStatus().AttackedAgent = attacked
-			if g.GameLogger != nil {
-				g.GameLogger.AppendLog(g.ID, fmt.Sprintf("%d,attack,%d,true", g.currentDay, attacked.Idx))
+			if g.gameLogger != nil {
+				g.gameLogger.AppendLog(g.id, fmt.Sprintf("%d,attack,%d,true", g.currentDay, attacked.Idx))
 			}
-			if g.RealtimeBroadcaster != nil {
+			if g.realtimeBroadcaster != nil {
 				packet := g.getRealtimeBroadcastPacket()
 				packet.Event = "襲撃"
 				packet.ToIdx = &attacked.Idx
-				g.RealtimeBroadcaster.Broadcast(packet)
+				g.realtimeBroadcaster.Broadcast(packet)
 			}
-			slog.Info("襲撃結果を設定しました", "id", g.ID, "agent", attacked.String())
+			slog.Info("襲撃結果を設定しました", "id", g.id, "agent", attacked.String())
 		} else if attacked != nil {
-			if g.GameLogger != nil {
-				g.GameLogger.AppendLog(g.ID, fmt.Sprintf("%d,attack,%d,false", g.currentDay, attacked.Idx))
+			if g.gameLogger != nil {
+				g.gameLogger.AppendLog(g.id, fmt.Sprintf("%d,attack,%d,false", g.currentDay, attacked.Idx))
 			}
-			if g.RealtimeBroadcaster != nil {
+			if g.realtimeBroadcaster != nil {
 				packet := g.getRealtimeBroadcastPacket()
 				packet.Event = "襲撃"
 				idx := -1
 				packet.FromIdx = &idx
 				packet.ToIdx = &attacked.Idx
-				g.RealtimeBroadcaster.Broadcast(packet)
+				g.realtimeBroadcaster.Broadcast(packet)
 			}
-			slog.Info("護衛されたため、襲撃結果を設定しません", "id", g.ID, "agent", attacked.String())
+			slog.Info("護衛されたため、襲撃結果を設定しません", "id", g.id, "agent", attacked.String())
 		} else {
-			if g.GameLogger != nil {
-				g.GameLogger.AppendLog(g.ID, fmt.Sprintf("%d,attack,-1,true", g.currentDay))
+			if g.gameLogger != nil {
+				g.gameLogger.AppendLog(g.id, fmt.Sprintf("%d,attack,-1,true", g.currentDay))
 			}
-			if g.RealtimeBroadcaster != nil {
+			if g.realtimeBroadcaster != nil {
 				packet := g.getRealtimeBroadcastPacket()
 				packet.Event = "襲撃"
-				g.RealtimeBroadcaster.Broadcast(packet)
+				g.realtimeBroadcaster.Broadcast(packet)
 			}
-			slog.Info("襲撃対象がいないため、襲撃結果を設定しません", "id", g.ID)
+			slog.Info("襲撃対象がいないため、襲撃結果を設定しません", "id", g.id)
 		}
 	}
-	slog.Info("襲撃フェーズを終了します", "id", g.ID, "day", g.currentDay)
+	slog.Info("襲撃フェーズを終了します", "id", g.id, "day", g.currentDay)
 }
 
 func (g *Game) isGuarded(attacked *model.Agent) bool {

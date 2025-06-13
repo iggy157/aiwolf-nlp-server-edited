@@ -206,18 +206,18 @@ func (s *Server) handleConnections(w http.ResponseWriter, r *http.Request) {
 		game = logic.NewGame(&s.config, s.gameSetting, connections)
 	}
 	if s.jsonLogger != nil {
-		game.JsonLogger = s.jsonLogger
+		game.SetJSONLogger(s.jsonLogger)
 	}
 	if s.gameLogger != nil {
-		game.GameLogger = s.gameLogger
+		game.SetGameLogger(s.gameLogger)
 	}
 	if s.realtimeBroadcaster != nil {
-		game.RealtimeBroadcaster = s.realtimeBroadcaster
+		game.SetRealtimeBroadcaster(s.realtimeBroadcaster)
 	}
 	if s.ttsBroadcaster != nil {
-		game.TTSBroadcaster = s.ttsBroadcaster
+		game.SetTTSBroadcaster(s.ttsBroadcaster)
 	}
-	s.games.Store(game.ID, game)
+	s.games.Store(game.GetID(), game)
 
 	go func() {
 		winSide := game.Start()

@@ -15,7 +15,7 @@ func (g *Game) getVotedCandidates(votes []model.Vote) []model.Agent {
 }
 
 func (g *Game) doExecution() {
-	slog.Info("追放フェーズを開始します", "id", g.ID, "day", g.currentDay)
+	slog.Info("追放フェーズを開始します", "id", g.id, "day", g.currentDay)
 	var executed *model.Agent
 	candidates := make([]model.Agent, 0)
 	for range g.setting.Vote.MaxCount {
@@ -33,16 +33,16 @@ func (g *Game) doExecution() {
 	if executed != nil {
 		g.getCurrentGameStatus().StatusMap[*executed] = model.S_DEAD
 		g.getCurrentGameStatus().ExecutedAgent = executed
-		if g.GameLogger != nil {
-			g.GameLogger.AppendLog(g.ID, fmt.Sprintf("%d,execute,%d,%s", g.currentDay, executed.Idx, executed.Role.Name))
+		if g.gameLogger != nil {
+			g.gameLogger.AppendLog(g.id, fmt.Sprintf("%d,execute,%d,%s", g.currentDay, executed.Idx, executed.Role.Name))
 		}
-		if g.RealtimeBroadcaster != nil {
+		if g.realtimeBroadcaster != nil {
 			packet := g.getRealtimeBroadcastPacket()
 			packet.Event = "追放"
 			packet.ToIdx = &executed.Idx
-			g.RealtimeBroadcaster.Broadcast(packet)
+			g.realtimeBroadcaster.Broadcast(packet)
 		}
-		slog.Info("追放結果を設定しました", "id", g.ID, "agent", executed.String())
+		slog.Info("追放結果を設定しました", "id", g.id, "agent", executed.String())
 
 		g.getCurrentGameStatus().MediumResult = &model.Judge{
 			Day:    g.getCurrentGameStatus().Day,
@@ -50,14 +50,14 @@ func (g *Game) doExecution() {
 			Target: *executed,
 			Result: executed.Role.Species,
 		}
-		slog.Info("霊能結果を設定しました", "id", g.ID, "target", executed.String(), "result", executed.Role.Species)
+		slog.Info("霊能結果を設定しました", "id", g.id, "target", executed.String(), "result", executed.Role.Species)
 	} else {
-		if g.RealtimeBroadcaster != nil {
+		if g.realtimeBroadcaster != nil {
 			packet := g.getRealtimeBroadcastPacket()
 			packet.Event = "追放"
-			g.RealtimeBroadcaster.Broadcast(packet)
+			g.realtimeBroadcaster.Broadcast(packet)
 		}
-		slog.Warn("追放対象がいないため、追放結果を設定しません", "id", g.ID)
+		slog.Warn("追放対象がいないため、追放結果を設定しません", "id", g.id)
 	}
-	slog.Info("追放フェーズを終了します", "id", g.ID, "day", g.currentDay)
+	slog.Info("追放フェーズを終了します", "id", g.id, "day", g.currentDay)
 }
