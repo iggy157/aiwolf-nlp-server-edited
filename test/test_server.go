@@ -29,7 +29,7 @@ func launchAsyncServer(config *model.Config) url.URL {
 		}
 		server.Run()
 	}()
-	time.Sleep(5 * time.Second)
+	time.Sleep(1 * time.Second)
 	return url.URL{Scheme: "ws", Host: config.Server.WebSocket.Host + ":" + strconv.Itoa(config.Server.WebSocket.Port), Path: "/ws"}
 }
 
@@ -69,7 +69,5 @@ func ExecuteGame(t *testing.T, config *model.Config, handlers map[model.Request]
 			t.Fatalf("timeout")
 		}
 	}
-
-	time.Sleep(5 * time.Second)
 	t.Log("ゲームが終了しました")
 }

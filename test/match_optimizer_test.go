@@ -36,16 +36,3 @@ func TestInitializeMatchOptimizer(t *testing.T) {
 		slog.Info("team", "idx", i, "roles", roleCounts[i])
 	}
 }
-
-func TestLoadMatchOptimizer(t *testing.T) {
-	config, err := model.LoadFromPath("./config/full.yml")
-	if err != nil {
-		t.Fatalf("設定ファイルの読み込みに失敗しました: %v", err)
-	}
-
-	mo, err := core.NewMatchOptimizer(*config)
-	if err != nil {
-		t.Fatalf("マッチオプティマイザの初期化に失敗しました: %v", err)
-	}
-	t.Log(mo)
-}
