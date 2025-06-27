@@ -43,9 +43,9 @@ func TestGame(t *testing.T) {
 		names[i] = "aiwolf-nlp-viewer"
 	}
 
-	clients := make([]*DummyClient, config.Game.AgentCount)
+	clients := make([]*TestClient, config.Game.AgentCount)
 	for i := range config.Game.AgentCount {
-		client, err := NewDummyClient(u, names[i], t)
+		client, err := NewRandomTestClient(t, u, names[i])
 		if err != nil {
 			t.Fatalf("Failed to create WebSocket client: %v", err)
 		}
@@ -96,9 +96,9 @@ func TestManualGame(t *testing.T) {
 		names[i] = "aiwolf-nlp-viewer"
 	}
 
-	clients := make([]*DummyClient, config.Game.AgentCount-1)
+	clients := make([]*TestClient, config.Game.AgentCount-1)
 	for i := range config.Game.AgentCount - 1 {
-		client, err := NewDummyClient(u, names[i], t)
+		client, err := NewRandomTestClient(t, u, names[i])
 		if err != nil {
 			t.Fatalf("Failed to create WebSocket client: %v", err)
 		}
