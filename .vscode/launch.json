@@ -23,27 +23,5 @@
                 "${workspaceFolder}${pathSeparator}config${pathSeparator}default_13.yml"
             ],
         },
-        {
-            "name": "Launch debug config",
-            "type": "go",
-            "request": "launch",
-            "mode": "debug",
-            "program": "${workspaceFolder}${pathSeparator}main.go",
-            "args": [
-                "-c",
-                "${workspaceFolder}${pathSeparator}config${pathSeparator}debug.yml"
-            ],
-        },
-        {
-            "name": "Launch playground config",
-            "type": "go",
-            "request": "launch",
-            "mode": "debug",
-            "program": "${workspaceFolder}${pathSeparator}main.go",
-            "args": [
-                "-c",
-                "${workspaceFolder}${pathSeparator}config${pathSeparator}playground.yml"
-            ],
-        },
     ]
 }

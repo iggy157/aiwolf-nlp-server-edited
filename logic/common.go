@@ -190,9 +190,11 @@ func (g *Game) getRealtimeBroadcastPacket() model.BroadcastPacket {
 			Team:    a.TeamName,
 			Name:    a.GameName,
 			Profile: a.ProfileDescription,
-			Avatar:  &a.Profile.AvatarURL,
 			Role:    a.Role.Name,
 			IsAlive: g.isAlive(a),
+		}
+		if a.Profile != nil {
+			agent.Avatar = &a.Profile.AvatarURL
 		}
 		packet.Agents = append(packet.Agents, agent)
 	}

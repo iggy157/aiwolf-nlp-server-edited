@@ -6,8 +6,8 @@ import (
 	"github.com/aiwolfdial/aiwolf-nlp-server/model"
 )
 
-func TestRandomGame(t *testing.T) {
-	config, err := model.LoadFromPath("../config/debug.yml")
+func TestFullGame(t *testing.T) {
+	config, err := model.LoadFromPath("./config/full.yml")
 	if err != nil {
 		t.Fatalf("Failed to load config: %v", err)
 	}
