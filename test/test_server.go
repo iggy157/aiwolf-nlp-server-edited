@@ -71,28 +71,3 @@ func ExecuteGame(t *testing.T, config *model.Config, handlers map[model.Request]
 	}
 	t.Log("ゲームが終了しました")
 }
-
-func ExecuteGameWithNames(t *testing.T, names []string, config *model.Config, handlers map[model.Request]func(tc TestClient) (string, error)) {
-	u := launchAsyncServer(config)
-	t.Logf("サーバを起動しました: %s", u.String())
-
-	clients := make([]*TestClient, config.Game.AgentCount)
-	for i := range config.Game.AgentCount {
-		client, err := NewTestClient(t, u, names[i], handlers)
-		if err != nil {
-			t.Fatalf("クライアントの初期化に失敗しました: %v", err)
-		}
-		clients[i] = client
-		defer clients[i].Close()
-	}
-
-	for _, client := range clients {
-		select {
-		case <-client.done:
-			t.Log("done")
-		case <-time.After(5 * time.Minute):
-			t.Fatalf("timeout")
-		}
-	}
-	t.Log("ゲームが終了しました")
-}

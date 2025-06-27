@@ -4,31 +4,75 @@ import (
 	"testing"
 
 	"github.com/aiwolfdial/aiwolf-nlp-server/model"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestDivinePhase1(t *testing.T) {
 	t.Parallel()
-	t.Log("追放フェーズ: 投票数が最も多いプレイヤーが追放される")
+	t.Log("占いフェーズ: 占い師が人狼を占う")
 	config, err := model.LoadFromPath("./config/divine.yml")
 	if err != nil {
 		t.Fatalf("設定ファイルの読み込みに失敗しました: %v", err)
 	}
 
-	executeDivinePhase(t, "WEREWOLF", model.S_WEREWOLF, config)
+	executeDivinePhase(t, model.R_WEREWOLF, model.S_WEREWOLF, config)
 }
 
-func executeDivinePhase(t *testing.T, divineTarget string, expectSpecies model.Species, config *model.Config) {
+func TestDivinePhase2(t *testing.T) {
+	t.Parallel()
+	t.Log("占いフェーズ: 占い師が狂人を占う")
+	config, err := model.LoadFromPath("./config/divine.yml")
+	if err != nil {
+		t.Fatalf("設定ファイルの読み込みに失敗しました: %v", err)
+	}
+
+	executeDivinePhase(t, model.R_POSSESSED, model.S_HUMAN, config)
+}
+
+func TestDivinePhase3(t *testing.T) {
+	t.Parallel()
+	t.Log("占いフェーズ: 占い師が村人を占う")
+	config, err := model.LoadFromPath("./config/divine.yml")
+	if err != nil {
+		t.Fatalf("設定ファイルの読み込みに失敗しました: %v", err)
+	}
+
+	executeDivinePhase(t, model.R_VILLAGER, model.S_HUMAN, config)
+}
+
+func executeDivinePhase(t *testing.T, targetRole model.Role, expectSpecies model.Species, config *model.Config) {
+	roleMapping := make(map[model.Role]string)
+
 	handlers := map[model.Request]func(tc TestClient) (string, error){
 		model.R_INITIALIZE: func(tc TestClient) (string, error) {
-
+			if roleMap, exists := tc.info["role_map"].(map[string]any); exists {
+				for agent, role := range roleMap {
+					r := model.RoleFromString(role.(string))
+					roleMapping[r] = agent
+				}
+			}
 			return "", nil
 		},
 		model.R_DIVINE: func(tc TestClient) (string, error) {
-			return divineTarget, nil
+			if gameName, exists := roleMapping[targetRole]; exists {
+				return gameName, nil
+			}
+			tc.t.Errorf("プレイヤーが見つかりません: %s", targetRole)
+			return "", nil
 		},
-		model.R_DAILY_FINISH: func(tc TestClient) (string, error) {
+		model.R_FINISH: func(tc TestClient) (string, error) {
 			if tc.role != model.R_SEER {
 				return "", nil
+			}
+			if divineResult, exists := tc.info["divine_result"].(map[string]any); exists {
+				assert.Equal(t, 0, int(divineResult["day"].(float64)))
+				assert.Equal(t, tc.gameName, divineResult["agent"].(string))
+				if gameName, exists := roleMapping[targetRole]; exists {
+					assert.Equal(t, gameName, divineResult["target"].(string))
+				}
+				assert.Equal(t, string(expectSpecies), divineResult["result"].(string))
+			} else {
+				tc.t.Error("divine_resultが見つかりません")
 			}
 			return "", nil
 		},
