@@ -12,7 +12,7 @@ server:
 
 game:
   agent_count: 5
-  max_day: -1
+  max_day: 0
   vote_visibility: false
   talk:
     max_count:
@@ -46,36 +46,47 @@ game:
 
 logic:
   day_phases:
-    - name: "morning_whisper"
-      actions: ["whisper"]
-      only_day: 0
-    - name: "daily_talk"
-      actions: ["talk"]
   night_phases:
-    - name: "evening_whisper"
-      actions: ["whisper"]
-      only_day: 0
     - name: "execution"
       actions: ["execution"]
-      except_day: 0
-    - name: "divine"
-      actions: ["divine"]
-    - name: "night_whisper"
-      actions: ["whisper"]
-      except_day: 0
-    - name: "guard"
-      actions: ["guard"]
-      except_day: 0
-    - name: "attack"
-      actions: ["attack"]
-      except_day: 0
 
 matching:
   self_match: true
   is_optimize: false
 
 custom_profile:
-  enable: false
+  enable: true
+  profiles:
+    - name: Player1
+      avatar_url:
+      voice_id:
+      age:
+      gender:
+      personality:
+    - name: Player2
+      avatar_url:
+      voice_id:
+      age:
+      gender:
+      personality:
+    - name: Player3
+      avatar_url:
+      voice_id:
+      age:
+      gender:
+      personality:
+    - name: Player4
+      avatar_url:
+      voice_id:
+      age:
+      gender:
+      personality:
+    - name: Player5
+      avatar_url:
+      voice_id:
+      age:
+      gender:
+      personality:
 
 json_logger:
   enable: true

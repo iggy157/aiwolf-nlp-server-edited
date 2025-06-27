@@ -13,6 +13,7 @@ import (
 )
 
 type TestClient struct {
+	t              *testing.T
 	conn           *websocket.Conn
 	done           chan struct{}
 	name           string
@@ -31,12 +32,13 @@ func NewTestClient(t *testing.T, u url.URL, name string, handlers map[model.Requ
 		return nil, fmt.Errorf("dial: %v", err)
 	}
 	client := &TestClient{
+		t:        t,
 		conn:     c,
 		done:     make(chan struct{}),
 		name:     name,
 		handlers: handlers,
 	}
-	go client.listen(t)
+	go client.listen()
 	return client, nil
 }
 
@@ -55,30 +57,30 @@ func HandleTarget(tc TestClient) (string, error) {
 	return "", errors.New("status_map not found")
 }
 
-func (tc *TestClient) listen(t *testing.T) {
+func (tc *TestClient) listen() {
 	defer close(tc.done)
 	for {
 		_, message, err := tc.conn.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err) || websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway) {
-				t.Logf("connection closed: %v", err)
+				tc.t.Logf("connection closed: %v", err)
 				return
 			}
-			t.Logf("read: %v", err)
+			tc.t.Logf("read: %v", err)
 			return
 		}
-		t.Logf("recv: %s", message)
+		tc.t.Logf("recv: %s", message)
 
 		var recv map[string]any
 		if err := json.Unmarshal(message, &recv); err != nil {
-			t.Logf("unmarshal: %v", err)
+			tc.t.Logf("unmarshal: %v", err)
 			continue
 		}
 
 		req := model.RequestFromString(recv["request"].(string))
 		resp, err := tc.handleRequest(req, recv)
 		if err != nil {
-			t.Error(err)
+			tc.t.Error(err)
 		}
 		tc.request = req
 
@@ -86,13 +88,18 @@ func (tc *TestClient) listen(t *testing.T) {
 			err = tc.conn.WriteMessage(websocket.TextMessage, []byte(resp))
 			if err != nil {
 				if websocket.IsUnexpectedCloseError(err) || websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway) {
-					t.Logf("connection closed: %v", err)
+					tc.t.Logf("connection closed: %v", err)
 					return
 				}
-				t.Logf("write: %v", err)
+				tc.t.Logf("write: %v", err)
 				continue
 			}
-			t.Logf("send: %s", resp)
+			tc.t.Logf("send: %s", resp)
+		}
+
+		if req == model.R_FINISH {
+			tc.t.Logf("closing connection")
+			return
 		}
 	}
 }
