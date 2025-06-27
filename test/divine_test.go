@@ -41,21 +41,21 @@ func TestDivinePhase3(t *testing.T) {
 }
 
 func executeDivinePhase(t *testing.T, targetRole model.Role, expectSpecies model.Species, config *model.Config) {
-	roleMapping := make(map[model.Role]string)
+	roleMapping := make(map[model.Role][]string)
 
 	handlers := map[model.Request]func(tc TestClient) (string, error){
 		model.R_INITIALIZE: func(tc TestClient) (string, error) {
 			if roleMap, exists := tc.info["role_map"].(map[string]any); exists {
 				for agent, role := range roleMap {
 					r := model.RoleFromString(role.(string))
-					roleMapping[r] = agent
+					roleMapping[r] = append(roleMapping[r], agent)
 				}
 			}
 			return "", nil
 		},
 		model.R_DIVINE: func(tc TestClient) (string, error) {
-			if gameName, exists := roleMapping[targetRole]; exists {
-				return gameName, nil
+			if gameNames, exists := roleMapping[targetRole]; exists {
+				return gameNames[0], nil
 			}
 			tc.t.Errorf("プレイヤーが見つかりません: %s", targetRole)
 			return "", nil
@@ -67,8 +67,8 @@ func executeDivinePhase(t *testing.T, targetRole model.Role, expectSpecies model
 			if divineResult, exists := tc.info["divine_result"].(map[string]any); exists {
 				assert.Equal(t, 0, int(divineResult["day"].(float64)))
 				assert.Equal(t, tc.gameName, divineResult["agent"].(string))
-				if gameName, exists := roleMapping[targetRole]; exists {
-					assert.Equal(t, gameName, divineResult["target"].(string))
+				if gameNames, exists := roleMapping[targetRole]; exists {
+					assert.Equal(t, gameNames[0], divineResult["target"].(string))
 				}
 				assert.Equal(t, string(expectSpecies), divineResult["result"].(string))
 			} else {

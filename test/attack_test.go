@@ -6,10 +6,10 @@ import (
 	"github.com/aiwolfdial/aiwolf-nlp-server/model"
 )
 
-func TestExecutionPhase1(t *testing.T) {
+func TestAttackPhase1(t *testing.T) {
 	t.Parallel()
-	t.Log("追放フェーズ: 投票数が最も多いプレイヤーが追放される")
-	config, err := model.LoadFromPath("./config/execution.yml")
+	t.Log("襲撃フェーズ: 投票数が最も多いプレイヤーが襲撃される")
+	config, err := model.LoadFromPath("./config/attack.yml")
 	if err != nil {
 		t.Fatalf("設定ファイルの読み込みに失敗しました: %v", err)
 	}
@@ -30,13 +30,13 @@ func TestExecutionPhase1(t *testing.T) {
 			"Player5": model.S_ALIVE,
 		},
 	}
-	executeExecutionPhase(t, targetNames, expectStatuses, config)
+	executeAttackPhase(t, targetNames, expectStatuses, config)
 }
 
-func TestExecutionPhase2(t *testing.T) {
+func TestAttackPhase2(t *testing.T) {
 	t.Parallel()
-	t.Log("追放フェーズ: 投票数が同数の場合、ランダムで追放される")
-	config, err := model.LoadFromPath("./config/execution.yml")
+	t.Log("襲撃フェーズ: 投票数が同数の場合、ランダムで襲撃される")
+	config, err := model.LoadFromPath("./config/attack.yml")
 	if err != nil {
 		t.Fatalf("設定ファイルの読み込みに失敗しました: %v", err)
 	}
@@ -64,13 +64,13 @@ func TestExecutionPhase2(t *testing.T) {
 			"Player5": model.S_ALIVE,
 		},
 	}
-	executeExecutionPhase(t, targetNames, expectStatuses, config)
+	executeAttackPhase(t, targetNames, expectStatuses, config)
 }
 
-func TestExecutionPhase3(t *testing.T) {
+func TestAttackPhase3(t *testing.T) {
 	t.Parallel()
-	t.Log("追放フェーズ: 投票がすべて無効の場合、誰も追放されない")
-	config, err := model.LoadFromPath("./config/execution.yml")
+	t.Log("襲撃フェーズ: 投票がすべて無効の場合、誰も襲撃されない")
+	config, err := model.LoadFromPath("./config/attack.yml")
 	if err != nil {
 		t.Fatalf("設定ファイルの読み込みに失敗しました: %v", err)
 	}
@@ -91,13 +91,13 @@ func TestExecutionPhase3(t *testing.T) {
 			"Player5": model.S_ALIVE,
 		},
 	}
-	executeExecutionPhase(t, targetNames, expectStatuses, config)
+	executeAttackPhase(t, targetNames, expectStatuses, config)
 }
 
-func TestExecutionPhase4(t *testing.T) {
+func TestAttackPhase4(t *testing.T) {
 	t.Parallel()
-	t.Log("追放フェーズ: 自己投票が許可されている場合、自己投票を含むプレイヤーが追放される")
-	config, err := model.LoadFromPath("./config/execution.yml")
+	t.Log("襲撃フェーズ: 自己投票が許可されている場合、自己投票を含むプレイヤーが襲撃される")
+	config, err := model.LoadFromPath("./config/attack.yml")
 	if err != nil {
 		t.Fatalf("設定ファイルの読み込みに失敗しました: %v", err)
 	}
@@ -125,13 +125,13 @@ func TestExecutionPhase4(t *testing.T) {
 			"Player5": model.S_ALIVE,
 		},
 	}
-	executeExecutionPhase(t, targetNames, expectStatuses, config)
+	executeAttackPhase(t, targetNames, expectStatuses, config)
 }
 
-func TestExecutionPhase5(t *testing.T) {
+func TestAttackPhase5(t *testing.T) {
 	t.Parallel()
-	t.Log("追放フェーズ: 自己投票が許可されていない場合、自己投票を含まないプレイヤーが追放される")
-	config, err := model.LoadFromPath("./config/execution.yml")
+	t.Log("襲撃フェーズ: 自己投票が許可されていない場合、自己投票を含まないプレイヤーが襲撃される")
+	config, err := model.LoadFromPath("./config/attack.yml")
 	if err != nil {
 		t.Fatalf("設定ファイルの読み込みに失敗しました: %v", err)
 	}
@@ -153,11 +153,22 @@ func TestExecutionPhase5(t *testing.T) {
 			"Player5": model.S_ALIVE,
 		},
 	}
-	executeExecutionPhase(t, targetNames, expectStatuses, config)
+	executeAttackPhase(t, targetNames, expectStatuses, config)
 }
 
-func executeExecutionPhase(t *testing.T, targetNames map[string]string, expectStatuses []map[string]model.Status, config *model.Config) {
+func executeAttackPhase(t *testing.T, targetRole model.Role, expectStatuses []map[string]model.Status, config *model.Config) {
+	roleMapping := make(map[model.Role][]string)
+
 	handlers := map[model.Request]func(tc TestClient) (string, error){
+		model.R_INITIALIZE: func(tc TestClient) (string, error) {
+			if roleMap, exists := tc.info["role_map"].(map[string]any); exists {
+				for agent, role := range roleMap {
+					r := model.RoleFromString(role.(string))
+					roleMapping[r] = append(roleMapping[r], agent)
+				}
+			}
+			return "", nil
+		},
 		model.R_VOTE: func(tc TestClient) (string, error) {
 			if target, exists := targetNames[tc.gameName]; exists {
 				tc.t.Logf("投票: %s -> %s", tc.gameName, target)
