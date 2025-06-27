@@ -9,7 +9,7 @@ import (
 )
 
 func TestInitializeMatchOptimizer(t *testing.T) {
-	config, err := model.LoadFromPath("../config/debug.yml")
+	config, err := model.LoadFromPath("./config/full.yml")
 	if err != nil {
 		t.Fatalf("設定ファイルの読み込みに失敗しました: %v", err)
 	}
@@ -38,7 +38,7 @@ func TestInitializeMatchOptimizer(t *testing.T) {
 }
 
 func TestLoadMatchOptimizer(t *testing.T) {
-	config, err := model.LoadFromPath("../config/debug.yml")
+	config, err := model.LoadFromPath("./config/full.yml")
 	if err != nil {
 		t.Fatalf("設定ファイルの読み込みに失敗しました: %v", err)
 	}
