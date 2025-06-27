@@ -11,12 +11,12 @@ import (
 func TestInitializeMatchOptimizer(t *testing.T) {
 	config, err := model.LoadFromPath("../config/debug.yml")
 	if err != nil {
-		t.Fatalf("Failed to load config: %v", err)
+		t.Fatalf("設定ファイルの読み込みに失敗しました: %v", err)
 	}
 
 	mo, err := core.NewMatchOptimizerFromConfig(*config)
 	if err != nil {
-		t.Fatalf("Failed to create MatchOptimizer: %v", err)
+		t.Fatalf("マッチオプティマイザの初期化に失敗しました: %v", err)
 	}
 
 	roleCounts := make(map[int]map[model.Role]int)
@@ -40,12 +40,12 @@ func TestInitializeMatchOptimizer(t *testing.T) {
 func TestLoadMatchOptimizer(t *testing.T) {
 	config, err := model.LoadFromPath("../config/debug.yml")
 	if err != nil {
-		t.Fatalf("Failed to load config: %v", err)
+		t.Fatalf("設定ファイルの読み込みに失敗しました: %v", err)
 	}
 
 	mo, err := core.NewMatchOptimizer(*config)
 	if err != nil {
-		t.Fatalf("Failed to create MatchOptimizer: %v", err)
+		t.Fatalf("マッチオプティマイザの初期化に失敗しました: %v", err)
 	}
 	t.Log(mo)
 }

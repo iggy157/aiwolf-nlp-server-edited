@@ -9,7 +9,7 @@ import (
 func TestFullGame(t *testing.T) {
 	config, err := model.LoadFromPath("./config/full.yml")
 	if err != nil {
-		t.Fatalf("Failed to load config: %v", err)
+		t.Fatalf("設定ファイルの読み込みに失敗しました: %v", err)
 	}
 
 	handlers := map[model.Request]func(tc TestClient) (string, error){

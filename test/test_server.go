@@ -49,13 +49,13 @@ func getAvailableTcpPort() int {
 
 func ExecuteGame(t *testing.T, config *model.Config, handlers map[model.Request]func(tc TestClient) (string, error)) {
 	u := launchAsyncServer(config)
-	t.Logf("Connecting to %s", u.String())
+	t.Logf("サーバを起動しました: %s", u.String())
 
 	clients := make([]*TestClient, config.Game.AgentCount)
 	for i := range config.Game.AgentCount {
 		client, err := NewTestClient(t, u, TestClientName, handlers)
 		if err != nil {
-			t.Fatalf("Failed to create WebSocket client: %v", err)
+			t.Fatalf("クライアントの初期化に失敗しました: %v", err)
 		}
 		clients[i] = client
 		defer clients[i].Close()
@@ -64,12 +64,12 @@ func ExecuteGame(t *testing.T, config *model.Config, handlers map[model.Request]
 	for _, client := range clients {
 		select {
 		case <-client.done:
-			t.Log("Connection closed")
+			t.Log("done")
 		case <-time.After(5 * time.Minute):
-			t.Fatalf("Timeout")
+			t.Fatalf("timeout")
 		}
 	}
 
 	time.Sleep(5 * time.Second)
-	t.Log("Test completed successfully")
+	t.Log("ゲームが終了しました")
 }

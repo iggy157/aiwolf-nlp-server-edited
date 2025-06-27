@@ -7,9 +7,10 @@ import (
 )
 
 func TestExecutionPhase1(t *testing.T) {
+	t.Log("追放フェーズ: 投票数が最も多いプレイヤーが追放される")
 	config, err := model.LoadFromPath("./config/execution.yml")
 	if err != nil {
-		t.Fatalf("Failed to load config: %v", err)
+		t.Fatalf("設定ファイルの読み込みに失敗しました: %v", err)
 	}
 
 	voteTargets := map[string]string{
@@ -19,43 +20,117 @@ func TestExecutionPhase1(t *testing.T) {
 		"Player4": "Player1",
 		"Player5": "Player1",
 	}
-	expectStatus := map[string]model.Status{
-		"Player1": model.S_DEAD,
-		"Player2": model.S_ALIVE,
-		"Player3": model.S_ALIVE,
-		"Player4": model.S_ALIVE,
-		"Player5": model.S_ALIVE,
+	expectStatuses := []map[string]model.Status{
+		{
+			"Player1": model.S_DEAD,
+			"Player2": model.S_ALIVE,
+			"Player3": model.S_ALIVE,
+			"Player4": model.S_ALIVE,
+			"Player5": model.S_ALIVE,
+		},
 	}
-	executeExecutionPhase(t, voteTargets, expectStatus, config)
+	executeExecutionPhase(t, voteTargets, expectStatuses, config)
 }
 
-func executeExecutionPhase(t *testing.T, voteTargets map[string]string, expectStatus map[string]model.Status, config *model.Config) {
+func TestExecutionPhase2(t *testing.T) {
+	t.Log("追放フェーズ: 投票数が同数の場合、ランダムで追放される")
+	config, err := model.LoadFromPath("./config/execution.yml")
+	if err != nil {
+		t.Fatalf("設定ファイルの読み込みに失敗しました: %v", err)
+	}
+
+	voteTargets := map[string]string{
+		"Player1": "Player5",
+		"Player2": "Player1",
+		"Player3": "Player1",
+		"Player4": "Player2",
+		"Player5": "Player2",
+	}
+	expectStatuses := []map[string]model.Status{
+		{
+			"Player1": model.S_DEAD,
+			"Player2": model.S_ALIVE,
+			"Player3": model.S_ALIVE,
+			"Player4": model.S_ALIVE,
+			"Player5": model.S_ALIVE,
+		},
+		{
+			"Player1": model.S_ALIVE,
+			"Player2": model.S_DEAD,
+			"Player3": model.S_ALIVE,
+			"Player4": model.S_ALIVE,
+			"Player5": model.S_ALIVE,
+		},
+	}
+	executeExecutionPhase(t, voteTargets, expectStatuses, config)
+}
+
+func TestExecutionPhase3(t *testing.T) {
+	t.Log("追放フェーズ: 投票がすべて無効の場合、誰も追放されない")
+	config, err := model.LoadFromPath("./config/execution.yml")
+	if err != nil {
+		t.Fatalf("設定ファイルの読み込みに失敗しました: %v", err)
+	}
+
+	voteTargets := map[string]string{
+		"Player1": "Unknown",
+		"Player2": "Unknown",
+		"Player3": "Unknown",
+		"Player4": "Unknown",
+		"Player5": "Unknown",
+	}
+	expectStatuses := []map[string]model.Status{
+		{
+			"Player1": model.S_ALIVE,
+			"Player2": model.S_ALIVE,
+			"Player3": model.S_ALIVE,
+			"Player4": model.S_ALIVE,
+			"Player5": model.S_ALIVE,
+		},
+	}
+	executeExecutionPhase(t, voteTargets, expectStatuses, config)
+}
+
+func executeExecutionPhase(t *testing.T, voteTargets map[string]string, expectStatuses []map[string]model.Status, config *model.Config) {
 	handlers := map[model.Request]func(tc TestClient) (string, error){
 		model.R_VOTE: func(tc TestClient) (string, error) {
-			if target, exists := voteTargets[tc.name]; exists {
-				tc.t.Logf("Voting for %s", target)
+			if target, exists := voteTargets[tc.gameName]; exists {
+				tc.t.Logf("投票: %s -> %s", tc.gameName, target)
 				return target, nil
 			} else {
-				tc.t.Errorf("No vote target defined for %s", tc.name)
+				tc.t.Errorf("投票対象が見つかりません: %s", tc.gameName)
 				return "", nil
 			}
 		},
 		model.R_FINISH: func(tc TestClient) (string, error) {
 			if statusMap, exists := tc.info["status_map"].(map[string]any); exists {
-				for k, v := range statusMap {
-					if expectedStatus, ok := expectStatus[k]; ok {
-						if v != expectedStatus.String() {
-							tc.t.Errorf("Expected %s to be %s, but it is %s", k, expectedStatus, v)
+				for _, expectStatus := range expectStatuses {
+					matchesPattern := true
+					for k, expectedStatus := range expectStatus {
+						if v, ok := statusMap[k]; ok {
+							if v != expectedStatus.String() {
+								matchesPattern = false
+								break
+							}
 						} else {
-							tc.t.Logf("Agent %s is %s as expected", k, expectedStatus)
+							matchesPattern = false
+							break
 						}
-					} else {
-						tc.t.Errorf("Unexpected agent %s with status %s", k, v)
+					}
+					if matchesPattern {
+						tc.t.Logf("期待されるステータスパターンと一致しました")
+						for k, v := range statusMap {
+							tc.t.Logf("%s: %s", k, v)
+						}
+						return "", nil
 					}
 				}
-				return "", nil
+				tc.t.Errorf("期待されるステータスパターンと一致しません")
+				for k, v := range statusMap {
+					tc.t.Logf("%s: %s", k, v)
+				}
 			} else {
-				tc.t.Error("status_map not found in info")
+				tc.t.Error("status_mapが見つかりません")
 			}
 			return "", nil
 		},

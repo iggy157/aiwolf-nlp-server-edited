@@ -16,7 +16,8 @@ type TestClient struct {
 	t              *testing.T
 	conn           *websocket.Conn
 	done           chan struct{}
-	name           string
+	originalName   string
+	gameName       string
 	request        model.Request
 	info           map[string]any
 	setting        map[string]any
@@ -32,11 +33,11 @@ func NewTestClient(t *testing.T, u url.URL, name string, handlers map[model.Requ
 		return nil, fmt.Errorf("dial: %v", err)
 	}
 	client := &TestClient{
-		t:        t,
-		conn:     c,
-		done:     make(chan struct{}),
-		name:     name,
-		handlers: handlers,
+		t:            t,
+		conn:         c,
+		done:         make(chan struct{}),
+		originalName: name,
+		handlers:     handlers,
 	}
 	go client.listen()
 	return client, nil
@@ -52,9 +53,9 @@ func HandleTarget(tc TestClient) (string, error) {
 				return k, nil
 			}
 		}
-		return "", errors.New("target not found")
+		return "", errors.New("投票対象が見つかりません")
 	}
-	return "", errors.New("status_map not found")
+	return "", errors.New("status_mapが見つかりません")
 }
 
 func (tc *TestClient) listen() {
@@ -98,7 +99,8 @@ func (tc *TestClient) listen() {
 		}
 
 		if req == model.R_FINISH {
-			tc.t.Logf("closing connection")
+			tc.t.Logf("close")
+			tc.conn.Close()
 			return
 		}
 	}
@@ -107,16 +109,24 @@ func (tc *TestClient) listen() {
 func (tc *TestClient) setInfo(recv map[string]any) error {
 	if info, exists := recv["info"].(map[string]any); exists {
 		tc.info = info
-		if tc.role.String() == "" {
+		if tc.gameName == "" {
+			if agent, exists := info["agent"].(string); exists {
+				tc.gameName = agent
+			} else {
+				return errors.New("agentが見つかりません")
+			}
 			if roleMap, exists := info["role_map"].(map[string]any); exists {
-				for _, v := range roleMap {
-					tc.role = model.RoleFromString(v.(string))
-					break
+				if role, exists := roleMap[tc.gameName].(string); exists {
+					tc.role = model.RoleFromString(role)
+				} else {
+					return fmt.Errorf("エージェントの役職が見つかりません: %s", tc.gameName)
 				}
+			} else {
+				return errors.New("role_mapが見つかりません")
 			}
 		}
 	} else {
-		return errors.New("info not found")
+		return errors.New("infoが見つかりません")
 	}
 	return nil
 }
@@ -125,7 +135,7 @@ func (tc *TestClient) setSetting(recv map[string]any) error {
 	if setting, exists := recv["setting"].(map[string]any); exists {
 		tc.setting = setting
 	} else {
-		return errors.New("setting not found")
+		return errors.New("settingが見つかりません")
 	}
 	return nil
 }
@@ -156,14 +166,14 @@ func (tc *TestClient) handleRequest(request model.Request, recv map[string]any) 
 			if talkHistory, exists := recv["talk_history"].([]any); exists {
 				tc.talkHistory = talkHistory
 			} else {
-				return "", errors.New("talk_history not found")
+				return "", errors.New("talk_historyが見つかりません")
 			}
 		}
 		if request == model.R_WHISPER || request == model.R_ATTACK || (request == model.R_DAILY_FINISH && tc.role == model.R_WEREWOLF) {
 			if whisperHistory, exists := recv["whisper_history"].([]any); exists {
 				tc.whisperHistory = whisperHistory
 			} else {
-				return "", errors.New("whisper_history not found")
+				return "", errors.New("whisper_historyが見つかりません")
 			}
 		}
 	case model.R_FINISH:
