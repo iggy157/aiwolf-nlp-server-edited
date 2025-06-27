@@ -40,21 +40,6 @@ func NewTestClient(t *testing.T, u url.URL, name string, handlers map[model.Requ
 	return client, nil
 }
 
-func NewRandomTestClient(t *testing.T, u url.URL, name string) (*TestClient, error) {
-	return NewTestClient(t, u, name, map[model.Request]func(tc TestClient) (string, error){
-		model.R_VOTE:   HandleTarget,
-		model.R_DIVINE: HandleTarget,
-		model.R_GUARD:  HandleTarget,
-		model.R_TALK: func(tc TestClient) (string, error) {
-			return "Hello World!", nil
-		},
-		model.R_WHISPER: func(tc TestClient) (string, error) {
-			return "Hello World!", nil
-		},
-		model.R_ATTACK: HandleTarget,
-	})
-}
-
 func HandleTarget(tc TestClient) (string, error) {
 	if statusMap, exists := tc.info["status_map"].(map[string]any); exists {
 		for k, v := range statusMap {
