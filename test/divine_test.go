@@ -1,6 +1,7 @@
 package test
 
 import (
+	"sync"
 	"testing"
 
 	"github.com/aiwolfdial/aiwolf-nlp-server/model"
@@ -42,18 +43,23 @@ func TestDivinePhase3(t *testing.T) {
 
 func executeDivinePhase(t *testing.T, targetRole model.Role, expectSpecies model.Species, config *model.Config) {
 	roleMapping := make(map[model.Role][]string)
+	var mu sync.Mutex
 
 	handlers := map[model.Request]func(tc TestClient) (string, error){
 		model.R_INITIALIZE: func(tc TestClient) (string, error) {
 			if roleMap, exists := tc.info["role_map"].(map[string]any); exists {
+				mu.Lock()
 				for agent, role := range roleMap {
 					r := model.RoleFromString(role.(string))
 					roleMapping[r] = append(roleMapping[r], agent)
 				}
+				mu.Unlock()
 			}
 			return "", nil
 		},
 		model.R_DIVINE: func(tc TestClient) (string, error) {
+			mu.Lock()
+			defer mu.Unlock()
 			if gameNames, exists := roleMapping[targetRole]; exists {
 				return gameNames[0], nil
 			}

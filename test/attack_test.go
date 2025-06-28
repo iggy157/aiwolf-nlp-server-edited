@@ -1,6 +1,7 @@
 package test
 
 import (
+	"sync"
 	"testing"
 
 	"github.com/aiwolfdial/aiwolf-nlp-server/model"
@@ -119,15 +120,21 @@ func TestAttackPhase5(t *testing.T) {
 
 func executeAttackPhase(t *testing.T, targetMap map[string]string, expectStatuses []map[string]model.Status, config *model.Config) {
 	nameMap := make(map[string]string)
+	var mu sync.Mutex
 
 	handlers := map[model.Request]func(tc TestClient) (string, error){
 		model.R_INITIALIZE: func(tc TestClient) (string, error) {
+			mu.Lock()
 			nameMap[tc.originalName] = tc.gameName
+			mu.Unlock()
 			return "", nil
 		},
 		model.R_ATTACK: func(tc TestClient) (string, error) {
-			tc.t.Logf("襲撃投票: %s -> %s", tc.gameName, nameMap[targetMap[tc.originalName]])
-			return nameMap[targetMap[tc.originalName]], nil
+			mu.Lock()
+			target := nameMap[targetMap[tc.originalName]]
+			mu.Unlock()
+			tc.t.Logf("襲撃投票: %s -> %s", tc.gameName, target)
+			return target, nil
 		},
 		model.R_FINISH: func(tc TestClient) (string, error) {
 			return tc.validateStatusPattern(expectStatuses, nameMap)

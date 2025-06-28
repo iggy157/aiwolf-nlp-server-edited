@@ -7,6 +7,7 @@ import (
 
 	"github.com/aiwolfdial/aiwolf-nlp-server/core"
 	"github.com/aiwolfdial/aiwolf-nlp-server/model"
+	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 )
 
@@ -17,6 +18,8 @@ var (
 )
 
 func main() {
+	gin.SetMode(gin.ReleaseMode)
+	
 	if version == "" {
 		if godotenv.Load("./config/.env") != nil {
 			slog.Error("環境変数の読み込みに失敗しました")

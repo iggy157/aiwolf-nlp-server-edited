@@ -18,10 +18,9 @@ const WebSocketExternalHost = "0.0.0.0"
 const TestClientName = "aiwolf-nlp-viewer"
 
 func launchAsyncServer(t *testing.T, config *model.Config) url.URL {
+	t.Parallel()
 	if _, exists := os.LookupEnv("GITHUB_ACTIONS"); exists {
 		config.Server.WebSocket.Host = WebSocketExternalHost
-	} else {
-		t.Parallel()
 	}
 	port := getAvailableTcpPort()
 	config.Server.WebSocket.Port = port

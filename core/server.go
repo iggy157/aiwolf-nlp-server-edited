@@ -77,7 +77,6 @@ func NewServer(config model.Config) (*Server, error) {
 }
 
 func (s *Server) Run() {
-	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
 	router.Use(func(c *gin.Context) {
 		c.Header("Server", "aiwolf-nlp-server/"+Version.Version+" "+runtime.Version()+" ("+runtime.GOOS+"; "+runtime.GOARCH+")")
