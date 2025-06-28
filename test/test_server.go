@@ -18,11 +18,10 @@ const WebSocketExternalHost = "0.0.0.0"
 const TestClientName = "aiwolf-nlp-viewer"
 
 func launchAsyncServer(t *testing.T, config *model.Config) url.URL {
-	t.Parallel()
 	if _, exists := os.LookupEnv("GITHUB_ACTIONS"); exists {
 		config.Server.WebSocket.Host = WebSocketExternalHost
 	}
-	port := getAvailableTcpPort()
+	port := getAvailableTcpPort(config.Server.WebSocket.Host)
 	config.Server.WebSocket.Port = port
 	go func() {
 		server, err := core.NewServer(*config)
@@ -31,15 +30,15 @@ func launchAsyncServer(t *testing.T, config *model.Config) url.URL {
 		}
 		server.Run()
 	}()
-	time.Sleep(1 * time.Second)
+	t.Parallel()
 	return url.URL{Scheme: "ws", Host: config.Server.WebSocket.Host + ":" + strconv.Itoa(config.Server.WebSocket.Port), Path: "/ws"}
 }
 
-func getAvailableTcpPort() int {
+func getAvailableTcpPort(host string) int {
 	rand := rand.New(rand.NewSource(time.Now().UnixNano()))
 	port := rand.Intn(65535-49152+1) + 49152
 	for {
-		listener, err := net.Listen("tcp", ":"+strconv.Itoa(port))
+		listener, err := net.Listen("tcp", host+":"+strconv.Itoa(port))
 		if err == nil {
 			listener.Close()
 			break
@@ -52,6 +51,7 @@ func getAvailableTcpPort() int {
 func executeSelfMatchGame(t *testing.T, config *model.Config, handlers map[model.Request]func(tc TestClient) (string, error)) {
 	u := launchAsyncServer(t, config)
 	t.Logf("サーバを起動しました: %s", u.String())
+	time.Sleep(1 * time.Second)
 
 	clients := make([]*TestClient, config.Game.AgentCount)
 	for i := range config.Game.AgentCount {
@@ -96,6 +96,7 @@ func executeGame(t *testing.T, names []string, config *model.Config, handlers ma
 
 	u := launchAsyncServer(t, config)
 	t.Logf("サーバを起動しました: %s", u.String())
+	time.Sleep(1 * time.Second)
 
 	clients := make([]*TestClient, config.Game.AgentCount)
 	for i := range config.Game.AgentCount {

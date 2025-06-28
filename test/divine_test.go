@@ -9,7 +9,6 @@ import (
 )
 
 func TestDivinePhase1(t *testing.T) {
-
 	t.Log("占いフェーズ: 占い師が人狼を占う")
 	config, err := model.LoadFromPath("./config/divine.yml")
 	if err != nil {
@@ -20,7 +19,6 @@ func TestDivinePhase1(t *testing.T) {
 }
 
 func TestDivinePhase2(t *testing.T) {
-
 	t.Log("占いフェーズ: 占い師が狂人を占う")
 	config, err := model.LoadFromPath("./config/divine.yml")
 	if err != nil {
@@ -31,7 +29,6 @@ func TestDivinePhase2(t *testing.T) {
 }
 
 func TestDivinePhase3(t *testing.T) {
-
 	t.Log("占いフェーズ: 占い師が村人を占う")
 	config, err := model.LoadFromPath("./config/divine.yml")
 	if err != nil {
