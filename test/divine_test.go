@@ -57,7 +57,7 @@ func executeDivinePhase(t *testing.T, targetRole model.Role, expectSpecies model
 			if gameNames, exists := roleMapping[targetRole]; exists {
 				return gameNames[0], nil
 			}
-			tc.t.Errorf("プレイヤーが見つかりません: %s", targetRole)
+			tc.t.Errorf("占い対象が見つかりません: %s", targetRole)
 			return "", nil
 		},
 		model.R_FINISH: func(tc TestClient) (string, error) {
@@ -77,5 +77,5 @@ func executeDivinePhase(t *testing.T, targetRole model.Role, expectSpecies model
 			return "", nil
 		},
 	}
-	ExecuteGame(t, config, handlers)
+	ExecuteSelfMatchGame(t, config, handlers)
 }

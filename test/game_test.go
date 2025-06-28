@@ -25,5 +25,5 @@ func TestFullGame(t *testing.T) {
 		},
 		model.R_ATTACK: HandleTarget,
 	}
-	ExecuteGame(t, config, handlers)
+	ExecuteSelfMatchGame(t, config, handlers)
 }

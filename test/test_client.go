@@ -143,6 +143,7 @@ func (tc *TestClient) setSetting(recv map[string]any) error {
 func (tc *TestClient) handleRequest(request model.Request, recv map[string]any) (string, error) {
 	switch request {
 	case model.R_NAME:
+		return tc.originalName, nil
 	case model.R_INITIALIZE, model.R_DAILY_INITIALIZE:
 		err := tc.setInfo(recv)
 		if err != nil {

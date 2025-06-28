@@ -200,5 +200,5 @@ func executeExecutionPhase(t *testing.T, targetNames map[string]string, expectSt
 			return "", nil
 		},
 	}
-	ExecuteGame(t, config, handlers)
+	ExecuteSelfMatchGame(t, config, handlers)
 }
