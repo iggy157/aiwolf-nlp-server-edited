@@ -56,7 +56,7 @@ matching:
   team_count: 5
   game_count: 1
   output_path: ./config/attack.json
-  infinite_loop: true
+  infinite_loop: false
 
 custom_profile:
   enable: true

@@ -191,7 +191,7 @@ func (mo *MatchOptimizer) append() error {
 	bestDeviation := math.MaxFloat64
 	slog.Info("マッチング最適化を開始します", "attempts", maxAttempts)
 
-	for attempt := 0; attempt < maxAttempts; attempt++ {
+	for attempt := range maxAttempts {
 		matches, deviation := util.GenerateMatches(mo.GameCount, mo.TeamCount, roles, theoretical)
 		if bestMatches == nil || deviation < bestDeviation {
 			slog.Info("より良い解が見つかりました", "deviation", deviation, "attempt", attempt)

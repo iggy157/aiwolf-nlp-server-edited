@@ -1,18 +1,40 @@
 package test
 
 import (
+	"io"
+	"os"
 	"testing"
 
 	"github.com/aiwolfdial/aiwolf-nlp-server/model"
 )
 
-func TestAttackPhase1(t *testing.T) {
-	t.Parallel()
-	t.Log("襲撃フェーズ: 人狼が狂人を襲撃する")
+func prepareConfig(t *testing.T) *model.Config {
 	config, err := model.LoadFromPath("./config/attack.yml")
 	if err != nil {
 		t.Fatalf("設定ファイルの読み込みに失敗しました: %v", err)
 	}
+
+	dstFile, err := os.CreateTemp("", "attack_*.json")
+	if err != nil {
+		t.Fatalf("一時ファイルの作成に失敗しました: %v", err)
+	}
+
+	srcFile, err := os.Open(config.Matching.OutputPath)
+	if err != nil {
+		t.Fatalf("設定ファイルの読み込みに失敗しました: %v", err)
+	}
+	defer srcFile.Close()
+
+	io.Copy(dstFile, srcFile)
+	config.Matching.OutputPath = dstFile.Name()
+	return config
+}
+
+func TestAttackPhase1(t *testing.T) {
+	t.Parallel()
+	t.Log("襲撃フェーズ: 人狼が狂人を襲撃する")
+	config := prepareConfig(t)
+	defer os.Remove(config.Matching.OutputPath)
 
 	targetMap := map[string]string{
 		"WEREWOLF": "POSSESSED",
@@ -21,6 +43,90 @@ func TestAttackPhase1(t *testing.T) {
 		{
 			"WEREWOLF":   model.S_ALIVE,
 			"POSSESSED":  model.S_DEAD,
+			"SEER":       model.S_ALIVE,
+			"VILLAGER-A": model.S_ALIVE,
+			"VILLAGER-B": model.S_ALIVE,
+		},
+	}
+	executeAttackPhase(t, targetMap, expectStatuses, config)
+}
+
+func TestAttackPhase2(t *testing.T) {
+	t.Parallel()
+	t.Log("襲撃フェーズ: 人狼が占い師を襲撃する")
+	config := prepareConfig(t)
+
+	targetMap := map[string]string{
+		"WEREWOLF": "SEER",
+	}
+	expectStatuses := []map[string]model.Status{
+		{
+			"WEREWOLF":   model.S_ALIVE,
+			"POSSESSED":  model.S_ALIVE,
+			"SEER":       model.S_DEAD,
+			"VILLAGER-A": model.S_ALIVE,
+			"VILLAGER-B": model.S_ALIVE,
+		},
+	}
+	executeAttackPhase(t, targetMap, expectStatuses, config)
+}
+
+func TestAttackPhase3(t *testing.T) {
+	t.Parallel()
+	t.Log("襲撃フェーズ: 人狼が村人を襲撃する")
+	config := prepareConfig(t)
+	defer os.Remove(config.Matching.OutputPath)
+
+	targetMap := map[string]string{
+		"WEREWOLF": "VILLAGER-A",
+	}
+	expectStatuses := []map[string]model.Status{
+		{
+			"WEREWOLF":   model.S_ALIVE,
+			"POSSESSED":  model.S_ALIVE,
+			"SEER":       model.S_ALIVE,
+			"VILLAGER-A": model.S_DEAD,
+			"VILLAGER-B": model.S_ALIVE,
+		},
+	}
+	executeAttackPhase(t, targetMap, expectStatuses, config)
+}
+
+func TestAttackPhase4(t *testing.T) {
+	t.Parallel()
+	t.Log("襲撃フェーズ: 自己投票が許可されている場合、人狼が人狼を襲撃できない")
+	config := prepareConfig(t)
+	defer os.Remove(config.Matching.OutputPath)
+
+	targetMap := map[string]string{
+		"WEREWOLF": "WEREWOLF",
+	}
+	expectStatuses := []map[string]model.Status{
+		{
+			"WEREWOLF":   model.S_ALIVE,
+			"POSSESSED":  model.S_ALIVE,
+			"SEER":       model.S_ALIVE,
+			"VILLAGER-A": model.S_ALIVE,
+			"VILLAGER-B": model.S_ALIVE,
+		},
+	}
+	executeAttackPhase(t, targetMap, expectStatuses, config)
+}
+
+func TestAttackPhase5(t *testing.T) {
+	t.Parallel()
+	t.Log("襲撃フェーズ: 自己投票が許可されていない場合、人狼が人狼を襲撃できない")
+	config := prepareConfig(t)
+	defer os.Remove(config.Matching.OutputPath)
+	config.Game.AttackVote.AllowSelfVote = false
+
+	targetMap := map[string]string{
+		"WEREWOLF": "WEREWOLF",
+	}
+	expectStatuses := []map[string]model.Status{
+		{
+			"WEREWOLF":   model.S_ALIVE,
+			"POSSESSED":  model.S_ALIVE,
 			"SEER":       model.S_ALIVE,
 			"VILLAGER-A": model.S_ALIVE,
 			"VILLAGER-B": model.S_ALIVE,

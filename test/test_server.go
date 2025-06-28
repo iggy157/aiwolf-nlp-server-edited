@@ -94,5 +94,6 @@ func ExecuteGame(t *testing.T, names []string, config *model.Config, handlers ma
 			t.Fatalf("timeout")
 		}
 	}
+	time.Sleep(3 * time.Second)
 	t.Log("ゲームが終了しました")
 }
