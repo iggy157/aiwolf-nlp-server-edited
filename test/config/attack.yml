@@ -55,7 +55,7 @@ matching:
   is_optimize: true
   team_count: 5
   game_count: 1
-  output_path: ./config/attack.json
+  output_path: ./config/role5.json
   infinite_loop: false
 
 custom_profile:

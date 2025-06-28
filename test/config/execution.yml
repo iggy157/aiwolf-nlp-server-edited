@@ -51,8 +51,12 @@ logic:
       actions: ["execution"]
 
 matching:
-  self_match: true
-  is_optimize: false
+  self_match: false
+  is_optimize: true
+  team_count: 5
+  game_count: 1
+  output_path: ./config/role5.json
+  infinite_loop: false
 
 custom_profile:
   enable: true

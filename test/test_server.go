@@ -1,6 +1,7 @@
 package test
 
 import (
+	"io"
 	"math/rand"
 	"net"
 	"net/url"
@@ -47,7 +48,7 @@ func getAvailableTcpPort() int {
 	return port
 }
 
-func ExecuteSelfMatchGame(t *testing.T, config *model.Config, handlers map[model.Request]func(tc TestClient) (string, error)) {
+func executeSelfMatchGame(t *testing.T, config *model.Config, handlers map[model.Request]func(tc TestClient) (string, error)) {
 	u := launchAsyncServer(config)
 	t.Logf("サーバを起動しました: %s", u.String())
 
@@ -58,7 +59,7 @@ func ExecuteSelfMatchGame(t *testing.T, config *model.Config, handlers map[model
 			t.Fatalf("クライアントの初期化に失敗しました: %v", err)
 		}
 		clients[i] = client
-		defer clients[i].Close()
+		defer clients[i].close()
 	}
 
 	for _, client := range clients {
@@ -69,10 +70,29 @@ func ExecuteSelfMatchGame(t *testing.T, config *model.Config, handlers map[model
 			t.Fatalf("timeout")
 		}
 	}
+	time.Sleep(3 * time.Second)
 	t.Log("ゲームが終了しました")
 }
 
-func ExecuteGame(t *testing.T, names []string, config *model.Config, handlers map[model.Request]func(tc TestClient) (string, error)) {
+func executeGame(t *testing.T, names []string, config *model.Config, handlers map[model.Request]func(tc TestClient) (string, error)) {
+	if config.Matching.IsOptimize {
+		dstFile, err := os.CreateTemp("", "*.json")
+		if err != nil {
+			t.Fatalf("一時ファイルの作成に失敗しました: %v", err)
+		}
+
+		srcFile, err := os.Open(config.Matching.OutputPath)
+		if err != nil {
+			t.Fatalf("設定ファイルの読み込みに失敗しました: %v", err)
+		}
+		defer srcFile.Close()
+
+		io.Copy(dstFile, srcFile)
+		config.Matching.OutputPath = dstFile.Name()
+
+		defer os.Remove(dstFile.Name())
+	}
+
 	u := launchAsyncServer(config)
 	t.Logf("サーバを起動しました: %s", u.String())
 
@@ -83,7 +103,7 @@ func ExecuteGame(t *testing.T, names []string, config *model.Config, handlers ma
 			t.Fatalf("クライアントの初期化に失敗しました: %v", err)
 		}
 		clients[i] = client
-		defer clients[i].Close()
+		defer clients[i].close()
 	}
 
 	for _, client := range clients {

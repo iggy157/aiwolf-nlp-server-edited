@@ -77,5 +77,5 @@ func executeDivinePhase(t *testing.T, targetRole model.Role, expectSpecies model
 			return "", nil
 		},
 	}
-	ExecuteSelfMatchGame(t, config, handlers)
+	executeGame(t, []string{"WEREWOLF", "POSSESSED", "SEER", "VILLAGER-A", "VILLAGER-B"}, config, handlers)
 }

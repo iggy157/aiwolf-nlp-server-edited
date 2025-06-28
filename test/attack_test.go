@@ -1,40 +1,18 @@
 package test
 
 import (
-	"io"
-	"os"
 	"testing"
 
 	"github.com/aiwolfdial/aiwolf-nlp-server/model"
 )
 
-func prepareConfig(t *testing.T) *model.Config {
+func TestAttackPhase1(t *testing.T) {
+	t.Parallel()
+	t.Log("襲撃フェーズ: 人狼が狂人を襲撃する")
 	config, err := model.LoadFromPath("./config/attack.yml")
 	if err != nil {
 		t.Fatalf("設定ファイルの読み込みに失敗しました: %v", err)
 	}
-
-	dstFile, err := os.CreateTemp("", "attack_*.json")
-	if err != nil {
-		t.Fatalf("一時ファイルの作成に失敗しました: %v", err)
-	}
-
-	srcFile, err := os.Open(config.Matching.OutputPath)
-	if err != nil {
-		t.Fatalf("設定ファイルの読み込みに失敗しました: %v", err)
-	}
-	defer srcFile.Close()
-
-	io.Copy(dstFile, srcFile)
-	config.Matching.OutputPath = dstFile.Name()
-	return config
-}
-
-func TestAttackPhase1(t *testing.T) {
-	t.Parallel()
-	t.Log("襲撃フェーズ: 人狼が狂人を襲撃する")
-	config := prepareConfig(t)
-	defer os.Remove(config.Matching.OutputPath)
 
 	targetMap := map[string]string{
 		"WEREWOLF": "POSSESSED",
@@ -54,7 +32,10 @@ func TestAttackPhase1(t *testing.T) {
 func TestAttackPhase2(t *testing.T) {
 	t.Parallel()
 	t.Log("襲撃フェーズ: 人狼が占い師を襲撃する")
-	config := prepareConfig(t)
+	config, err := model.LoadFromPath("./config/attack.yml")
+	if err != nil {
+		t.Fatalf("設定ファイルの読み込みに失敗しました: %v", err)
+	}
 
 	targetMap := map[string]string{
 		"WEREWOLF": "SEER",
@@ -74,8 +55,10 @@ func TestAttackPhase2(t *testing.T) {
 func TestAttackPhase3(t *testing.T) {
 	t.Parallel()
 	t.Log("襲撃フェーズ: 人狼が村人を襲撃する")
-	config := prepareConfig(t)
-	defer os.Remove(config.Matching.OutputPath)
+	config, err := model.LoadFromPath("./config/attack.yml")
+	if err != nil {
+		t.Fatalf("設定ファイルの読み込みに失敗しました: %v", err)
+	}
 
 	targetMap := map[string]string{
 		"WEREWOLF": "VILLAGER-A",
@@ -95,8 +78,10 @@ func TestAttackPhase3(t *testing.T) {
 func TestAttackPhase4(t *testing.T) {
 	t.Parallel()
 	t.Log("襲撃フェーズ: 自己投票が許可されている場合、人狼が人狼を襲撃できない")
-	config := prepareConfig(t)
-	defer os.Remove(config.Matching.OutputPath)
+	config, err := model.LoadFromPath("./config/attack.yml")
+	if err != nil {
+		t.Fatalf("設定ファイルの読み込みに失敗しました: %v", err)
+	}
 
 	targetMap := map[string]string{
 		"WEREWOLF": "WEREWOLF",
@@ -116,8 +101,10 @@ func TestAttackPhase4(t *testing.T) {
 func TestAttackPhase5(t *testing.T) {
 	t.Parallel()
 	t.Log("襲撃フェーズ: 自己投票が許可されていない場合、人狼が人狼を襲撃できない")
-	config := prepareConfig(t)
-	defer os.Remove(config.Matching.OutputPath)
+	config, err := model.LoadFromPath("./config/attack.yml")
+	if err != nil {
+		t.Fatalf("設定ファイルの読み込みに失敗しました: %v", err)
+	}
 	config.Game.AttackVote.AllowSelfVote = false
 
 	targetMap := map[string]string{
@@ -148,37 +135,8 @@ func executeAttackPhase(t *testing.T, targetMap map[string]string, expectStatuse
 			return nameMap[targetMap[tc.originalName]], nil
 		},
 		model.R_FINISH: func(tc TestClient) (string, error) {
-			if statusMap, exists := tc.info["status_map"].(map[string]any); exists {
-				for _, expectStatus := range expectStatuses {
-					matchesPattern := true
-					for k, expectedStatus := range expectStatus {
-						if v, ok := statusMap[nameMap[k]]; ok {
-							if v != expectedStatus.String() {
-								matchesPattern = false
-								break
-							}
-						} else {
-							matchesPattern = false
-							break
-						}
-					}
-					if matchesPattern {
-						tc.t.Logf("期待されるステータスパターンと一致しました")
-						for k, v := range statusMap {
-							tc.t.Logf("%s: %s", k, v)
-						}
-						return "", nil
-					}
-				}
-				tc.t.Errorf("期待されるステータスパターンと一致しません")
-				for k, v := range statusMap {
-					tc.t.Logf("%s: %s", k, v)
-				}
-			} else {
-				tc.t.Error("status_mapが見つかりません")
-			}
-			return "", nil
+			return tc.validateStatusPattern(expectStatuses, nameMap)
 		},
 	}
-	ExecuteGame(t, []string{"WEREWOLF", "POSSESSED", "SEER", "VILLAGER-A", "VILLAGER-B"}, config, handlers)
+	executeGame(t, []string{"WEREWOLF", "POSSESSED", "SEER", "VILLAGER-A", "VILLAGER-B"}, config, handlers)
 }

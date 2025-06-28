@@ -14,23 +14,23 @@ func TestExecutionPhase1(t *testing.T) {
 		t.Fatalf("設定ファイルの読み込みに失敗しました: %v", err)
 	}
 
-	targetNames := map[string]string{
-		"Player1": "Player5",
-		"Player2": "Player1",
-		"Player3": "Player1",
-		"Player4": "Player1",
-		"Player5": "Player1",
+	targetMap := map[string]string{
+		"WEREWOLF":   "VILLAGER-B",
+		"POSSESSED":  "WEREWOLF",
+		"SEER":       "WEREWOLF",
+		"VILLAGER-A": "WEREWOLF",
+		"VILLAGER-B": "WEREWOLF",
 	}
 	expectStatuses := []map[string]model.Status{
 		{
-			"Player1": model.S_DEAD,
-			"Player2": model.S_ALIVE,
-			"Player3": model.S_ALIVE,
-			"Player4": model.S_ALIVE,
-			"Player5": model.S_ALIVE,
+			"WEREWOLF":   model.S_DEAD,
+			"POSSESSED":  model.S_ALIVE,
+			"SEER":       model.S_ALIVE,
+			"VILLAGER-A": model.S_ALIVE,
+			"VILLAGER-B": model.S_ALIVE,
 		},
 	}
-	executeExecutionPhase(t, targetNames, expectStatuses, config)
+	executeExecutionPhase(t, targetMap, expectStatuses, config)
 }
 
 func TestExecutionPhase2(t *testing.T) {
@@ -41,30 +41,30 @@ func TestExecutionPhase2(t *testing.T) {
 		t.Fatalf("設定ファイルの読み込みに失敗しました: %v", err)
 	}
 
-	targetNames := map[string]string{
-		"Player1": "Player5",
-		"Player2": "Player1",
-		"Player3": "Player1",
-		"Player4": "Player2",
-		"Player5": "Player2",
+	targetMap := map[string]string{
+		"WEREWOLF":   "VILLAGER-B",
+		"POSSESSED":  "WEREWOLF",
+		"SEER":       "WEREWOLF",
+		"VILLAGER-A": "POSSESSED",
+		"VILLAGER-B": "POSSESSED",
 	}
 	expectStatuses := []map[string]model.Status{
 		{
-			"Player1": model.S_DEAD,
-			"Player2": model.S_ALIVE,
-			"Player3": model.S_ALIVE,
-			"Player4": model.S_ALIVE,
-			"Player5": model.S_ALIVE,
+			"WEREWOLF":   model.S_DEAD,
+			"POSSESSED":  model.S_ALIVE,
+			"SEER":       model.S_ALIVE,
+			"VILLAGER-A": model.S_ALIVE,
+			"VILLAGER-B": model.S_ALIVE,
 		},
 		{
-			"Player1": model.S_ALIVE,
-			"Player2": model.S_DEAD,
-			"Player3": model.S_ALIVE,
-			"Player4": model.S_ALIVE,
-			"Player5": model.S_ALIVE,
+			"WEREWOLF":   model.S_ALIVE,
+			"POSSESSED":  model.S_DEAD,
+			"SEER":       model.S_ALIVE,
+			"VILLAGER-A": model.S_ALIVE,
+			"VILLAGER-B": model.S_ALIVE,
 		},
 	}
-	executeExecutionPhase(t, targetNames, expectStatuses, config)
+	executeExecutionPhase(t, targetMap, expectStatuses, config)
 }
 
 func TestExecutionPhase3(t *testing.T) {
@@ -75,23 +75,23 @@ func TestExecutionPhase3(t *testing.T) {
 		t.Fatalf("設定ファイルの読み込みに失敗しました: %v", err)
 	}
 
-	targetNames := map[string]string{
-		"Player1": "Unknown",
-		"Player2": "Unknown",
-		"Player3": "Unknown",
-		"Player4": "Unknown",
-		"Player5": "Unknown",
+	targetMap := map[string]string{
+		"WEREWOLF":   "Unknown",
+		"POSSESSED":  "Unknown",
+		"SEER":       "Unknown",
+		"VILLAGER-A": "Unknown",
+		"VILLAGER-B": "Unknown",
 	}
 	expectStatuses := []map[string]model.Status{
 		{
-			"Player1": model.S_ALIVE,
-			"Player2": model.S_ALIVE,
-			"Player3": model.S_ALIVE,
-			"Player4": model.S_ALIVE,
-			"Player5": model.S_ALIVE,
+			"WEREWOLF":   model.S_ALIVE,
+			"POSSESSED":  model.S_ALIVE,
+			"SEER":       model.S_ALIVE,
+			"VILLAGER-A": model.S_ALIVE,
+			"VILLAGER-B": model.S_ALIVE,
 		},
 	}
-	executeExecutionPhase(t, targetNames, expectStatuses, config)
+	executeExecutionPhase(t, targetMap, expectStatuses, config)
 }
 
 func TestExecutionPhase4(t *testing.T) {
@@ -102,30 +102,30 @@ func TestExecutionPhase4(t *testing.T) {
 		t.Fatalf("設定ファイルの読み込みに失敗しました: %v", err)
 	}
 
-	targetNames := map[string]string{
-		"Player1": "Player1",
-		"Player2": "Player2",
-		"Player3": "Unknown",
-		"Player4": "Unknown",
-		"Player5": "Unknown",
+	targetMap := map[string]string{
+		"WEREWOLF":   "WEREWOLF",
+		"POSSESSED":  "POSSESSED",
+		"SEER":       "Unknown",
+		"VILLAGER-A": "Unknown",
+		"VILLAGER-B": "Unknown",
 	}
 	expectStatuses := []map[string]model.Status{
 		{
-			"Player1": model.S_DEAD,
-			"Player2": model.S_ALIVE,
-			"Player3": model.S_ALIVE,
-			"Player4": model.S_ALIVE,
-			"Player5": model.S_ALIVE,
+			"WEREWOLF":   model.S_DEAD,
+			"POSSESSED":  model.S_ALIVE,
+			"SEER":       model.S_ALIVE,
+			"VILLAGER-A": model.S_ALIVE,
+			"VILLAGER-B": model.S_ALIVE,
 		},
 		{
-			"Player1": model.S_ALIVE,
-			"Player2": model.S_DEAD,
-			"Player3": model.S_ALIVE,
-			"Player4": model.S_ALIVE,
-			"Player5": model.S_ALIVE,
+			"WEREWOLF":   model.S_ALIVE,
+			"POSSESSED":  model.S_DEAD,
+			"SEER":       model.S_ALIVE,
+			"VILLAGER-A": model.S_ALIVE,
+			"VILLAGER-B": model.S_ALIVE,
 		},
 	}
-	executeExecutionPhase(t, targetNames, expectStatuses, config)
+	executeExecutionPhase(t, targetMap, expectStatuses, config)
 }
 
 func TestExecutionPhase5(t *testing.T) {
@@ -137,68 +137,40 @@ func TestExecutionPhase5(t *testing.T) {
 	}
 	config.Game.Vote.AllowSelfVote = false
 
-	targetNames := map[string]string{
-		"Player1": "Player1",
-		"Player2": "Player3",
-		"Player3": "Unknown",
-		"Player4": "Unknown",
-		"Player5": "Unknown",
+	targetMap := map[string]string{
+		"WEREWOLF":   "WEREWOLF",
+		"POSSESSED":  "SEER",
+		"SEER":       "Unknown",
+		"VILLAGER-A": "Unknown",
+		"VILLAGER-B": "Unknown",
 	}
 	expectStatuses := []map[string]model.Status{
 		{
-			"Player1": model.S_ALIVE,
-			"Player2": model.S_ALIVE,
-			"Player3": model.S_DEAD,
-			"Player4": model.S_ALIVE,
-			"Player5": model.S_ALIVE,
+			"WEREWOLF":   model.S_ALIVE,
+			"POSSESSED":  model.S_ALIVE,
+			"SEER":       model.S_DEAD,
+			"VILLAGER-A": model.S_ALIVE,
+			"VILLAGER-B": model.S_ALIVE,
 		},
 	}
-	executeExecutionPhase(t, targetNames, expectStatuses, config)
+	executeExecutionPhase(t, targetMap, expectStatuses, config)
 }
 
-func executeExecutionPhase(t *testing.T, targetNames map[string]string, expectStatuses []map[string]model.Status, config *model.Config) {
+func executeExecutionPhase(t *testing.T, targetMap map[string]string, expectStatuses []map[string]model.Status, config *model.Config) {
+	nameMap := make(map[string]string)
+
 	handlers := map[model.Request]func(tc TestClient) (string, error){
-		model.R_VOTE: func(tc TestClient) (string, error) {
-			if target, exists := targetNames[tc.gameName]; exists {
-				tc.t.Logf("投票: %s -> %s", tc.gameName, target)
-				return target, nil
-			} else {
-				tc.t.Errorf("投票対象が見つかりません: %s", tc.gameName)
-				return "", nil
-			}
-		},
-		model.R_FINISH: func(tc TestClient) (string, error) {
-			if statusMap, exists := tc.info["status_map"].(map[string]any); exists {
-				for _, expectStatus := range expectStatuses {
-					matchesPattern := true
-					for k, expectedStatus := range expectStatus {
-						if v, ok := statusMap[k]; ok {
-							if v != expectedStatus.String() {
-								matchesPattern = false
-								break
-							}
-						} else {
-							matchesPattern = false
-							break
-						}
-					}
-					if matchesPattern {
-						tc.t.Logf("期待されるステータスパターンと一致しました")
-						for k, v := range statusMap {
-							tc.t.Logf("%s: %s", k, v)
-						}
-						return "", nil
-					}
-				}
-				tc.t.Errorf("期待されるステータスパターンと一致しません")
-				for k, v := range statusMap {
-					tc.t.Logf("%s: %s", k, v)
-				}
-			} else {
-				tc.t.Error("status_mapが見つかりません")
-			}
+		model.R_INITIALIZE: func(tc TestClient) (string, error) {
+			nameMap[tc.originalName] = tc.gameName
 			return "", nil
 		},
+		model.R_VOTE: func(tc TestClient) (string, error) {
+			tc.t.Logf("投票: %s -> %s", tc.gameName, nameMap[targetMap[tc.originalName]])
+			return nameMap[targetMap[tc.originalName]], nil
+		},
+		model.R_FINISH: func(tc TestClient) (string, error) {
+			return tc.validateStatusPattern(expectStatuses, nameMap)
+		},
 	}
-	ExecuteSelfMatchGame(t, config, handlers)
+	executeGame(t, []string{"WEREWOLF", "POSSESSED", "SEER", "VILLAGER-A", "VILLAGER-B"}, config, handlers)
 }

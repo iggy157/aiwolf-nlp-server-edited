@@ -43,21 +43,6 @@ func NewTestClient(t *testing.T, u url.URL, name string, handlers map[model.Requ
 	return client, nil
 }
 
-func HandleTarget(tc TestClient) (string, error) {
-	if statusMap, exists := tc.info["status_map"].(map[string]any); exists {
-		for k, v := range statusMap {
-			if k == tc.info["agent"].(string) {
-				continue
-			}
-			if v == model.S_ALIVE.String() {
-				return k, nil
-			}
-		}
-		return "", errors.New("投票対象が見つかりません")
-	}
-	return "", errors.New("status_mapが見つかりません")
-}
-
 func (tc *TestClient) listen() {
 	defer close(tc.done)
 	for {
@@ -194,10 +179,43 @@ func (tc *TestClient) handleRequest(request model.Request, recv map[string]any) 
 	}
 }
 
-func (tc *TestClient) Close() {
+func (tc *TestClient) close() {
 	tc.conn.Close()
 	select {
 	case <-tc.done:
 	case <-time.After(time.Second):
 	}
+}
+
+func (tc *TestClient) validateStatusPattern(expectStatuses []map[string]model.Status, nameMap map[string]string) (string, error) {
+	if statusMap, exists := tc.info["status_map"].(map[string]any); exists {
+		for _, expectStatus := range expectStatuses {
+			matchesPattern := true
+			for k, expectedStatus := range expectStatus {
+				if v, ok := statusMap[nameMap[k]]; ok {
+					if v != expectedStatus.String() {
+						matchesPattern = false
+						break
+					}
+				} else {
+					matchesPattern = false
+					break
+				}
+			}
+			if matchesPattern {
+				tc.t.Logf("期待されるステータスパターンと一致しました")
+				for k, v := range statusMap {
+					tc.t.Logf("%s: %s", k, v)
+				}
+				return "", nil
+			}
+		}
+		tc.t.Errorf("期待されるステータスパターンと一致しません")
+		for k, v := range statusMap {
+			tc.t.Logf("%s: %s", k, v)
+		}
+	} else {
+		tc.t.Error("status_mapが見つかりません")
+	}
+	return "", nil
 }
