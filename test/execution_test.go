@@ -7,7 +7,7 @@ import (
 )
 
 func TestExecutionPhase1(t *testing.T) {
-	t.Parallel()
+
 	t.Log("追放フェーズ: 投票数が最も多いプレイヤーが追放される")
 	config, err := model.LoadFromPath("./config/execution.yml")
 	if err != nil {
@@ -34,7 +34,7 @@ func TestExecutionPhase1(t *testing.T) {
 }
 
 func TestExecutionPhase2(t *testing.T) {
-	t.Parallel()
+
 	t.Log("追放フェーズ: 投票数が同数の場合、ランダムで追放される")
 	config, err := model.LoadFromPath("./config/execution.yml")
 	if err != nil {
@@ -68,7 +68,7 @@ func TestExecutionPhase2(t *testing.T) {
 }
 
 func TestExecutionPhase3(t *testing.T) {
-	t.Parallel()
+
 	t.Log("追放フェーズ: 投票がすべて無効の場合、誰も追放されない")
 	config, err := model.LoadFromPath("./config/execution.yml")
 	if err != nil {
@@ -95,7 +95,7 @@ func TestExecutionPhase3(t *testing.T) {
 }
 
 func TestExecutionPhase4(t *testing.T) {
-	t.Parallel()
+
 	t.Log("追放フェーズ: 自己投票が許可されている場合、自己投票を含むプレイヤーが追放される")
 	config, err := model.LoadFromPath("./config/execution.yml")
 	if err != nil {
@@ -129,7 +129,7 @@ func TestExecutionPhase4(t *testing.T) {
 }
 
 func TestExecutionPhase5(t *testing.T) {
-	t.Parallel()
+
 	t.Log("追放フェーズ: 自己投票が許可されていない場合、自己投票を含まないプレイヤーが追放される")
 	config, err := model.LoadFromPath("./config/execution.yml")
 	if err != nil {

@@ -7,7 +7,6 @@ import (
 )
 
 func TestAttackPhase1(t *testing.T) {
-	t.Parallel()
 	t.Log("襲撃フェーズ: 人狼が狂人を襲撃する")
 	config, err := model.LoadFromPath("./config/attack.yml")
 	if err != nil {
@@ -30,7 +29,6 @@ func TestAttackPhase1(t *testing.T) {
 }
 
 func TestAttackPhase2(t *testing.T) {
-	t.Parallel()
 	t.Log("襲撃フェーズ: 人狼が占い師を襲撃する")
 	config, err := model.LoadFromPath("./config/attack.yml")
 	if err != nil {
@@ -53,7 +51,6 @@ func TestAttackPhase2(t *testing.T) {
 }
 
 func TestAttackPhase3(t *testing.T) {
-	t.Parallel()
 	t.Log("襲撃フェーズ: 人狼が村人を襲撃する")
 	config, err := model.LoadFromPath("./config/attack.yml")
 	if err != nil {
@@ -76,7 +73,6 @@ func TestAttackPhase3(t *testing.T) {
 }
 
 func TestAttackPhase4(t *testing.T) {
-	t.Parallel()
 	t.Log("襲撃フェーズ: 自己投票が許可されている場合、人狼が人狼を襲撃できない")
 	config, err := model.LoadFromPath("./config/attack.yml")
 	if err != nil {
@@ -99,7 +95,6 @@ func TestAttackPhase4(t *testing.T) {
 }
 
 func TestAttackPhase5(t *testing.T) {
-	t.Parallel()
 	t.Log("襲撃フェーズ: 自己投票が許可されていない場合、人狼が人狼を襲撃できない")
 	config, err := model.LoadFromPath("./config/attack.yml")
 	if err != nil {

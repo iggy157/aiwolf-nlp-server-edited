@@ -17,9 +17,11 @@ import (
 const WebSocketExternalHost = "0.0.0.0"
 const TestClientName = "aiwolf-nlp-viewer"
 
-func launchAsyncServer(config *model.Config) url.URL {
+func launchAsyncServer(t *testing.T, config *model.Config) url.URL {
 	if _, exists := os.LookupEnv("GITHUB_ACTIONS"); exists {
 		config.Server.WebSocket.Host = WebSocketExternalHost
+	} else {
+		t.Parallel()
 	}
 	port := getAvailableTcpPort()
 	config.Server.WebSocket.Port = port
@@ -49,7 +51,7 @@ func getAvailableTcpPort() int {
 }
 
 func executeSelfMatchGame(t *testing.T, config *model.Config, handlers map[model.Request]func(tc TestClient) (string, error)) {
-	u := launchAsyncServer(config)
+	u := launchAsyncServer(t, config)
 	t.Logf("サーバを起動しました: %s", u.String())
 
 	clients := make([]*TestClient, config.Game.AgentCount)
@@ -93,7 +95,7 @@ func executeGame(t *testing.T, names []string, config *model.Config, handlers ma
 		defer os.Remove(dstFile.Name())
 	}
 
-	u := launchAsyncServer(config)
+	u := launchAsyncServer(t, config)
 	t.Logf("サーバを起動しました: %s", u.String())
 
 	clients := make([]*TestClient, config.Game.AgentCount)
