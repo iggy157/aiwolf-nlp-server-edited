@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/aiwolfdial/aiwolf-nlp-server/model"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestTalkPhase1(t *testing.T) {
@@ -21,40 +22,53 @@ func TestTalkPhase1(t *testing.T) {
 		"VILLAGER-A": {"Hello World!"},
 		"VILLAGER-B": {"Hello World!"},
 	}
-	expectMessagesMap := map[string][]string{
-		"WEREWOLF":   {"Hello World!"},
-		"POSSESSED":  {"Hello World!"},
-		"SEER":       {"Hello World!"},
-		"VILLAGER-A": {"Hello World!"},
-		"VILLAGER-B": {"Hello World!"},
-	}
-	executeTalkPhase(t, sendMessagesMap, expectMessagesMap, config)
+	executeTalkPhase(t, sendMessagesMap, config)
 }
 
-func executeTalkPhase(t *testing.T, sendMessagesMap map[string][]string, expectMessagesMap map[string][]string, config *model.Config) {
+func executeTalkPhase(t *testing.T, sendMessagesMap map[string][]string, config *model.Config) {
+	var nameMu sync.Mutex
+	var talkMu sync.Mutex
+
 	nameMap := make(map[string]string)
-	var nameMapMu sync.Mutex
 
 	messageIdxMap := make(map[string]int)
-	var messageIdxMapMu sync.Mutex
+
+	var idx float64 = 0
+	expectTalks := []any{}
 
 	handlers := map[model.Request]func(tc TestClient) (string, error){
 		model.R_INITIALIZE: func(tc TestClient) (string, error) {
-			nameMapMu.Lock()
+			nameMu.Lock()
+			defer nameMu.Unlock()
 			nameMap[tc.originalName] = tc.gameName
-			nameMapMu.Unlock()
 			return "", nil
 		},
 		model.R_TALK: func(tc TestClient) (string, error) {
-			messageIdxMapMu.Lock()
-			idx := messageIdxMap[tc.originalName]
+			talkMu.Lock()
+			defer talkMu.Unlock()
+			assert.Equal(t, len(expectTalks), len(tc.talkHistory))
+			if len(expectTalks) > 0 {
+				assert.Equal(t, expectTalks, tc.talkHistory)
+			}
+
+			messageIdx := messageIdxMap[tc.originalName]
 			messageIdxMap[tc.originalName]++
-			messageIdxMapMu.Unlock()
 			message := model.T_OVER
-			if idx < len(sendMessagesMap[tc.originalName]) {
-				message = sendMessagesMap[tc.originalName][idx]
+			if messageIdx < len(sendMessagesMap[tc.originalName]) {
+				message = sendMessagesMap[tc.originalName][messageIdx]
 			}
 			tc.t.Logf("トーク: %s < %s", tc.gameName, message)
+
+			expectTalks = append(expectTalks, map[string]any{
+				"idx":   idx,
+				"day":   tc.info["day"].(float64),
+				"turn":  float64(messageIdx),
+				"agent": tc.gameName,
+				"text":  message,
+				"skip":  message == model.T_SKIP || message == model.T_FORCE_SKIP,
+				"over":  message == model.T_OVER,
+			})
+			idx++
 			return message, nil
 		},
 		model.R_DAILY_FINISH: func(tc TestClient) (string, error) {

@@ -150,14 +150,14 @@ func (tc *TestClient) handleRequest(request model.Request, recv map[string]any) 
 		}
 		if request == model.R_TALK || request == model.R_DAILY_FINISH {
 			if talkHistory, exists := recv["talk_history"].([]any); exists {
-				tc.talkHistory = talkHistory
+				tc.talkHistory = append(tc.talkHistory, talkHistory...)
 			} else {
 				return "", errors.New("talk_historyが見つかりません")
 			}
 		}
 		if request == model.R_WHISPER || request == model.R_ATTACK || (request == model.R_DAILY_FINISH && tc.role == model.R_WEREWOLF) {
 			if whisperHistory, exists := recv["whisper_history"].([]any); exists {
-				tc.whisperHistory = whisperHistory
+				tc.whisperHistory = append(tc.whisperHistory, whisperHistory...)
 			} else {
 				return "", errors.New("whisper_historyが見つかりません")
 			}
