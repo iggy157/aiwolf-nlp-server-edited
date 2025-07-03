@@ -2,6 +2,7 @@ package model
 
 import (
 	"encoding/json"
+	"errors"
 )
 
 type Role struct {
@@ -17,6 +18,7 @@ var (
 	R_BODYGUARD = Role{Name: "BODYGUARD", Team: T_VILLAGER, Species: S_HUMAN}
 	R_VILLAGER  = Role{Name: "VILLAGER", Team: T_VILLAGER, Species: S_HUMAN}
 	R_MEDIUM    = Role{Name: "MEDIUM", Team: T_VILLAGER, Species: S_HUMAN}
+	R_NONE      = Role{Name: "NONE", Team: T_NONE, Species: S_NONE}
 )
 
 type Team string
@@ -42,6 +44,7 @@ type Species string
 const (
 	S_HUMAN    Species = "HUMAN"
 	S_WEREWOLF Species = "WEREWOLF"
+	S_NONE     Species = "NONE"
 )
 
 func SpeciesFromString(s string) Species {
@@ -51,7 +54,7 @@ func SpeciesFromString(s string) Species {
 	case "WEREWOLF":
 		return S_WEREWOLF
 	}
-	return ""
+	return S_NONE
 }
 
 func (r Role) String() string {
@@ -77,29 +80,21 @@ func RoleFromString(s string) Role {
 	case "MEDIUM":
 		return R_MEDIUM
 	}
-	return Role{}
+	return R_NONE
 }
 
-func Roles(num int) map[Role]int {
-	switch num {
-	case 5:
-		return map[Role]int{
-			R_WEREWOLF:  1,
-			R_POSSESSED: 1,
-			R_SEER:      1,
-			R_BODYGUARD: 0,
-			R_VILLAGER:  2,
-			R_MEDIUM:    0,
+func RolesFromConfig(config Config) (map[Role]int, error) {
+	roleNumMap := make(map[Role]int)
+	if roles, ok := config.Logic.Roles[config.Game.AgentCount]; ok {
+		for roleName, num := range roles {
+			role := RoleFromString(roleName)
+			if role == R_NONE {
+				return nil, errors.New("不明な役職名があります")
+			}
+			roleNumMap[role] = num
 		}
-	case 13:
-		return map[Role]int{
-			R_WEREWOLF:  3,
-			R_POSSESSED: 1,
-			R_SEER:      1,
-			R_BODYGUARD: 1,
-			R_VILLAGER:  6,
-			R_MEDIUM:    1,
-		}
+	} else {
+		return nil, errors.New("対応する役職の人数がありません")
 	}
-	return nil
+	return roleNumMap, nil
 }

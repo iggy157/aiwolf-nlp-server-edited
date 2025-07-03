@@ -51,6 +51,14 @@ logic:
     - name: "daily_talk"
       actions: ["talk"]
   night_phases:
+  roles:
+    5:
+      WEREWOLF: 0
+      POSSESSED: 0
+      SEER: 0
+      BODYGUARD: 0
+      VILLAGER: 5
+      MEDIUM: 0
 
 matching:
   self_match: true

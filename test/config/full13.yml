@@ -11,7 +11,7 @@ server:
   max_continue_error_ratio: 0.2
 
 game:
-  agent_count: 5
+  agent_count: 13
   max_day: -1
   vote_visibility: false
   talk:
@@ -69,6 +69,14 @@ logic:
     - name: "attack"
       actions: ["attack"]
       except_day: 0
+  roles:
+    13:
+      WEREWOLF: 3
+      POSSESSED: 1
+      SEER: 1
+      BODYGUARD: 1
+      VILLAGER: 6
+      MEDIUM: 1
 
 matching:
   self_match: true

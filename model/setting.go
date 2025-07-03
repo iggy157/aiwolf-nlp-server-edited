@@ -47,9 +47,9 @@ type TalkSetting struct {
 }
 
 func NewSetting(config Config) (*Setting, error) {
-	roleNumMap := Roles(config.Game.AgentCount)
-	if roleNumMap == nil {
-		return nil, errors.New("対応する役職の人数がありません")
+	roles, err := RolesFromConfig(config)
+	if err != nil {
+		return nil, err
 	}
 	if config.CustomProfile.Enable {
 		if config.CustomProfile.DynamicProfile.Enable {
@@ -64,7 +64,7 @@ func NewSetting(config Config) (*Setting, error) {
 	}
 	setting := Setting{
 		AgentCount:     config.Game.AgentCount,
-		RoleNumMap:     roleNumMap,
+		RoleNumMap:     roles,
 		VoteVisibility: config.Game.VoteVisibility,
 		Talk: struct {
 			TalkSetting `json:",inline"`

@@ -69,8 +69,9 @@ type TalkConfig struct {
 }
 
 type LogicConfig struct {
-	DayPhases   []Phase `yaml:"day_phases"`
-	NightPhases []Phase `yaml:"night_phases"`
+	DayPhases   []Phase                `yaml:"day_phases"`
+	NightPhases []Phase                `yaml:"night_phases"`
+	Roles       map[int]map[string]int `yaml:"roles"`
 }
 
 type Phase struct {

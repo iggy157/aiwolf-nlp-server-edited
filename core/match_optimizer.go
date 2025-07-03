@@ -112,16 +112,16 @@ func NewMatchOptimizer(config model.Config) (*MatchOptimizer, error) {
 
 func NewMatchOptimizerFromConfig(config model.Config) (*MatchOptimizer, error) {
 	slog.Info("マッチオプティマイザを作成します")
-	roleNumMap := model.Roles(config.Game.AgentCount)
-	if roleNumMap == nil {
-		return nil, errors.New("対応する役職の人数がありません")
+	roles, err := model.RolesFromConfig(config)
+	if err != nil {
+		return nil, err
 	}
 	mo := &MatchOptimizer{
 		outputPath:   config.Matching.OutputPath,
 		InfiniteLoop: config.Matching.InfiniteLoop,
 		TeamCount:    config.Matching.TeamCount,
 		GameCount:    config.Matching.GameCount,
-		RoleNumMap:   roleNumMap,
+		RoleNumMap:   roles,
 		IdxTeamMap:   map[int]string{},
 	}
 	mo.initialize()

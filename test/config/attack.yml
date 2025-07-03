@@ -49,6 +49,14 @@ logic:
   night_phases:
     - name: "attack"
       actions: ["attack"]
+  roles:
+    5:
+      WEREWOLF: 1
+      POSSESSED: 1
+      SEER: 1
+      BODYGUARD: 0
+      VILLAGER: 2
+      MEDIUM: 0
 
 matching:
   self_match: false
