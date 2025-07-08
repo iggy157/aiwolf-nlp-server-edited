@@ -136,7 +136,7 @@ func (a *Agent) SendPacket(packet Packet, actionTimeout, responseTimeout, accept
 	return "", nil
 }
 
-func (a *Agent) Close() {
+func (a Agent) Close() {
 	a.Connection.Close()
 	slog.Info("エージェントをクローズしました", "agent", a.String())
 }

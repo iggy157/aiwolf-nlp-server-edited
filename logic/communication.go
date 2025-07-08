@@ -75,7 +75,8 @@ func (g *Game) conductCommunication(request model.Request) {
 			}
 			remainCountMap[*agent]--
 			text := g.getTalkWhisperText(agent, request)
-			if text == model.T_SKIP {
+			switch text {
+			case model.T_SKIP:
 				if remainSkipMap[*agent] <= 0 {
 					text = model.T_OVER
 					slog.Warn("スキップ回数が上限に達したため、発言をオーバーに置換しました", "id", g.id, "agent", agent.String())
@@ -83,7 +84,7 @@ func (g *Game) conductCommunication(request model.Request) {
 					remainSkipMap[*agent]--
 					slog.Info("発言をスキップしました", "id", g.id, "agent", agent.String())
 				}
-			} else if text == model.T_FORCE_SKIP {
+			case model.T_FORCE_SKIP:
 				text = model.T_SKIP
 				slog.Warn("強制スキップが指定されたため、発言をスキップに置換しました", "id", g.id, "agent", agent.String())
 			}
