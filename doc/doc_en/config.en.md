@@ -1,4 +1,4 @@
-[congig in japanese](/doc/config)
+[congig in japanese](/doc/config.md)
 
 # About the Configuration File
 

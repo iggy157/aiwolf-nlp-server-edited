@@ -1,4 +1,4 @@
-[config in English](/doc/doc_en/config)
+[config in English](/doc/doc_en/config.en.md)
 
 # 設定ファイルについて
 

@@ -1,4 +1,4 @@
-[logic in japanese](/doc/logic)
+[logic in japanese](/doc/logic.md)
 
 # About the Implementation of Game Logic
 

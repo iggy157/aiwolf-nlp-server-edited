@@ -1,4 +1,4 @@
-[logic in English](/doc/doc_en/logic)
+[logic in English](/doc/doc_en/logic.en.md)
 
 # ゲームロジックの実装について
 

@@ -1,4 +1,4 @@
-[protocol in English](/doc/doc_en/protocol)
+[protocol in English](/doc/doc_en/protocol.en.md)
 
 # プロトコルの実装について
 

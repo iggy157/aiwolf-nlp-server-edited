@@ -1,4 +1,4 @@
-[protocol in japanese](/doc/protocol)
+[protocol in japanese](/doc/protocol.md)
 
 # About the Implementation of the Protocol
 
