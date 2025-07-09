@@ -1,3 +1,5 @@
+[config in English](/doc/doc_en/config)
+
 # 設定ファイルについて
 
 ## 環境変数ファイル (.env)
