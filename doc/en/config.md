@@ -1,6 +1,6 @@
 # About the Configuration File
 
-[config in Japanese](/doc/config.md)
+[config in Japanese](/doc/ja/config.md)
 
 ## Environment Variable File (.env)
 

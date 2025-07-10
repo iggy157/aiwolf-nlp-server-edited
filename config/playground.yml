@@ -1,4 +1,5 @@
-# https://github.com/aiwolfdial/aiwolf-nlp-server/blob/main/doc/config.md
+# https://github.com/aiwolfdial/aiwolf-nlp-server/blob/main/doc/ja/config.md
+# https://github.com/aiwolfdial/aiwolf-nlp-server/blob/main/doc/en/config.md
 
 server:
   web_socket:

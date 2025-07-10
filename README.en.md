@@ -1,6 +1,6 @@
-[README in Japanese](/README.md)
-
 # aiwolf-nlp-server
+
+[README in Japanese](/README.md)
 
 This is a game server for the AIWolf Contest (Natural Language Division).
 
@@ -8,15 +8,15 @@ For sample agents, please refer to [aiwolfdial/aiwolf-nlp-agent](https://github.
 
 ## Documentation
 
-- [Configuration File](./doc/config.md)
-- [Game Logic Implementation](./doc/logic.md)
-- [Protocol Implementation](./doc/protocol.md)
+- [Configuration File](/doc/en/config.md)
+- [Game Logic Implementation](/doc/en/logic.md)
+- [Protocol Implementation](/doc/en/protocol.md)
 
 ## How to Run
 
 The default server address is `ws://127.0.0.1:8080/ws`. Please specify this address as the connection destination for your agent program.
 The self-play mode, which matches only agents with the same team name, is enabled by default. Therefore, if you want to match agents with different team names, please modify the configuration file.
-For information on how to modify the configuration file, please refer to [Configuration File](./doc/config.md).
+For information on how to modify the configuration file, please refer to [Configuration File](/doc/en/config.md).
 
 ### Linux
 

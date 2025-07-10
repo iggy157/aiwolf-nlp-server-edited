@@ -1,6 +1,6 @@
 # About the Implementation of the Protocol
 
-[protocol in Japanese](/doc/protocol.md)
+[protocol in Japanese](/doc/ja/protocol.md)
 
 This document explains the implementation of the protocol.\
 The protocol here refers not to a technical layer protocol but to the string-based protocol used during the interaction between the Werewolf AI agents and the server.\

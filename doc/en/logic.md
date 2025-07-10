@@ -1,6 +1,6 @@
 # About the Implementation of Game Logic
 
-[logic in Japanese](/doc/logic.md)
+[logic in Japanese](/doc/ja/logic.md)
 
 This document explains the implementation of the game logic.\
 The game logic here refers to the rules of the werewolf game and the processes involved in carrying them out.
