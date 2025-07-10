@@ -1,6 +1,6 @@
-[logic in English](/doc/doc_en/logic.en.md)
-
 # ゲームロジックの実装について
+
+[logic in English](/doc/en/logic.md)
 
 このドキュメントでは、ゲームロジックの実装について説明します。\
 ここで指すゲームロジックとは、人狼ゲームのルールならびにその遂行に関わる処理全般を指します。

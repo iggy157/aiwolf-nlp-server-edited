@@ -1,6 +1,6 @@
-[config in japanese](/doc/config.md)
-
 # About the Configuration File
+
+[config in Japanese](/doc/config.md)
 
 ## Environment Variable File (.env)
 
@@ -56,7 +56,7 @@
 
 ### whisper (Whisper Phase Settings)
 
-Same as the [talk (Talk Phase Settings)](#talk-phase-settings).
+Same as the [talk (Talk Phase Settings)](#talk-talk-phase-settings).
 
 ### vote (Voting Phase Settings)
 
@@ -80,7 +80,7 @@ Same as the [talk (Talk Phase Settings)](#talk-phase-settings).
 
 ### night_phase (Night Phase Settings)
 
-Same as [day_phases (Day Phase Settings)](#day_phases).
+Same as [day_phases (Day Phase Settings)](#day_phases-day-phase-settings).
 
 ### roles (Role Count Settings)
 

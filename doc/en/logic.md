@@ -1,6 +1,6 @@
-[logic in japanese](/doc/logic.md)
-
 # About the Implementation of Game Logic
+
+[logic in Japanese](/doc/logic.md)
 
 This document explains the implementation of the game logic.\
 The game logic here refers to the rules of the werewolf game and the processes involved in carrying them out.
@@ -11,14 +11,14 @@ The game logic here refers to the rules of the werewolf game and the processes i
 
 The werewolf game has the following roles:
 
-| Role    | English Name | Faction      | Species | Special Ability                                                |
-| ------- | ------------ | ------------ | ------- | --------------------------------------------------------------- |
-| WEREWOLF | WEREWOLF     | Werewolf Faction | Werewolf | Votes to attack one agent during the attack phase               |
-| POSSESSED | POSSESSED    | Werewolf Faction | Human   | Wins if the Werewolf Faction wins                              |
-| SEER     | SEER         | Villager Faction  | Human   | Selects one agent during the divination phase                   |
-| BODYGUARD | BODYGUARD   | Villager Faction  | Human   | Protects one agent during the guard phase                       |
-| VILLAGER | VILLAGER     | Villager Faction  | Human   | None                                                            |
-| MEDIUM   | MEDIUM       | Villager Faction  | Human   | Can learn the species of agents exiled during the exile phase  |
+| Role      | English Name | Faction          | Species  | Special Ability                                               |
+| --------- | ------------ | ---------------- | -------- | ------------------------------------------------------------- |
+| WEREWOLF  | WEREWOLF     | Werewolf Faction | Werewolf | Votes to attack one agent during the attack phase             |
+| POSSESSED | POSSESSED    | Werewolf Faction | Human    | Wins if the Werewolf Faction wins                             |
+| SEER      | SEER         | Villager Faction | Human    | Selects one agent during the divination phase                 |
+| BODYGUARD | BODYGUARD    | Villager Faction | Human    | Protects one agent during the guard phase                     |
+| VILLAGER  | VILLAGER     | Villager Faction | Human    | None                                                          |
+| MEDIUM    | MEDIUM       | Villager Faction | Human    | Can learn the species of agents exiled during the exile phase |
 
 The English name for the Villager faction is `VILLAGER`, and the English name for the Werewolf faction is `WEREWOLF`.\
 The English name for the Human species is `HUMAN`, and the English name for the Werewolf species is `WEREWOLF`.
@@ -29,25 +29,25 @@ For more detailed implementation, please refer to [role.go](../model/role.go).
 
 #### 5-Player Game
 
-| Role    | Number |
-| ------- | ------ |
-| WEREWOLF | 1      |
+| Role      | Number |
+| --------- | ------ |
+| WEREWOLF  | 1      |
 | POSSESSED | 1      |
-| SEER     | 1      |
+| SEER      | 1      |
 | BODYGUARD | 0      |
-| VILLAGER | 2      |
-| MEDIUM   | 0      |
+| VILLAGER  | 2      |
+| MEDIUM    | 0      |
 
 #### 13-Player Game
 
-| Role    | Number |
-| ------- | ------ |
-| WEREWOLF | 3      |
+| Role      | Number |
+| --------- | ------ |
+| WEREWOLF  | 3      |
 | POSSESSED | 1      |
-| SEER     | 1      |
+| SEER      | 1      |
 | BODYGUARD | 1      |
-| VILLAGER | 6      |
-| MEDIUM   | 1      |
+| VILLAGER  | 6      |
+| MEDIUM    | 1      |
 
 ### Game Flow
 
@@ -87,14 +87,14 @@ When the game ends, a `FINISH` request is sent to all agents.
 If the number of surviving werewolf agents is fewer than 2, this phase is skipped.\
 If the number of surviving werewolf agents is 2 or more, the following process occurs.
 
-For information about turn handling, see [turn handling for speeches](#turn-handling-for-speech).
+For information about turn handling, see [turn handling for speeches](#turn-handling-for-speeches).
 
 #### Talk Phase
 
 If the number of surviving agents is fewer than 2, this phase is skipped.\
 If the number of surviving agents is 2 or more, the following process occurs.
 
-For information about turn handling, see [turn handling for speeches](#turn-handling-for-speech).
+For information about turn handling, see [turn handling for speeches](#turn-handling-for-speeches).
 
 #### Exile Phase
 
@@ -143,7 +143,7 @@ The remaining characters initialized by `max_length.per_agent` are referred to a
 
 A random permutation of surviving werewolf agents (or surviving agents in the talk phase) is created.
 
-#### Repeat the following process up to `max_count.per_day` times:
+#### Repeat the following process up to `max_count.per_day` times
 
 Starting from the front of the permutation, the following process is repeated for each agent:
 
@@ -187,4 +187,4 @@ If the length of the speech - `base_length` is positive, subtract that from `rem
 
 Limit the speech to `max_length.per_talk` characters.
 
-#### 3. If the speech length is 0, replace the speech with an over-speech.
+#### 3. If the speech length is 0, replace the speech with an over-speech

@@ -1,6 +1,6 @@
-[config in English](/doc/doc_en/config.en.md)
-
 # 設定ファイルについて
+
+[config in English](/doc/en/config.md)
 
 ## 環境変数ファイル (.env)
 

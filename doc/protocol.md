@@ -1,6 +1,6 @@
-[protocol in English](/doc/doc_en/protocol.en.md)
-
 # プロトコルの実装について
+
+[protocol in English](/doc/en/protocol.md)
 
 このドキュメントでは、プロトコルの実装について説明します。\
 ここで指すプロトコルとは、技術レイヤーのプロトコルではなく、人狼知能のエージェントとサーバ間のやり取りの際の文字列としてのプロトコルです。\
