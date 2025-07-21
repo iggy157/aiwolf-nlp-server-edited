@@ -43,10 +43,10 @@ func NewAgentWithProfile(idx int, role Role, conn Connection, profile Profile, e
 	var builder strings.Builder
 	for key, value := range encoding {
 		if val, ok := profile.Arguments[key]; ok {
-			builder.WriteString(fmt.Sprintf("%s: %s, ", value, val))
+			builder.WriteString(fmt.Sprintf("%s: %s\n", value, val))
 		}
 	}
-	description := builder.String()
+	description := strings.TrimRight(builder.String(), "\n")
 
 	agent := &Agent{
 		Idx:                idx,
