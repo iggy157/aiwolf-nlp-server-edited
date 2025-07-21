@@ -105,11 +105,12 @@ type Profile struct {
 }
 
 type DynamicProfileConfig struct {
-	Enable   bool     `yaml:"enable"`
-	Prompt   string   `yaml:"prompt"`
-	Attempts int      `yaml:"attempts"`
-	Model    string   `yaml:"model"` //gpt-4o-mini
-	Avatars  []string `yaml:"avatars"`
+	Enable    bool     `yaml:"enable"`
+	Prompt    string   `yaml:"prompt"`
+	Attempts  int      `yaml:"attempts"`
+	Model     string   `yaml:"model"`
+	MaxTokens int      `yaml:"max_tokens"`
+	Avatars   []string `yaml:"avatars"`
 }
 
 type JSONLoggerConfig struct {

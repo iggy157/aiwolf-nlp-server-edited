@@ -68,6 +68,10 @@ matching:
 
 custom_profile:
   enable: true
+  profile_encoding:
+    age: 年齢
+    gender: 性別
+    personality: 性格
   profiles:
     - name: Player1
       avatar_url:

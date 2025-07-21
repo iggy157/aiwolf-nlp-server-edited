@@ -34,7 +34,7 @@ func NewGame(config *model.Config, settings *model.Setting, conns []model.Connec
 	var agents []*model.Agent
 	if config.CustomProfile.Enable {
 		if config.CustomProfile.DynamicProfile.Enable {
-			profiles, err := util.GenerateProfiles(config.CustomProfile.DynamicProfile, config.Game.AgentCount)
+			profiles, err := util.GenerateProfiles(config.CustomProfile.DynamicProfile, config.CustomProfile.ProfileEncoding, config.Game.AgentCount)
 			if err != nil {
 				slog.Error("プロフィールの生成に失敗したため、カスタムプロフィールを使用します", "error", err)
 				agents = util.CreateAgentsWithProfiles(conns, settings.RoleNumMap, config.CustomProfile.Profiles, config.CustomProfile.ProfileEncoding)
@@ -71,7 +71,7 @@ func NewGameWithRole(config *model.Config, settings *model.Setting, roleMapConns
 	var agents []*model.Agent
 	if config.CustomProfile.Enable {
 		if config.CustomProfile.DynamicProfile.Enable {
-			profiles, err := util.GenerateProfiles(config.CustomProfile.DynamicProfile.Prompt, config.CustomProfile.DynamicProfile.Avatars, config.Game.AgentCount, config.CustomProfile.DynamicProfile.Attempts)
+			profiles, err := util.GenerateProfiles(config.CustomProfile.DynamicProfile, config.CustomProfile.ProfileEncoding, config.Game.AgentCount)
 			if err != nil {
 				slog.Error("プロフィールの生成に失敗したため、カスタムプロフィールを使用します", "error", err)
 				agents = util.CreateAgentsWithRoleAndProfile(roleMapConns, config.CustomProfile.Profiles, config.CustomProfile.ProfileEncoding)

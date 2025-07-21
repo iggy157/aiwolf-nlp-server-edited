@@ -48,10 +48,8 @@ type ChatCompletionRequest struct {
 }
 
 type ProfileData struct {
-	Name        string `json:"name"`
-	Age         int    `json:"age"`
-	Gender      string `json:"gender"`
-	Personality string `json:"personality"`
+	Name      string         `json:"name"`
+	Arguments map[string]any `json:"-"`
 }
 
 type Choice struct {
@@ -64,31 +62,34 @@ type ChatCompletionResponse struct {
 	Choices []Choice `json:"choices"`
 }
 
-func generateProfile(config model.DynamicProfileConfig, avatarURL string) (*model.Profile, error) {
-	schemaJSON := `{
-		"type": "object",
-		"properties": {
-			"name": {
-				"type": "string"
-			},
-			"age": {
-				"type": "number"
-			},
-			"gender": {
-				"type": "string"
-			},
-			"personality": {
-				"type": "string"
-			}
+func generateProfile(config model.DynamicProfileConfig, avatarURL string, profileEncoding map[string]string) (*model.Profile, error) {
+	properties := map[string]any{
+		"name": map[string]string{
+			"type": "string",
 		},
-		"required": [
-			"name",
-			"age",
-			"gender",
-			"personality"
-		],
-		"additionalProperties": false
-	}`
+	}
+	required := []string{"name"}
+
+	for key := range profileEncoding {
+		if _, exists := properties[key]; !exists {
+			properties[key] = map[string]string{
+				"type": "string",
+			}
+			required = append(required, key)
+		}
+	}
+
+	schema := map[string]any{
+		"type":                 "object",
+		"properties":           properties,
+		"required":             required,
+		"additionalProperties": false,
+	}
+
+	schemaJSON, err := json.Marshal(schema)
+	if err != nil {
+		return nil, err
+	}
 
 	request := ChatCompletionRequest{
 		Model: config.Model,
@@ -117,7 +118,7 @@ func generateProfile(config model.DynamicProfileConfig, avatarURL string) (*mode
 				Schema: json.RawMessage(schemaJSON),
 			},
 		},
-		MaxTokens: 300,
+		MaxTokens: config.MaxTokens,
 	}
 
 	requestBody, err := json.Marshal(request)
@@ -155,24 +156,28 @@ func generateProfile(config model.DynamicProfileConfig, avatarURL string) (*mode
 		return nil, errors.New("no choices in response")
 	}
 
-	var profileData ProfileData
-	if err := json.Unmarshal([]byte(chatResponse.Choices[0].Message.Content), &profileData); err != nil {
+	var rawData map[string]any
+	if err := json.Unmarshal([]byte(chatResponse.Choices[0].Message.Content), &rawData); err != nil {
 		return nil, err
 	}
 
 	profile := &model.Profile{
-		Name:        profileData.Name,
-		AvatarURL:   avatarURL,
-		Age:         profileData.Age,
-		Gender:      profileData.Gender,
-		Personality: profileData.Personality,
+		Name:      rawData["name"].(string),
+		AvatarURL: avatarURL,
+		Arguments: make(map[string]string),
+	}
+
+	for key := range profileEncoding {
+		if val, exists := rawData[key]; exists {
+			profile.Arguments[key] = val.(string)
+		}
 	}
 	return profile, nil
 }
 
-func generateProfileWithIgnoreNames(config model.DynamicProfileConfig, avatarURL string, ignoreNames []string) (*model.Profile, error) {
+func generateProfileWithIgnoreNames(config model.DynamicProfileConfig, avatarURL string, ignoreNames []string, profileEncoding map[string]string) (*model.Profile, error) {
 	for range config.Attempts {
-		profile, err := generateProfile(config, avatarURL)
+		profile, err := generateProfile(config, avatarURL, profileEncoding)
 		if err != nil {
 			return nil, err
 		}
@@ -184,7 +189,7 @@ func generateProfileWithIgnoreNames(config model.DynamicProfileConfig, avatarURL
 	return nil, errors.New("ユニークな名前を生成できませんでした")
 }
 
-func GenerateProfiles(config model.DynamicProfileConfig, size int) ([]model.Profile, error) {
+func GenerateProfiles(config model.DynamicProfileConfig, profileEncoding map[string]string, size int) ([]model.Profile, error) {
 	var profiles []model.Profile
 	names := make([]string, 0, size)
 
@@ -195,7 +200,7 @@ func GenerateProfiles(config model.DynamicProfileConfig, size int) ([]model.Prof
 	})
 
 	for i := range size {
-		profile, err := generateProfileWithIgnoreNames(config, avatarURLs[i], names)
+		profile, err := generateProfileWithIgnoreNames(config, avatarURLs[i], names, profileEncoding)
 		if err != nil {
 			return nil, err
 		}
