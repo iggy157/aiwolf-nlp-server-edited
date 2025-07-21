@@ -65,7 +65,7 @@ func CreateAgents(conns []model.Connection, roles map[model.Role]int) []*model.A
 	return agents
 }
 
-func CreateAgentsWithProfiles(conns []model.Connection, roles map[model.Role]int, profiles []model.Profile) []*model.Agent {
+func CreateAgentsWithProfiles(conns []model.Connection, roles map[model.Role]int, profiles []model.Profile, encoding map[string]string) []*model.Agent {
 	rolesCopy := make(map[model.Role]int)
 	maps.Copy(rolesCopy, roles)
 	agents := make([]*model.Agent, 0)
@@ -74,7 +74,7 @@ func CreateAgentsWithProfiles(conns []model.Connection, roles map[model.Role]int
 
 	for i, conn := range conns {
 		role := assignRole(rolesCopy)
-		agent := model.NewAgentWithProfile(i+1, role, conn, profiles[i])
+		agent := model.NewAgentWithProfile(i+1, role, conn, profiles[i], encoding)
 		agents = append(agents, agent)
 	}
 	return agents
@@ -93,14 +93,16 @@ func CreateAgentsWithRole(roleMapConns map[model.Role][]model.Connection) []*mod
 	return agents
 }
 
-func CreateAgentsWithRoleAndProfile(roleMapConns map[model.Role][]model.Connection, profiles []model.Profile) []*model.Agent {
+func CreateAgentsWithRoleAndProfile(roleMapConns map[model.Role][]model.Connection, profiles []model.Profile, encoding map[string]string) []*model.Agent {
 	agents := make([]*model.Agent, 0)
+
 	rand.Shuffle(len(profiles), func(i, j int) { profiles[i], profiles[j] = profiles[j], profiles[i] })
 
 	i := 0
 	for role, conns := range roleMapConns {
 		for _, conn := range conns {
-			agent := model.NewAgentWithProfile(i+1, role, conn, profiles[i])
+			profile := profiles[i]
+			agent := model.NewAgentWithProfile(i+1, role, conn, profile, encoding)
 			i++
 			agents = append(agents, agent)
 		}

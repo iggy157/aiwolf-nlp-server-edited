@@ -64,7 +64,7 @@ type ChatCompletionResponse struct {
 	Choices []Choice `json:"choices"`
 }
 
-func generateProfile(prompt string, avatarURL string) (*model.Profile, error) {
+func generateProfile(config model.DynamicProfileConfig, avatarURL string) (*model.Profile, error) {
 	schemaJSON := `{
 		"type": "object",
 		"properties": {
@@ -91,14 +91,14 @@ func generateProfile(prompt string, avatarURL string) (*model.Profile, error) {
 	}`
 
 	request := ChatCompletionRequest{
-		Model: "gpt-4o-mini",
+		Model: config.Model,
 		Messages: []Message{
 			{
 				Role: "user",
 				Content: []ContentItem{
 					{
 						Type: "text",
-						Text: prompt,
+						Text: config.Prompt,
 					},
 					{
 						Type: "image_url",
@@ -170,9 +170,9 @@ func generateProfile(prompt string, avatarURL string) (*model.Profile, error) {
 	return profile, nil
 }
 
-func generateProfileWithIgnoreNames(prompt string, avatarURL string, ignoreNames []string, attempts int) (*model.Profile, error) {
-	for range attempts {
-		profile, err := generateProfile(prompt, avatarURL)
+func generateProfileWithIgnoreNames(config model.DynamicProfileConfig, avatarURL string, ignoreNames []string) (*model.Profile, error) {
+	for range config.Attempts {
+		profile, err := generateProfile(config, avatarURL)
 		if err != nil {
 			return nil, err
 		}
@@ -184,21 +184,23 @@ func generateProfileWithIgnoreNames(prompt string, avatarURL string, ignoreNames
 	return nil, errors.New("ユニークな名前を生成できませんでした")
 }
 
-func GenerateProfiles(prompt string, avatarURLs []string, size int, attempts int) ([]model.Profile, error) {
-	profiles := make([]model.Profile, size)
-	names := make([]string, size)
+func GenerateProfiles(config model.DynamicProfileConfig, size int) ([]model.Profile, error) {
+	var profiles []model.Profile
+	names := make([]string, 0, size)
 
+	avatarURLs := make([]string, len(config.Avatars))
+	copy(avatarURLs, config.Avatars)
 	rand.Shuffle(len(avatarURLs), func(i, j int) {
 		avatarURLs[i], avatarURLs[j] = avatarURLs[j], avatarURLs[i]
 	})
 
 	for i := range size {
-		profile, err := generateProfileWithIgnoreNames(prompt, avatarURLs[i], names, attempts)
+		profile, err := generateProfileWithIgnoreNames(config, avatarURLs[i], names)
 		if err != nil {
 			return nil, err
 		}
-		profiles[i] = *profile
-		names[i] = profile.Name
+		profiles = append(profiles, *profile)
+		names = append(names, profile.Name)
 	}
 	return profiles, nil
 }

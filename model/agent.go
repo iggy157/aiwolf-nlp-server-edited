@@ -39,8 +39,15 @@ func NewAgent(idx int, role Role, conn Connection) *Agent {
 	return agent
 }
 
-func NewAgentWithProfile(idx int, role Role, conn Connection, profile Profile) *Agent {
-	description := "年齢: " + fmt.Sprintf("%d", profile.Age) + "歳\n" + "性別: " + profile.Gender + "\n" + profile.Personality
+func NewAgentWithProfile(idx int, role Role, conn Connection, profile Profile, encoding map[string]string) *Agent {
+	var builder strings.Builder
+	for key, value := range encoding {
+		if val, ok := profile.Arguments[key]; ok {
+			builder.WriteString(fmt.Sprintf("%s: %s, ", value, val))
+		}
+	}
+	description := builder.String()
+
 	agent := &Agent{
 		Idx:                idx,
 		TeamName:           conn.TeamName,

@@ -71,6 +71,10 @@ matching:
 
 custom_profile:
   enable: true
+  profile_encoding:
+    age: 年齢
+    gender: 性別
+    personality: 性格
   profiles:
     - name: ミナト
       avatar_url: https://aiwolfdial.github.io/aiwolf-nlp-viewer/images/male/01.png

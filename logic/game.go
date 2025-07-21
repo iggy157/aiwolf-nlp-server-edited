@@ -34,15 +34,15 @@ func NewGame(config *model.Config, settings *model.Setting, conns []model.Connec
 	var agents []*model.Agent
 	if config.CustomProfile.Enable {
 		if config.CustomProfile.DynamicProfile.Enable {
-			profiles, err := util.GenerateProfiles(config.CustomProfile.DynamicProfile.Prompt, config.CustomProfile.DynamicProfile.Avatars, config.Game.AgentCount, config.CustomProfile.DynamicProfile.Attempts)
+			profiles, err := util.GenerateProfiles(config.CustomProfile.DynamicProfile, config.Game.AgentCount)
 			if err != nil {
 				slog.Error("プロフィールの生成に失敗したため、カスタムプロフィールを使用します", "error", err)
-				agents = util.CreateAgentsWithProfiles(conns, settings.RoleNumMap, config.CustomProfile.Profiles)
+				agents = util.CreateAgentsWithProfiles(conns, settings.RoleNumMap, config.CustomProfile.Profiles, config.CustomProfile.ProfileEncoding)
 			} else {
-				agents = util.CreateAgentsWithProfiles(conns, settings.RoleNumMap, profiles)
+				agents = util.CreateAgentsWithProfiles(conns, settings.RoleNumMap, profiles, config.CustomProfile.ProfileEncoding)
 			}
 		} else {
-			agents = util.CreateAgentsWithProfiles(conns, settings.RoleNumMap, config.CustomProfile.Profiles)
+			agents = util.CreateAgentsWithProfiles(conns, settings.RoleNumMap, config.CustomProfile.Profiles, config.CustomProfile.ProfileEncoding)
 		}
 	} else {
 		agents = util.CreateAgents(conns, settings.RoleNumMap)
@@ -74,12 +74,12 @@ func NewGameWithRole(config *model.Config, settings *model.Setting, roleMapConns
 			profiles, err := util.GenerateProfiles(config.CustomProfile.DynamicProfile.Prompt, config.CustomProfile.DynamicProfile.Avatars, config.Game.AgentCount, config.CustomProfile.DynamicProfile.Attempts)
 			if err != nil {
 				slog.Error("プロフィールの生成に失敗したため、カスタムプロフィールを使用します", "error", err)
-				agents = util.CreateAgentsWithRoleAndProfile(roleMapConns, config.CustomProfile.Profiles)
+				agents = util.CreateAgentsWithRoleAndProfile(roleMapConns, config.CustomProfile.Profiles, config.CustomProfile.ProfileEncoding)
 			} else {
-				agents = util.CreateAgentsWithRoleAndProfile(roleMapConns, profiles)
+				agents = util.CreateAgentsWithRoleAndProfile(roleMapConns, profiles, config.CustomProfile.ProfileEncoding)
 			}
 		} else {
-			agents = util.CreateAgentsWithRoleAndProfile(roleMapConns, config.CustomProfile.Profiles)
+			agents = util.CreateAgentsWithRoleAndProfile(roleMapConns, config.CustomProfile.Profiles, config.CustomProfile.ProfileEncoding)
 		}
 	} else {
 		agents = util.CreateAgentsWithRole(roleMapConns)

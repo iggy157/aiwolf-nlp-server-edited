@@ -91,23 +91,25 @@ type MatchingConfig struct {
 }
 
 type CustomProfileConfig struct {
-	Enable         bool      `yaml:"enable"`
-	Profiles       []Profile `yaml:"profiles"`
-	DynamicProfile struct {
-		Enable   bool     `yaml:"enable"`
-		Prompt   string   `yaml:"prompt"`
-		Attempts int      `yaml:"attempts"`
-		Avatars  []string `yaml:"avatars"`
-	} `yaml:"dynamic_profile"`
+	Enable          bool                 `yaml:"enable"`
+	ProfileEncoding map[string]string    `yaml:"profile_encoding"`
+	Profiles        []Profile            `yaml:"profiles"`
+	DynamicProfile  DynamicProfileConfig `yaml:"dynamic_profile"`
 }
 
 type Profile struct {
-	Name        string `yaml:"name"`
-	AvatarURL   string `yaml:"avatar_url"`
-	VoiceID     int    `yaml:"voice_id"`
-	Age         int    `yaml:"age"`
-	Gender      string `yaml:"gender"`
-	Personality string `yaml:"personality"`
+	Name      string            `yaml:"name"`
+	AvatarURL string            `yaml:"avatar_url"`
+	VoiceID   int               `yaml:"voice_id"`
+	Arguments map[string]string `yaml:",inline"`
+}
+
+type DynamicProfileConfig struct {
+	Enable   bool     `yaml:"enable"`
+	Prompt   string   `yaml:"prompt"`
+	Attempts int      `yaml:"attempts"`
+	Model    string   `yaml:"model"` //gpt-4o-mini
+	Avatars  []string `yaml:"avatars"`
 }
 
 type JSONLoggerConfig struct {
