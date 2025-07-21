@@ -110,14 +110,15 @@ The total number of roles should match the sum of all the keys.
 
 - `enable`: Whether to enable custom profiles.
   - Generally, it should be set to `true`.
+- `profile_encoding`: Items to be encoded in custom profiles or dynamic profiles.
 
 ### profiles (Custom Profiles for Each Agent)
 
 - `name`: The name of the agent.
 - `avatar_url`: The URL of the agent's avatar image.
-- `age`: The age of the agent.
-- `gender`: The gender of the agent.
-- `personality`: The personality of the agent.
+- `age`: The age of the agent (optional).
+- `gender`: The gender of the agent (optional).
+- `personality`: The personality of the agent (optional).
 
 ### dynamic_profile (Dynamic Profile Settings)
 
@@ -126,6 +127,8 @@ The total number of roles should match the sum of all the keys.
   - In actual use, to simulate a more realistic environment, it should be set to `true`, where dynamic profiles are generated using ChatGPT instead of custom profiles prepared in advance.
 - `prompt`: The prompt used for generating the profile.
 - `attempts`: The number of attempts to generate the profile.
+- `model`: The model used for profile generation.
+- `max_tokens`: The maximum number of tokens for profile generation.
 - `avatars`: The URLs of the avatars used for generating the profile.
 
 ## json_logger (JSON Logger Settings)
