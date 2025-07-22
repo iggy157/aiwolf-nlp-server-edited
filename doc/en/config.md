@@ -12,15 +12,15 @@
 ### web_socket (WebSocket Settings)
 
 - `host`: The hostname of the WebSocket server.
-  - For connecting within the same machine, set it to `127.0.0.1`.
-  - For connecting from a local or external machine, set it to `0.0.0.0`.
+  For connecting within the same machine, set it to `127.0.0.1`.
+  For connecting from a local or external machine, set it to `0.0.0.0`.
 - `port`: The port number for the WebSocket server.
-  - It generally does not need to be changed.
+  It generally does not need to be changed.
 
 ### authentication (Authentication Settings)
 
 - `enable`: Whether to enable connection authentication via tokens.
-  - Typically, it should be set to `false`.
+  Typically, it should be set to `false`.
 
 ### timeout (Timeout Settings)
 
@@ -33,7 +33,7 @@
 ## game (Game Settings)
 
 - `agent_count`: The number of agents per game.
-  - For a 5-player game, set it to `5`, and for a 13-player game, set it to `13`.
+  For a 5-player game, set it to `5`, and for a 13-player game, set it to `13`.
 - `max_day`: The maximum number of days in the game. If there is no limit, set it to `-1`.
 - `vote_visibility`: Whether to reveal the results of votes.
 
@@ -97,19 +97,19 @@ The total number of roles should match the sum of all the keys.
 ## matching (Matching Settings)
 
 - `self_match`: Whether to match agents with the same team name only.
-  - Generally, it should be set to `true`.
+  Generally, it should be set to `true`.
 - `is_optimize`: Whether to enable optimized matching when `self_match` is `false`.
-  - Generally, it should be set to `false`.
+  Generally, it should be set to `false`.
 - `team_count`: The number of participating teams. (Only applies when `is_optimize` is `true`).
 - `game_count`: The total number of games. (Only applies when `is_optimize` is `true`).
 - `output_path`: The output file path for the match history. (Only applies when `is_optimize` is `true`).
 - `infinite_loop`: Whether to add more games after all combinations of matching have been completed. (Only applies when `is_optimize` is `true`).
-  - Generally, it should be set to `false`.
+  Generally, it should be set to `false`.
 
 ## custom_profile (Custom Profile Settings)
 
 - `enable`: Whether to enable custom profiles.
-  - Generally, it should be set to `true`.
+  Generally, it should be set to `true`.
 - `profile_encoding`: Items to be encoded in custom profiles or dynamic profiles.
 
 ### profiles (Custom Profiles for Each Agent)
@@ -123,8 +123,8 @@ The total number of roles should match the sum of all the keys.
 ### dynamic_profile (Dynamic Profile Settings)
 
 - `enable`: Whether to enable dynamic profiles.
-  - For debugging purposes, it can be set to `false`.
-  - In actual use, to simulate a more realistic environment, it should be set to `true`, where dynamic profiles are generated using ChatGPT instead of custom profiles prepared in advance.
+  For debugging purposes, it can be set to `false`.
+  In actual use, to simulate a more realistic environment, it should be set to `true`, where dynamic profiles are generated using ChatGPT instead of custom profiles prepared in advance.
 - `prompt`: The prompt used for generating the profile.
 - `attempts`: The number of attempts to generate the profile.
 - `model`: The model used for profile generation.
@@ -136,14 +136,14 @@ The total number of roles should match the sum of all the keys.
 - `enable`: Whether to enable output of JSON logs.
 - `output_dir`: The directory to output JSON logs.
 - `filename`: The filename for the JSON logs.
-  - No extension is needed. `{game_id}` will be replaced with the game ID, `{timestamp}` with the timestamp, and `{teams}` with the team names.
+  No extension is needed. `{game_id}` will be replaced with the game ID, `{timestamp}` with the timestamp, and `{teams}` with the team names.
 
 ## game_logger (Game Logger Settings)
 
 - `enable`: Whether to enable output of game logs.
 - `output_dir`: The directory to output game logs.
 - `filename`: The filename for the game logs.
-  - No extension is needed. `{game_id}` will be replaced with the game ID, `{timestamp}` with the timestamp, and `{teams}` with the team names.
+  No extension is needed. `{game_id}` will be replaced with the game ID, `{timestamp}` with the timestamp, and `{teams}` with the team names.
 
 > [!NOTE]
 > The json_logger records communication between the server and agents in JSON format, while the game_logger records the progress of the game.\
@@ -154,8 +154,9 @@ The total number of roles should match the sum of all the keys.
 - `enable`: Whether to enable the real-time broadcaster.
 - `delay`: The delay time for packet transmission (used for adjusting TTS broadcaster lag).
 - `output_dir`: The directory for real-time broadcast logs.
+  Please be aware that all files in this directory will be made public.
 - `filename`: The filename for the real-time broadcast logs.
-  - No extension is needed. `{game_id}` will be replaced with the game ID, `{timestamp}` with the timestamp, and `{teams}` with the team names.
+  No extension is needed. `{game_id}` will be replaced with the game ID, `{timestamp}` with the timestamp, and `{teams}` with the team names.
 
 > [!NOTE]
 > The real-time broadcaster is a feature for broadcasting the progress of the game in real-time.\
@@ -176,9 +177,9 @@ During the game server's operation, the VOICEVOX server must always be running.
 - `async`: Whether to enable asynchronous processing for generation.
 - `target_duration`: The length of one segment.
 - `segment_dir`: The directory for outputting segments.
-  - Please be aware that all files in this directory will be made public.
+  Please be aware that all files in this directory will be made public.
 - `temp_dir`: The directory for temporary files.
-  - If left blank, the OS-dependent temporary directory will be used.
+  If left blank, the OS-dependent temporary directory will be used.
 - `host`: The hostname of the VOICEVOX server.
 - `timeout`: The timeout duration for VOICEVOX generation.
 - `ffmpeg_path`: The path to ffmpeg.
