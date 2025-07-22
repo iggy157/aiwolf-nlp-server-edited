@@ -158,9 +158,7 @@ func (t *TTSBroadcaster) broadcastTextAsync(id string, text string, speaker int)
 		return
 	}
 
-	// atomic操作でストリーミング状態を設定
 	atomic.StoreInt32(&stream.isStreaming, 1)
-
 	go func() {
 		defer func() {
 			atomic.StoreInt32(&stream.isStreaming, 0)
@@ -188,7 +186,6 @@ func (t *TTSBroadcaster) broadcastText(id string, text string, speaker int) {
 		return
 	}
 
-	// atomic操作でストリーミング状態を設定
 	atomic.StoreInt32(&stream.isStreaming, 1)
 	defer func() {
 		atomic.StoreInt32(&stream.isStreaming, 0)
@@ -274,7 +271,6 @@ func (t *TTSBroadcaster) synthesizeAndProcessAudio(ctx context.Context, queryPar
 		return 0, fmt.Errorf("合成データ読み取りに失敗しました: %w", err)
 	}
 
-	// atomic操作でセグメントカウンターを増加
 	counter := atomic.AddInt64(&stream.segmentCounter, 1)
 	baseName := fmt.Sprintf("segment_%d", counter-1)
 

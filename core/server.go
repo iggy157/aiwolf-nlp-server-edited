@@ -60,11 +60,11 @@ func NewServer(config model.Config) (*Server, error) {
 	if config.GameLogger.Enable {
 		server.gameLogger = service.NewGameLogger(config)
 	}
-	if config.RealtimeBroadcaster.Enable {
-		server.realtimeBroadcaster = service.NewRealtimeBroadcaster(config)
-	}
 	if config.TTSBroadcaster.Enable {
 		server.ttsBroadcaster = service.NewTTSBroadcaster(config)
+	}
+	if config.RealtimeBroadcaster.Enable {
+		server.realtimeBroadcaster = service.NewRealtimeBroadcaster(config)
 	}
 	if config.Matching.IsOptimize {
 		matchOptimizer, err := NewMatchOptimizer(config)
@@ -98,9 +98,11 @@ func (s *Server) Run() {
 	})
 
 	if s.config.RealtimeBroadcaster.Enable {
-		router.GET("/realtime", func(c *gin.Context) {
-			s.realtimeBroadcaster.HandleConnections(c.Writer, c.Request)
-		})
+		realtimeGroup := router.Group("/realtime")
+		if s.config.Server.Authentication.Enable {
+			realtimeGroup.Use(s.verifyMiddleware())
+		}
+		realtimeGroup.Static("/", s.config.RealtimeBroadcaster.OutputDir)
 	}
 
 	if s.config.TTSBroadcaster.Enable {
@@ -228,4 +230,22 @@ func (s *Server) handleConnections(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}()
+}
+
+func (s *Server) verifyMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		token := c.Query("token")
+		if token == "" {
+			token = strings.ReplaceAll(c.GetHeader("Authorization"), "Bearer ", "")
+		}
+		if token == "" {
+			c.AbortWithStatus(http.StatusUnauthorized)
+			return
+		}
+		if !util.IsValidReceiver(os.Getenv("SECRET_KEY"), token) {
+			c.AbortWithStatus(http.StatusUnauthorized)
+			return
+		}
+		c.Next()
+	}
 }
