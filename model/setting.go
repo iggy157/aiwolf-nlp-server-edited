@@ -63,6 +63,13 @@ func NewSetting(config Config) (*Setting, error) {
 			}
 		}
 	}
+	if config.GameConfig.Talk.MaxLength.CountInWord && config.GameConfig.Talk.MaxLength.CountSpaces{
+		return nil, errors.New("[Talk] CountInWordとCountSpacesを両方有効にすることはできません")
+	}
+	if config.GameConfig.Whisper.MaxLength.CountInWord && config.GameConfig.Whisper.MaxLength.CountSpaces{
+		return nil, errors.New("[Whisper] CountInWordとCountSpacesを両方有効にすることはできません")
+	}
+
 	setting := Setting{
 		AgentCount:     config.Game.AgentCount,
 		RoleNumMap:     roles,
