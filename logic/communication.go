@@ -94,13 +94,16 @@ func (g *Game) conductCommunication(request model.Request) {
 			}
 
 			if text != model.T_OVER && text != model.T_SKIP && text != model.T_FORCE_SKIP {
+				mention := ""
+				commonText := ""
+				mentionText := ""
+				
 				if talkSetting.MaxLength.PerAgent != nil || talkSetting.MaxLength.BaseLength != nil {
 					baseLength := 0
 					if talkSetting.MaxLength.BaseLength != nil {
 						baseLength = *talkSetting.MaxLength.BaseLength
 					}
 
-					mention := ""
 					mentionIdx := -1
 					if talkSetting.MaxLength.MentionLength != nil {
 						for _, a := range g.agents {
@@ -127,7 +130,9 @@ func (g *Game) conductCommunication(request model.Request) {
 						mentionBefore := text[:mentionIdx]
 						mentionAfter := text[mentionIdx+len(mention):]
 
-						text = util.TrimLength(mentionBefore, remainLength, *talkSetting.MaxLength.CountInWord)
+						mention = " " + mention + " "
+
+						commonText = util.TrimLength(mentionBefore, remainLength, *talkSetting.MaxLength.CountInWord)
 						cost := util.CountLength(mentionBefore, *talkSetting.MaxLength.CountInWord) - baseLength
 						if cost > 0 {
 							if _, exists := remainLengthMap[*agent]; exists {
@@ -135,27 +140,23 @@ func (g *Game) conductCommunication(request model.Request) {
 							}
 						}
 
-						text += mention
-
 						remainLength = *talkSetting.MaxLength.MentionLength
 						if value, exists := remainLengthMap[*agent]; exists {
 							remainLength += value
 						}
-						mentionText := util.TrimLength(mentionAfter, remainLength, *talkSetting.MaxLength.CountInWord)
+						mentionText = util.TrimLength(mentionAfter, remainLength, *talkSetting.MaxLength.CountInWord)
 						mentionCost := util.CountLength(mentionText, *talkSetting.MaxLength.CountInWord) - *talkSetting.MaxLength.MentionLength
 						if mentionCost > 0 {
 							if _, exists := remainLengthMap[*agent]; exists {
 								remainLengthMap[*agent] -= mentionCost
 							}
 						}
-
-						text += mentionText
 					} else {
 						remainLength := baseLength
 						if value, exists := remainLengthMap[*agent]; exists {
 							remainLength += value
 						}
-						text = util.TrimLength(text, remainLength, *talkSetting.MaxLength.CountInWord)
+						commonText = util.TrimLength(text, remainLength, *talkSetting.MaxLength.CountInWord)
 						cost := util.CountLength(text, *talkSetting.MaxLength.CountInWord) - baseLength
 						if cost > 0 {
 							if _, exists := remainLengthMap[*agent]; exists {
@@ -165,12 +166,22 @@ func (g *Game) conductCommunication(request model.Request) {
 					}
 				}
 				if talkSetting.MaxLength.PerTalk != nil {
-					length := util.CountLength(text, *talkSetting.MaxLength.CountInWord)
-					if length > *talkSetting.MaxLength.PerTalk {
-						text = util.TrimLength(text, *talkSetting.MaxLength.PerTalk, *talkSetting.MaxLength.CountInWord)
+					commonLength := util.CountLength(commonText, *talkSetting.MaxLength.CountInWord)
+					mentionLength := util.CountLength(mentionText, *talkSetting.MaxLength.CountInWord)
+					totalLength := commonLength + mentionLength
+
+					if totalLength > *talkSetting.MaxLength.PerTalk {
+						if commonLength > *talkSetting.MaxLength.PerTalk{
+							commonText = util.TrimLength(commonText, *talkSetting.MaxLength.PerTalk, *talkSetting.MaxLength.CountInWord)
+							mention = ""
+							mentionText = ""
+						} else {
+							mentionText = util.TrimLength(mentionText, *talkSetting.MaxLength.PerTalk - commonLength, *talkSetting.MaxLength.CountInWord)
+						}
 						slog.Warn("発言が最大文字数を超えたため、切り捨てました", "id", g.id, "agent", agent.String())
 					}
 				}
+				text = commonText + mention + mentionText
 				if utf8.RuneCountInString(text) == 0 {
 					text = model.T_OVER
 					slog.Warn("文字数が0のため、発言をオーバーに置換しました", "id", g.id, "agent", agent.String())
