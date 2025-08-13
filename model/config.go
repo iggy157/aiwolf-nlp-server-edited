@@ -60,6 +60,7 @@ type TalkConfig struct {
 	} `yaml:"max_count"`
 	MaxLength struct {
 		CountInWord   bool `yaml:"count_in_word"`
+		CountSpaces   bool `yaml:"count_spaces"`
 		PerTalk       int  `yaml:"per_talk"`
 		MentionLength int  `yaml:"mention_length"`
 		PerAgent      int  `yaml:"per_agent"`

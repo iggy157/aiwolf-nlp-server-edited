@@ -38,6 +38,7 @@ type TalkSetting struct {
 	} `json:"max_count"`
 	MaxLength struct {
 		CountInWord   *bool `json:"count_in_word,omitempty"`
+		CountSpaces   *bool `json:"count_spaces,omitempty"`
 		PerTalk       *int  `json:"per_talk,omitempty"`
 		MentionLength *int  `json:"mention_length,omitempty"`
 		PerAgent      *int  `json:"per_agent,omitempty"`
@@ -79,6 +80,7 @@ func NewSetting(config Config) (*Setting, error) {
 				},
 				MaxLength: struct {
 					CountInWord   *bool `json:"count_in_word,omitempty"`
+					CountSpaces   *bool `json:"count_spaces,omitempty"`
 					PerTalk       *int  `json:"per_talk,omitempty"`
 					MentionLength *int  `json:"mention_length,omitempty"`
 					PerAgent      *int  `json:"per_agent,omitempty"`
@@ -100,6 +102,7 @@ func NewSetting(config Config) (*Setting, error) {
 				},
 				MaxLength: struct {
 					CountInWord   *bool `json:"count_in_word,omitempty"`
+					CountSpaces   *bool `json:"count_spaces,omitempty"`
 					PerTalk       *int  `json:"per_talk,omitempty"`
 					MentionLength *int  `json:"mention_length,omitempty"`
 					PerAgent      *int  `json:"per_agent,omitempty"`
@@ -137,29 +140,35 @@ func NewSetting(config Config) (*Setting, error) {
 	}
 	if config.Game.Talk.MaxLength.PerTalk != -1 {
 		setting.Talk.MaxLength.CountInWord = &config.Game.Talk.MaxLength.CountInWord
+		setting.Talk.MaxLength.CountSpaces = &config.Game.Talk.MaxLength.CountSpaces
 		setting.Talk.MaxLength.PerTalk = &config.Game.Talk.MaxLength.PerTalk
 	}
 	if config.Game.Talk.MaxLength.PerAgent != -1 {
 		setting.Talk.MaxLength.CountInWord = &config.Game.Talk.MaxLength.CountInWord
+		setting.Talk.MaxLength.CountSpaces = &config.Game.Talk.MaxLength.CountSpaces
 		setting.Talk.MaxLength.PerAgent = &config.Game.Talk.MaxLength.PerAgent
 		setting.Talk.MaxLength.MentionLength = &config.Game.Talk.MaxLength.MentionLength
 	}
 	if config.Game.Talk.MaxLength.BaseLength != -1 {
 		setting.Talk.MaxLength.CountInWord = &config.Game.Talk.MaxLength.CountInWord
+		setting.Talk.MaxLength.CountSpaces = &config.Game.Talk.MaxLength.CountSpaces
 		setting.Talk.MaxLength.BaseLength = &config.Game.Talk.MaxLength.BaseLength
 		setting.Talk.MaxLength.MentionLength = &config.Game.Talk.MaxLength.MentionLength
 	}
 	if config.Game.Whisper.MaxLength.PerTalk != -1 {
 		setting.Whisper.MaxLength.CountInWord = &config.Game.Whisper.MaxLength.CountInWord
+		setting.Whisper.MaxLength.CountSpaces = &config.Game.Whisper.MaxLength.CountSpaces
 		setting.Whisper.MaxLength.PerTalk = &config.Game.Whisper.MaxLength.PerTalk
 	}
 	if config.Game.Whisper.MaxLength.PerAgent != -1 {
 		setting.Whisper.MaxLength.CountInWord = &config.Game.Whisper.MaxLength.CountInWord
+		setting.Whisper.MaxLength.CountSpaces = &config.Game.Whisper.MaxLength.CountSpaces
 		setting.Whisper.MaxLength.PerAgent = &config.Game.Whisper.MaxLength.PerAgent
 		setting.Whisper.MaxLength.MentionLength = &config.Game.Whisper.MaxLength.MentionLength
 	}
 	if config.Game.Whisper.MaxLength.BaseLength != -1 {
 		setting.Whisper.MaxLength.CountInWord = &config.Game.Whisper.MaxLength.CountInWord
+		setting.Whisper.MaxLength.CountSpaces = &config.Game.Whisper.MaxLength.CountSpaces
 		setting.Whisper.MaxLength.BaseLength = &config.Game.Whisper.MaxLength.BaseLength
 		setting.Whisper.MaxLength.MentionLength = &config.Game.Whisper.MaxLength.MentionLength
 	}
