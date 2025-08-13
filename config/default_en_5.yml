@@ -22,7 +22,8 @@ game:
       per_agent: 4
       per_day: 20
     max_length:
-      count_in_word: true
+      count_in_word: false
+      count_spaces: false
       per_talk: -1
       mention_length: -1
       per_agent: -1
@@ -33,7 +34,8 @@ game:
       per_agent: 0
       per_day: 0
     max_length:
-      count_in_word: true
+      count_in_word: false
+      count_spaces: false
       per_talk: -1
       mention_length: -1
       per_agent: -1
