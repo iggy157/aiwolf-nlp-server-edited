@@ -4,6 +4,7 @@ import (
 	"maps"
 	"math/rand/v2"
 	"strings"
+	"unicode"
 	"unicode/utf8"
 
 	"github.com/aiwolfdial/aiwolf-nlp-server/model"
@@ -154,23 +155,63 @@ func GetRoleTeamNamesMap(agents []*model.Agent) map[model.Role][]string {
 	return roleTeamNamesMap
 }
 
-func CountLength(text string, inWord bool) int {
+func CountLength(text string, inWord bool, countSpaces bool) int {
 	if inWord {
 		return len(strings.Fields(text))
 	}
-	return utf8.RuneCountInString(text)
+	if countSpaces {
+		return utf8.RuneCountInString(text)
+	}
+
+	words := strings.Fields(text)
+	return utf8.RuneCountInString(strings.Join(words, ""))
 }
 
-func TrimLength(text string, length int, inWord bool) string {
+func TrimLength(text string, length int, inWord bool, countSpaces bool) string {
 	if inWord {
-		words := strings.Fields(text)
-		if len(words) > length {
-			return strings.Join(words[:length], " ")
-		}
+		return trimByWords(text, length)
+	}
+	
+	currentLength := CountLength(text, inWord, countSpaces)
+	if currentLength <= length {
 		return text
 	}
-	if utf8.RuneCountInString(text) > length {
-		return string([]rune(text)[:length])
+	
+	if countSpaces {
+		return trimByRunes(text, length)
 	}
+	
+	return trimByNonSpaceCount(text, length)
+}
+
+func trimByWords(text string, maxWords int) string {
+	words := strings.Fields(text)
+	if len(words) <= maxWords {
+		return text
+	}
+	return strings.Join(words[:maxWords], " ")
+}
+
+func trimByRunes(text string, maxRunes int) string {
+	runes := []rune(text)
+	if len(runes) <= maxRunes {
+		return text
+	}
+	return string(runes[:maxRunes])
+}
+
+func trimByNonSpaceCount(text string, maxNonSpaceChars int) string {
+	runes := []rune(text)
+	nonSpaceCount := 0
+	
+	for i, r := range runes {
+		if !unicode.IsSpace(r) {
+			nonSpaceCount++
+			if nonSpaceCount == maxNonSpaceChars {
+				return string(runes[:i+1])
+			}
+		}
+	}
+	
 	return text
 }
