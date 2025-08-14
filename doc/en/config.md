@@ -47,6 +47,7 @@
 #### max_length (Speech Length Limit Settings)
 
 - `count_in_word`: Whether to count by the number of words.
+- `count_spaces`: Whether to include spaces when counting characters.
 - `per_talk`: The maximum number of characters per speech. If there is no limit, set it to `-1`.
 - `mention_length`: Additional characters when including mentions in a speech.
 - `per_agent`: The maximum number of characters a single agent can speak in a day. If there is no limit, set it to `-1`.

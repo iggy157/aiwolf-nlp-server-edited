@@ -187,6 +187,7 @@ The structure that contains the game settings.
 - talk.max.count.per_agent (int): Maximum number of speeches per agent per day.
 - talk.max.count.per_day (int): Maximum number of speeches for all agents per day.
 - talk.max.length.count_in_word (bool | None): Whether to count by word count. If not set, it is None.
+- talk.max_length.count_spaces (bool | None): Whether to include spaces when counting characters. None if not set.
 - talk.max.length.per_talk (int | None): Maximum number of characters per talk. If no limit, set to None.
 - talk.max.length.mention_length (int | None): Additional character count when mentioning another agent in a talk. If no limit, set to None.
 - talk.max.length.per_agent (int | None): Maximum number of characters per agent per day. If no limit, set to None.
@@ -195,6 +196,7 @@ The structure that contains the game settings.
 - whisper.max.count.per_agent (int): Maximum number of whispers per agent per day.
 - whisper.max.count.per_day (int): Maximum number of whispers for all agents per day.
 - whisper.max.length.count_in_word (bool | None): Whether to count by word count. If not set, it is None.
+- whisper.max_length.count_spaces (bool | None): Whether to include spaces when counting characters. None if not set.
 - whisper.max.length.per_talk (int | None): Maximum number of characters per whisper. If no limit, set to None.
 - whisper.max.length.mention_length (int | None): Additional character count when mentioning another agent in a whisper. If no limit, set to None.
 - whisper.max.length.per_agent (int | None): Maximum number of characters per agent per day in whispers. If no limit, set to None.
