@@ -21,10 +21,10 @@
 ### Linux
 
 ```bash
-curl -LO https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/aiwolf-nlp-server-linux-amd64
-curl -LO https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/default_5.yml
-curl -LO https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/default_13.yml
-curl -Lo .env https://github.com/aiwolfdial/aiwolf-nlp-server/releases/latest/download/example.env
+curl -LO https://github.com/iggy/aiwolf-nlp-server-edited/releases/latest/download/aiwolf-nlp-server-linux-amd64
+curl -LO https://github.com/iggy/aiwolf-nlp-server-edited/releases/latest/download/default_5.yml
+curl -LO https://github.com/iggy/aiwolf-nlp-server-edited/releases/latest/download/default_13.yml
+curl -Lo .env https://github.com/iggy/aiwolf-nlp-server-edited/releases/latest/download/example.env
 chmod u+x ./aiwolf-nlp-server-linux-amd64
 ./aiwolf-nlp-server-linux-amd64 -c ./default_5.yml # 5人ゲームの場合
 # ./aiwolf-nlp-server-linux-amd64 -c ./default_13.yml # 13人ゲームの場合
