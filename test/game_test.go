@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/aiwolfdial/aiwolf-nlp-server/model"
+	"github.com/iggy157/aiwolf-nlp-server-edited-edited/model"
 )
 
 func TestFull5Game(t *testing.T) {

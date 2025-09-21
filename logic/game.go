@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/aiwolfdial/aiwolf-nlp-server/model"
-	"github.com/aiwolfdial/aiwolf-nlp-server/service"
-	"github.com/aiwolfdial/aiwolf-nlp-server/util"
+	"github.com/iggy157/aiwolf-nlp-server-edited-edited/model"
+	"github.com/iggy157/aiwolf-nlp-server-edited-edited/service"
+	"github.com/iggy157/aiwolf-nlp-server-edited-edited/util"
 	"github.com/oklog/ulid/v2"
 )
 

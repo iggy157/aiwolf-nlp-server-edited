@@ -13,10 +13,10 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/aiwolfdial/aiwolf-nlp-server/logic"
-	"github.com/aiwolfdial/aiwolf-nlp-server/model"
-	"github.com/aiwolfdial/aiwolf-nlp-server/service"
-	"github.com/aiwolfdial/aiwolf-nlp-server/util"
+	"github.com/iggy157/aiwolf-nlp-server-edited/logic"
+	"github.com/iggy157/aiwolf-nlp-server-edited/model"
+	"github.com/iggy157/aiwolf-nlp-server-edited/service"
+	"github.com/iggy157/aiwolf-nlp-server-edited/util"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 )
@@ -79,7 +79,7 @@ func NewServer(config model.Config) (*Server, error) {
 func (s *Server) Run() {
 	router := gin.Default()
 	router.Use(func(c *gin.Context) {
-		c.Header("Server", "aiwolf-nlp-server/"+Version.Version+" "+runtime.Version()+" ("+runtime.GOOS+"; "+runtime.GOARCH+")")
+		c.Header("Server", "aiwolf-nlp-server-edited/"+Version.Version+" "+runtime.Version()+" ("+runtime.GOOS+"; "+runtime.GOARCH+")")
 
 		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")

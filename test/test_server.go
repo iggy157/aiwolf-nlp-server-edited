@@ -10,8 +10,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aiwolfdial/aiwolf-nlp-server/core"
-	"github.com/aiwolfdial/aiwolf-nlp-server/model"
+	"github.com/iggy157/aiwolf-nlp-server-edited-edited/core"
+	"github.com/iggy157/aiwolf-nlp-server-edited-edited/model"
 )
 
 const WebSocketExternalHost = "0.0.0.0"

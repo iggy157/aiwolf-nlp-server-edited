@@ -4,7 +4,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/aiwolfdial/aiwolf-nlp-server/model"
+	"github.com/iggy157/aiwolf-nlp-server-edited-edited/model"
 )
 
 func TestAttackPhase1(t *testing.T) {

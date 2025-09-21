@@ -7,7 +7,7 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/aiwolfdial/aiwolf-nlp-server/model"
+	"github.com/iggy157/aiwolf-nlp-server-edited-edited/model"
 )
 
 func CountAliveTeams(statusMap map[model.Agent]model.Status) (int, int) {

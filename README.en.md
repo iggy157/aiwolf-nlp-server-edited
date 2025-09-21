@@ -1,4 +1,4 @@
-# aiwolf-nlp-server
+# aiwolf-nlp-server-edited
 
 [README in Japanese](/README.md)
 
@@ -21,10 +21,10 @@ For information on how to modify the configuration file, please refer to [Config
 ### Linux
 
 ```bash
-curl -LO https://github.com/iggy157/aiwolf-nlp-server-edited/releases/latest/download/aiwolf-nlp-server-edited-linux-amd64
-curl -LO https://github.com/iggy157/aiwolf-nlp-server-edited/releases/latest/download/default_5.yml
-curl -LO https://github.com/iggy157/aiwolf-nlp-server-edited/releases/latest/download/default_13.yml
-curl -Lo .env https://github.com/iggy157/aiwolf-nlp-server-edited/releases/latest/download/example.env
+curl -LO https://github.com/iggy157/aiwolf-nlp-server-edited-edited/releases/latest/download/aiwolf-nlp-server-edited-linux-amd64
+curl -LO https://github.com/iggy157/aiwolf-nlp-server-edited-edited/releases/latest/download/default_5.yml
+curl -LO https://github.com/iggy157/aiwolf-nlp-server-edited-edited/releases/latest/download/default_13.yml
+curl -Lo .env https://github.com/iggy157/aiwolf-nlp-server-edited-edited/releases/latest/download/example.env
 chmod u+x ./aiwolf-nlp-server-edited-linux-amd64
 ./aiwolf-nlp-server-edited-linux-amd64 -c ./default_5.yml # For 5-player games
 # ./aiwolf-nlp-server-edited-linux-amd64 -c ./default_13.yml # For 13-player games
@@ -33,12 +33,12 @@ chmod u+x ./aiwolf-nlp-server-edited-linux-amd64
 ### Windows
 
 ```bash
-curl -LO https://github.com/iggy/aiwolf-nlp-server/releases/latest/download/aiwolf-nlp-server-windows-amd64.exe
-curl -LO https://github.com/iggy/aiwolf-nlp-server/releases/latest/download/default_5.yml
-curl -LO https://github.com/iggy/aiwolf-nlp-server/releases/latest/download/default_13.yml
-curl -Lo .env https://github.com/iggy/aiwolf-nlp-server/releases/latest/download/example.env
-.\aiwolf-nlp-server-windows-amd64.exe -c .\default_5.yml # For 5-player games
-# .\aiwolf-nlp-server-windows-amd64.exe -c .\default_13.yml # For 13-player games
+curl -LO https://github.com/iggy/aiwolf-nlp-server-edited/releases/latest/download/aiwolf-nlp-server-edited-windows-amd64.exe
+curl -LO https://github.com/iggy/aiwolf-nlp-server-edited/releases/latest/download/default_5.yml
+curl -LO https://github.com/iggy/aiwolf-nlp-server-edited/releases/latest/download/default_13.yml
+curl -Lo .env https://github.com/iggy/aiwolf-nlp-server-edited/releases/latest/download/example.env
+.\aiwolf-nlp-server-edited-windows-amd64.exe -c .\default_5.yml # For 5-player games
+# .\aiwolf-nlp-server-edited-windows-amd64.exe -c .\default_13.yml # For 13-player games
 ```
 
 ### macOS (Intel)
@@ -49,13 +49,13 @@ curl -Lo .env https://github.com/iggy/aiwolf-nlp-server/releases/latest/download
 > <https://support.apple.com/guide/mac-help/mh40616/mac>
 
 ```bash
-curl -LO https://github.com/iggy/aiwolf-nlp-server/releases/latest/download/aiwolf-nlp-server-darwin-amd64
-curl -LO https://github.com/iggy/aiwolf-nlp-server/releases/latest/download/default_5.yml
-curl -LO https://github.com/iggy/aiwolf-nlp-server/releases/latest/download/default_13.yml
-curl -Lo .env https://github.com/iggy/aiwolf-nlp-server/releases/latest/download/example.env
-chmod u+x ./aiwolf-nlp-server-darwin-amd64
-./aiwolf-nlp-server-darwin-amd64 -c ./default_5.yml # For 5-player games
-# ./aiwolf-nlp-server-darwin-amd64 -c ./default_13.yml # For 13-player games
+curl -LO https://github.com/iggy/aiwolf-nlp-server-edited/releases/latest/download/aiwolf-nlp-server-edited-darwin-amd64
+curl -LO https://github.com/iggy/aiwolf-nlp-server-edited/releases/latest/download/default_5.yml
+curl -LO https://github.com/iggy/aiwolf-nlp-server-edited/releases/latest/download/default_13.yml
+curl -Lo .env https://github.com/iggy/aiwolf-nlp-server-edited/releases/latest/download/example.env
+chmod u+x ./aiwolf-nlp-server-edited-darwin-amd64
+./aiwolf-nlp-server-edited-darwin-amd64 -c ./default_5.yml # For 5-player games
+# ./aiwolf-nlp-server-edited-darwin-amd64 -c ./default_13.yml # For 13-player games
 ```
 
 ### macOS (Apple Silicon)
@@ -66,11 +66,11 @@ chmod u+x ./aiwolf-nlp-server-darwin-amd64
 > <https://support.apple.com/guide/mac-help/mh40616/mac>
 
 ```bash
-curl -LO https://github.com/iggy/aiwolf-nlp-server/releases/latest/download/aiwolf-nlp-server-darwin-arm64
-curl -LO https://github.com/iggy/aiwolf-nlp-server/releases/latest/download/default_5.yml
-curl -LO https://github.com/iggy/aiwolf-nlp-server/releases/latest/download/default_13.yml
-curl -Lo .env https://github.com/iggy/aiwolf-nlp-server/releases/latest/download/example.env
-chmod u+x ./aiwolf-nlp-server-darwin-arm64
-./aiwolf-nlp-server-darwin-arm64 -c ./default_5.yml # For 5-player games
-# ./aiwolf-nlp-server-darwin-arm64 -c ./default_13.yml # For 13-player games
+curl -LO https://github.com/iggy/aiwolf-nlp-server-edited/releases/latest/download/aiwolf-nlp-server-edited-darwin-arm64
+curl -LO https://github.com/iggy/aiwolf-nlp-server-edited/releases/latest/download/default_5.yml
+curl -LO https://github.com/iggy/aiwolf-nlp-server-edited/releases/latest/download/default_13.yml
+curl -Lo .env https://github.com/iggy/aiwolf-nlp-server-edited/releases/latest/download/example.env
+chmod u+x ./aiwolf-nlp-server-edited-darwin-arm64
+./aiwolf-nlp-server-edited-darwin-arm64 -c ./default_5.yml # For 5-player games
+# ./aiwolf-nlp-server-edited-darwin-arm64 -c ./default_13.yml # For 13-player games
 ```
