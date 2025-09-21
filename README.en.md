@@ -21,10 +21,10 @@ For information on how to modify the configuration file, please refer to [Config
 ### Linux
 
 ```bash
-curl -LO https://github.com/iggy/aiwolf-nlp-server-edited/releases/latest/download/aiwolf-nlp-server-edited-linux-amd64
-curl -LO https://github.com/iggy/aiwolf-nlp-server-edited/releases/latest/download/default_5.yml
-curl -LO https://github.com/iggy/aiwolf-nlp-server-edited/releases/latest/download/default_13.yml
-curl -Lo .env https://github.com/iggy/aiwolf-nlp-server-edited/releases/latest/download/example.env
+curl -LO https://github.com/iggy157/aiwolf-nlp-server-edited/releases/latest/download/aiwolf-nlp-server-edited-linux-amd64
+curl -LO https://github.com/iggy157/aiwolf-nlp-server-edited/releases/latest/download/default_5.yml
+curl -LO https://github.com/iggy157/aiwolf-nlp-server-edited/releases/latest/download/default_13.yml
+curl -Lo .env https://github.com/iggy157/aiwolf-nlp-server-edited/releases/latest/download/example.env
 chmod u+x ./aiwolf-nlp-server-edited-linux-amd64
 ./aiwolf-nlp-server-edited-linux-amd64 -c ./default_5.yml # For 5-player games
 # ./aiwolf-nlp-server-edited-linux-amd64 -c ./default_13.yml # For 13-player games
